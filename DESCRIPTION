@@ -1,12 +1,12 @@
 Package: RMSTpackage
-Type: Package
-Title: Provides Useful Functions for Handling RMST in Survival Analysis
-Version: 0.1.0
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
 Authors@R: 
-    person("Fridtjof", "Harder", , "harder.fridtjof@gmail.com", role = c("aut", "cre"))
-Maintainer: Fridtjof Harder harder <fridtjof@gmail.com>
-Description: Some functions, such as fopr simulation and converting RMST contrast measures
-License: MIT + file LICENSE
+    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: What the package does (one paragraph).
+License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
+    license
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
