@@ -4,7 +4,7 @@
 \alias{convert_contrast}
 \title{Converts contrast to RMSTD or RMSTR}
 \usage{
-convert_contrast(x)
+convert_contrast(HR)
 }
 \arguments{
 \item{HR}{A scalar specifying the hazard ratio}

@@ -7,8 +7,8 @@
 #'
 #' @examples
 #' RMSTD <- convert_contrast(2)
-convert_contrast <- function(x){
+convert_contrast <- function(HR){
   print("this will later allow converting a contrast to RMSTR or RMSTD. For now, it only prints a test number and return a test number, which is double the input")
-  print(2*x)
-  return(2*x)
+  print(2*HR)
+  return(2*HR)
 }
