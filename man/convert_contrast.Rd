@@ -4,16 +4,61 @@
 \alias{convert_contrast}
 \title{Converts contrast to RMSTD or RMSTR}
 \usage{
-convert_contrast(HR)
+convert_contrast(
+  scale_trt = NULL,
+  shape_trt = 1,
+  scale_ctrl = NULL,
+  shape_ctrl = 1,
+  parameterization = 1,
+  HR = NULL,
+  median_diff = NULL,
+  percentile_diff = NULL,
+  percentile = NULL,
+  survival_diff = NULL,
+  output = "RMSTD",
+  tau = NULL,
+  extended_output = F
+)
 }
 \arguments{
-\item{HR}{A scalar specifying the hazard ratio}
+\item{scale_trt}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
+
+\item{shape_trt}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trt} \eqn{=1}, simplifying to exponential survival.}
+
+\item{scale_ctrl}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
+
+\item{shape_ctrl}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.}
+
+\item{parameterization}{One of: \itemize{
+\item \code{parameterization = 1}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
+\item \code{parameterization = 2}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parametrization = 3}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+
+\item{HR}{A scalar specifying a hazard ratio. \code{HR} \eqn{< 1} suggests a lower hazard in the treatment group than in the control group.}
+
+\item{median_diff}{A scalar specifying the difference in time \eqn{\Delta t} at which each group has survival \eqn{S(t) = 0.5}. \code{median_diff} \eqn{> 0} suggests superior survival in the treatment group.}
+
+\item{percentile_diff}{A scalar specifying the difference in time t \eqn{\Delta t} at which each group has the survival \eqn{S(t) =} \code{percentile}.}
+
+\item{percentile}{A scalar specifying at which percentile to evaluate \code{percentile_diff}.}
+
+\item{survival_diff}{A scalar specifying the survival difference in survival \eqn{\Delta S(t)} between treatment and control group.}
+
+\item{output}{A string specifying whether to calculate the difference in RMSTs (\code{"RMSTD"}) or the ratio between RMSTs (\code{"RMSTR"})}
+
+\item{tau}{time horizon at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}}
 }
 \value{
-A scalaer specifying either RMSTD or RMSTR
+A scalar specifying either RMSTD or RMSTR. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.
 }
 \description{
-Converts contrast to RMSTD or RMSTR
+This function returns the RMST difference or RMST ratio.
+}
+\details{
+This is a text providing some details of this function. This is \strong{strong}, this is \bold{bold}.
+\code{code}, \preformatted{preformatted}, \kbd{keyboard-characters}. \samp{samp}
+\verb{verb}, \pkg{package_name}, \env{environment_variable}, \option{option},\command{command_name}
+\dfn{term}, \abbr{abbr}
 }
 \examples{
 RMSTD <- convert_contrast(2)
