@@ -15,6 +15,7 @@ convert_contrast(
   percentile_diff = NULL,
   percentile = NULL,
   survival_diff = NULL,
+  t = NULL,
   output = "RMSTD",
   tau = NULL,
   extended_output = F
@@ -44,12 +45,16 @@ convert_contrast(
 
 \item{survival_diff}{A scalar specifying the survival difference in survival \eqn{\Delta S(t)} between treatment and control group.}
 
-\item{output}{A string specifying whether to calculate the difference in RMSTs (\code{"RMSTD"}) or the ratio between RMSTs (\code{"RMSTR"})}
+\item{t}{A scalar specifying the time \eqn{t} at which to evaluate \code{survival_diff}.}
 
-\item{tau}{time horizon at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}}
+\item{output}{A string specifying whether to calculate the difference in RMSTs (\code{"RMSTD"}) or the ratio between RMSTs (\code{"RMSTR"}).}
+
+\item{tau}{A scalar speifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
+
+\item{extended_output}{}
 }
 \value{
-A scalar specifying either RMSTD or RMSTR. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.
+Returns either the difference (RMSTD) or ratio (RMSTR) in between RMSTs of treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.
 }
 \description{
 This function returns the RMST difference or RMST ratio.
