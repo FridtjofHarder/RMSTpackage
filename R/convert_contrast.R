@@ -2,7 +2,7 @@
 #'
 #' This function returns the RMST difference or RMST ratio.
 #'
-#' This is a text providing some details of this function. This is \strong{strong}, this is \bold{bold}.
+#' Text providing some details of this function. This is \strong{strong}, this is \bold{bold}.
 #'\code{code}, \preformatted{preformatted}, \kbd{keyboard-characters}. \samp{samp}
 #'\verb{verb}, \pkg{package_name}, \env{environment_variable}, \option{option},\command{command_name}
 #'\dfn{term}, \abbr{abbr}
