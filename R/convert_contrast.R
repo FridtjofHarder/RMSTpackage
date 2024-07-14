@@ -23,25 +23,27 @@
 #' @param HR A scalar specifying a hazard ratio. \code{HR} \eqn{< 1} suggests a lower hazard in the treatment group than in the control group.
 #' @param tau A scalar speifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
 #' @param t A scalar specifying the time \eqn{t} at which to evaluate \code{survival_diff}.
-#' @param extended_output
 #'
 #' @return Returns either the difference (RMSTD) or ratio (RMSTR) in between RMSTs of treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.
+#' @import stats
 #' @export
 #'
 #' @examples
 #' RMSTD <- convert_contrast(2)
 convert_contrast <- function(scale_trt = NULL, shape_trt = 1, scale_ctrl = NULL, shape_ctrl = 1,
                              parameterization = 1, HR = NULL, median_diff = NULL, percentile_diff = NULL, percentile = NULL,
-                             survival_diff = NULL, t = NULL, output = "RMSTD", tau = NULL, extended_output = F){
+                             survival_diff = NULL, t = NULL, output = "RMSTD", tau = NULL){
   # convert from HR
 
   # throws errors if inputs are misspecified
-  #stopifnot("error: more than one contrast, or no contrast were specified, or contrast specified as inappropriate data type. Please specify exactly one contrast as a scalar"
-  #          = 1!=sum(is.numeric(HR, median_diff, percentile_diff, survival_diff)))
+  stopifnot("error: more than one contrast, or no contrast were specified, or contrast specified is of inappropriate data type. Please specify exactly one contrast as a scalar"
+            = 1==sum(is.null(HR), is.null(median_diff), is.null(percentile_diff), is.null(survival_diff)))
   stopifnot("output needs to be specified as either 'RMSTD' or 'RMSTR'" = output == "RMSTD"||output == "RMSTR")
   stopifnot("parameterization must be defined as either 1, 2, or 3" = parameterization == 1||parameterization == 2||parameterization == 3)
   stopifnot("please specify exactly one scale parameter" = xor(is.null(scale_trt), is.null(scale_ctrl)))
 
+  # browser() # start browsing
+  browser()
   if(!is.null(scale_trt)&&shape_ctrl!=1 || !is.null(scale_ctrl)&&shape_trt!=1){stop("please specify shape parameter only for the group for which scale has been specified")}
 
   if(shape_trt == 1){
@@ -71,11 +73,11 @@ convert_contrast <- function(scale_trt = NULL, shape_trt = 1, scale_ctrl = NULL,
 
   if(!is.null(median_diff)){
     if(!is.null(scale_trt)){
-      median_time_trt <- -log(0.5)^(1/shape_trt)*scale_trt
+      median_time_trt <- (-log(0.5))^(1/shape_trt)*scale_trt
       median_time_ctrl <- median_time_trt - median_diff
       scale_ctrl <- median_time_ctrl*(-log(0.5))^(-1/shape_ctrl)
       } else{
-      median_time_ctrl <- -log(0.5)^(1/shape_ctrl)*scale_ctrl
+      median_time_ctrl <- (-log(0.5))^(1/shape_ctrl)*scale_ctrl
       median_time_trt <- median_time_ctrl + median_diff
       scale_trt <- median_time_trt*(-log(0.5))^(-1/shape_trt)
       }
@@ -83,11 +85,11 @@ convert_contrast <- function(scale_trt = NULL, shape_trt = 1, scale_ctrl = NULL,
 
   if(!is.null(percentile_diff)){
     if(!is.null(scale_trt)){
-      median_time_trt <- -log(percentile)^(1/shape_trt)*scale_trt
+      median_time_trt <- (-log(percentile))^(1/shape_trt)*scale_trt
       median_time_ctrl <- median_time_trt - median_diff
       scale_ctrl <- median_time_ctrl*(-log(percentile))^(-1/shape_ctrl)
       } else{
-      median_time_ctrl <- -log(percentile)^(1/shape_ctrl)*scale_ctrl
+      median_time_ctrl <- (-log(percentile))^(1/shape_ctrl)*scale_ctrl
       median_time_trt <- median_time_ctrl + median_diff
       scale_trt <- median_time_trt*(-log(percentile))^(-1/shape_trt)
     }

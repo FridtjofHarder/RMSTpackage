@@ -17,8 +17,7 @@ convert_contrast(
   survival_diff = NULL,
   t = NULL,
   output = "RMSTD",
-  tau = NULL,
-  extended_output = F
+  tau = NULL
 )
 }
 \arguments{
@@ -50,8 +49,6 @@ convert_contrast(
 \item{output}{A string specifying whether to calculate the difference in RMSTs (\code{"RMSTD"}) or the ratio between RMSTs (\code{"RMSTR"}).}
 
 \item{tau}{A scalar speifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
-
-\item{extended_output}{}
 }
 \value{
 Returns either the difference (RMSTD) or ratio (RMSTR) in between RMSTs of treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.

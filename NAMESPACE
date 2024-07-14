@@ -2,3 +2,4 @@
 
 export(compare_ss_calculations)
 export(convert_contrast)
+import(stats)
