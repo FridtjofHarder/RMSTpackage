@@ -1,12 +1,14 @@
 #' Converts contrast to RMSTD or RMSTR
 #'
-#' This function returns the RMST difference or RMST ratio.
+#' This function converts different contrasts into either the difference or the ratio of restricted mean surival times (RMSTs).
+#' Convertible contrasts are: \itemize{
+#' \item hazard ratio (HR).
+#' \item median difference: the difference in times \eqn{t} at which each survival curve passes \eqn{S(t) = 0.5}.
+#' \item percentile difference: the difference in times \eqn{t} at which each survival curve passes a certain \eqn{S(t)}. Simplifies to the median difference when the percentile \eqn{0.5} is chosen. TODO: discuss the term "percentile"! Should multiply by 100?]
+#' \item survival difference: difference between two survival curves \eqn{S(t)} at a specified time \eqn{t}.}
+#' Survival is assumed to follow Weibull distributions in both control and treatment group with a constant HR, implying the same shape parameter in treatment and control group.
 #'
-#' Github-test
-#' Text providing some details of this function. This is \strong{strong}, this is \bold{bold}.
-#'\code{code}, \preformatted{preformatted}, \kbd{keyboard-characters}. \samp{samp}
-#'\verb{verb}, \pkg{package_name}, \env{environment_variable}, \option{option},\command{command_name}
-#'\dfn{term}, \abbr{abbr}
+#' Function details (missing)
 #'
 #' @param scale_trt A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
 #' @param shape_trt A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trt} \eqn{=1}, simplifying to exponential survival.
@@ -25,12 +27,13 @@
 #' @param tau A scalar speifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
 #' @param t A scalar specifying the time \eqn{t} at which to evaluate \code{survival_diff}.
 #'
-#' @return Returns either the difference (RMSTD) or ratio (RMSTR) in between RMSTs of treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.
+#' @return Returns either the difference (RMSTD) or ratio (RMSTR) between RMSTs of treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.
 #' @import stats
 #' @export
 #'
 #' @examples
-#' RMSTD <- convert_contrast(2)
+#' RMSTD <- convert_contrast(scale_trt = 1, shape_trt = 1, HR = 0.9, output = "RMSTD", tau = 1)
+#' RMSTR <- convert_contrast(scale_trt = 1, shape_trt = 1, survival_diff = 0.01, t = 1, output = "RMSTR", tau = 1)
 convert_contrast <- function(scale_trt = NULL, shape_trt = 1, scale_ctrl = NULL, shape_ctrl = 1,
                              parameterization = 1, HR = NULL, median_diff = NULL, percentile_diff = NULL, percentile = NULL,
                              survival_diff = NULL, t = NULL, output = "RMSTD", tau = NULL){
@@ -38,13 +41,13 @@ convert_contrast <- function(scale_trt = NULL, shape_trt = 1, scale_ctrl = NULL,
 
   # throws errors if inputs are misspecified
   stopifnot("error: more than one contrast, or no contrast were specified, or contrast specified is of inappropriate data type. Please specify exactly one contrast as a scalar"
-            = 1==sum(is.null(HR), is.null(median_diff), is.null(percentile_diff), is.null(survival_diff)))
+            = 1==sum(!is.null(HR), !is.null(median_diff), !is.null(percentile_diff), !is.null(survival_diff)))
   stopifnot("output needs to be specified as either 'RMSTD' or 'RMSTR'" = output == "RMSTD"||output == "RMSTR")
   stopifnot("parameterization must be defined as either 1, 2, or 3" = parameterization == 1||parameterization == 2||parameterization == 3)
   stopifnot("please specify exactly one scale parameter" = xor(is.null(scale_trt), is.null(scale_ctrl)))
 
   # browser() # start browsing
-  browser()
+
   if(!is.null(scale_trt)&&shape_ctrl!=1 || !is.null(scale_ctrl)&&shape_trt!=1){stop("please specify shape parameter only for the group for which scale has been specified")}
 
   if(shape_trt == 1){
