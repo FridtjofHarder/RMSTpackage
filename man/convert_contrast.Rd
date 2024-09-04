@@ -16,6 +16,8 @@ convert_contrast(
   percentile = NULL,
   survival_diff = NULL,
   t = NULL,
+  RMSTD = NULL,
+  RMSTR = NULL,
   output = "RMSTD",
   tau = NULL
 )
@@ -46,6 +48,10 @@ convert_contrast(
 
 \item{t}{A scalar specifying the time \eqn{t} at which to evaluate \code{survival_diff}.}
 
+\item{RMSTD}{A scalar specifying the RMSTD between control group and treatment group. Allows for converting RMSTD to HR.}
+
+\item{RMSTR}{A scalar specifying the RMSTR between control group and treatment group. Allows for converting RMSTD to HR.}
+
 \item{output}{A string specifying whether to calculate the difference in RMSTs (\code{"RMSTD"}) or the ratio between RMSTs (\code{"RMSTR"}).}
 
 \item{tau}{A scalar speifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
@@ -63,9 +69,17 @@ Convertible contrasts are: \itemize{
 Survival is assumed to follow Weibull distributions in both control and treatment group with a constant HR, implying the same shape parameter in treatment and control group.
 }
 \details{
+ToDo:
+Output als df
+Plot
+
 Function details (missing)
 }
 \examples{
-RMSTD <- convert_contrast(scale_trt = 1, shape_trt = 1, HR = 0.9, output = "RMSTD", tau = 1)
-RMSTR <- convert_contrast(scale_trt = 1, shape_trt = 1, survival_diff = 0.01, t = 1, output = "RMSTR", tau = 1)
+RMSTD <- convert_contrast(scale_trt = 1, shape_trt = 1, HR = 0.9,
+output = "RMSTD", tau = 1)
+RMSTR <- convert_contrast(scale_trt = 1, shape_trt = 1, survival_diff = 0.01,
+t = 1, output = "RMSTR", tau = 1)
+RMSTR <- convert_contrast(scale_trt = 1, shape_trt = 1, survival_diff = 0.01,
+t = 1, output = "RMSTR", tau = 1)
 }
