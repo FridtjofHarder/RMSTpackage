@@ -58,7 +58,6 @@ compare_sample_size <- function(scale_trt, shape_trt = 1, scale_ctrl,
                                 plot_example_data = TRUE,
                                 loss_scale, loss_shape){
 
-  #browser()
   if(is.null(tau)) stop("please specify horizon")
   if(is.null(follow_up_time)) {
     warning("follow_up_time not specified, has been set to horizon")
