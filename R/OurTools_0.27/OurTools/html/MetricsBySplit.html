@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: MetricsBySplit produces a data.frame describing one or many...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for MetricsBySplit {OurTools}"><tr><td>MetricsBySplit {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>MetricsBySplit produces a data.frame describing one or many metric variables by a grouping factor SPLIT</h2>
+
+<h3>Description</h3>
+
+<p>MetricsBySplit produces a data.frame describing one or several metric variables with various statistics 
+SPLIT is a group VARNAME which may be left out.
+Tests may be preformed on Mean (t.test, oneway.test) or Median (wilcox.test,kruskal.test)
+MetricsBySplit is a wrapper function calling MetricBySplit for each COLUMN, rbinding the results.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+MetricsBySplit(
+  DFR,
+  COLUMNS,
+  SPLIT = NULL,
+  LONGNAMES = NULL,
+  PVALUE = F,
+  TEST = NULL,
+  ALL = T,
+  SEL = NULL,
+  DIGITS = 2,
+  SHOW_N = F
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR</code></td>
+<td>
+<p>is a dataframe</p>
+</td></tr>
+<tr valign="top"><td><code>COLUMNS</code></td>
+<td>
+<p>colnames in DFR to be described (at least one)</p>
+</td></tr>
+<tr valign="top"><td><code>SPLIT</code></td>
+<td>
+<p>=NULL split factor specified by a colname in DFR or as vector of fitting length. If NULL an ungrouped description is returned.</p>
+</td></tr>
+<tr valign="top"><td><code>LONGNAMES</code></td>
+<td>
+<p>=NULL alternative names for the COLUMNS</p>
+</td></tr>
+<tr valign="top"><td><code>PVALUE</code></td>
+<td>
+<p>=F   If TRUE, tests on mean and Median are performed and added as last column</p>
+</td></tr>
+<tr valign="top"><td><code>TEST</code></td>
+<td>
+<p>=NULL Choose TEST from c(&quot;Mean&quot;,&quot;Median&quot;) oce for all or for each COLUMN. If not specified set to both i.e. c(&quot;Mean&quot;,&quot;Median&quot;)</p>
+</td></tr>
+<tr valign="top"><td><code>ALL</code></td>
+<td>
+<p>=T   If TRUE, also overall statistics</p>
+</td></tr>
+<tr valign="top"><td><code>SEL</code></td>
+<td>
+<p>=NULL if specified selects statistics from 
+c(&quot;Nvalid&quot;, &quot;Mean&quot;, &quot;Sd&quot;, &quot;Median&quot;, &quot;Mad&quot;, &quot;Perc25&quot;, &quot;Perc75&quot;, &quot;Min&quot;, &quot;Max&quot;) [once for all columns]</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>=2   Number of digits for statistics</p>
+</td></tr>
+<tr valign="top"><td><code>SHOW_N</code></td>
+<td>
+<p>=T Show N=length(METRIC) top left</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>MetricsBySplit
+</p>
+
+
+<h3>Value</h3>
+
+<p>a data.frame OF CHARACTERS with statistics for each COLUMN by the group variableSPLIT
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-03-16, 2017-12-21
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="CrossTabs.html">CrossTabs</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+DFR&lt;-data.frame( Metric1=c(rnorm(57),rnorm(43,2,2)),
+                 Metric2=c(rnorm(57,1,2),rnorm(43,20,5)),
+                 Split=c(rep("Arm A",57),rep("Arm B",43)) )
+MetricsBySplit(DFR,COLUMNS=c("Metric1","Metric2"),SPLIT="Split")
+MetricsBySplit(DFR,COLUMNS=c("Metric1","Metric2"),SPLIT=DFR$Split,ALL=F)
+MetricsBySplit(DFR,COLUMNS=c("Metric1","Metric2"),SEL=c("Mean","Sd"))
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

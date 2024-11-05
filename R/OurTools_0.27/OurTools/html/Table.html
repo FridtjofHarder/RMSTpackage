@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Table</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for Table {OurTools}"><tr><td>Table {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Table</h2>
+
+<h3>Description</h3>
+
+<p>Shortcut for table with addmargins and default useNA=T. As with base::table more than two factors possible
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+Table(X, ..., USENA = T)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>X</code></td>
+<td>
+<p>first variable to table</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>further variables to be tabled</p>
+</td></tr>
+<tr valign="top"><td><code>USENA</code></td>
+<td>
+<p>=T, treat NA as category &quot;NA&quot;, must be named to switch it off!!</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>Table
+</p>
+
+
+<h3>Value</h3>
+
+<p>a frequency array  (NOT a data.frame)
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-11-07, 2018-01-31
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+x&lt;-rep(LETTERS[1:5],each=20)
+y&lt;-rep(letters[1:5],20)
+y[1:2]&lt;-NA
+z&lt;-sample(1:5,100,replace=T)
+z[17]&lt;-NA
+Table(x,y)
+# Table(x,y,F) 
+# Does not work because of ... higher dimensional arrays are allowed
+Table(x,y,USENA=F)
+Table(x,y,z,USENA=T) # 3-dimensional array
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: SymLine</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for SymLine {OurTools}"><tr><td>SymLine {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>SymLine</h2>
+
+<h3>Description</h3>
+
+<p>SymLine ADDs a symmetric line, i.e. the principal component axis to an open plot. 
+This line minimises the sum of the squares of the Euclidian distances between points and line.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+SymLine(X, Y, COL = 4, LWD = 2, LTY = 1, LINE_THRESHOLD = 0.3)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>X</code></td>
+<td>
+<p>metric variable for x-axis</p>
+</td></tr>
+<tr valign="top"><td><code>Y</code></td>
+<td>
+<p>metric variable for y-axis</p>
+</td></tr>
+<tr valign="top"><td><code>COL</code></td>
+<td>
+<p>=4 line colour</p>
+</td></tr>
+<tr valign="top"><td><code>LWD</code></td>
+<td>
+<p>=2 line width</p>
+</td></tr>
+<tr valign="top"><td><code>LTY</code></td>
+<td>
+<p>=1 line type</p>
+</td></tr>
+<tr valign="top"><td><code>LINE_THRESHOLD</code></td>
+<td>
+<p>=.3 only show lines iff |cor| &gt;= LINE_THRESHOLD</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>nothing
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2018-01-03
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+x &lt;- rnorm(100, 10, 2)
+y &lt;- rnorm(100, 100, 4) + 1.7 * x
+graphics::plot(x, y)
+SymLine(x,y)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

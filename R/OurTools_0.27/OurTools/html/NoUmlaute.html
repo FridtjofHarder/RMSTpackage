@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: NoUmlaute eliminates all German Umlaute and sz</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for NoUmlaute {OurTools}"><tr><td>NoUmlaute {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>NoUmlaute eliminates all German Umlaute and sz</h2>
+
+<h3>Description</h3>
+
+<p>NoUmlaute eliminates all German language specific characters (Umlaute and sz replaced ASCII character combinations)
+in character and factor vectors preserving the class. 
+The ordering of factor levels is not changed. Applying NoUmlaute to other classes triggers a warning and returns the argument identically.
+NoUmlaute can be applied to a data.frame! ATTENTION: Do not use apply(DFR,2, NoUmlaute) as it changes all classes to factor.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+NoUmlaute(X)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>X</code></td>
+<td>
+<p>character or factor variable or data.frame</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>NoUmlaute
+</p>
+
+
+<h3>Value</h3>
+
+<p>X with all German language specific characters replaced by ASCI if of class character or factor
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2019-02-15, 2019-10-28
+</p>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

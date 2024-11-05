@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: NiceHist Histogram with Density</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for NiceHist {OurTools}"><tr><td>NiceHist {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>NiceHist Histogram with Density</h2>
+
+<h3>Description</h3>
+
+<p>NiceHist is a tool to examine a metric variable in data inspection, cleaning and description.
+A histogram with density curve is produced. ScaleTransformations: ID, POWER_Z, LOG10, LOGIT are supported.
+Location and scale parameter as well as information on valid values can be displayed as legend.
+Outliers can be identified and filtered out using a +- factor* mad filter.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+NiceHist(
+  METRIC,
+  NCLASS = 40,
+  ADJ = 1,
+  SCALE = "ID",
+  MADFILTER = 0,
+  MAIN = "Histogram with Density",
+  XLAB = NULL,
+  YLAB = "Density",
+  XLIM = NULL,
+  NPRETTY = 6,
+  RUG = T,
+  HISTCOL = 7,
+  DENSCOL = 4,
+  LEGEND = T,
+  DIGITS = 3,
+  CUTLINE = NULL,
+  ...
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>METRIC</code></td>
+<td>
+<p>metric variable</p>
+</td></tr>
+<tr valign="top"><td><code>NCLASS</code></td>
+<td>
+<p>= 40 defines the number of classes (=bins) in the histogram</p>
+</td></tr>
+<tr valign="top"><td><code>ADJ</code></td>
+<td>
+<p>= 1controls the smoothing of the density curve relative to default=1</p>
+</td></tr>
+<tr valign="top"><td><code>SCALE</code></td>
+<td>
+<p>=&quot;ID&quot; chooses a ScaleTransformation ID, POWER_Z, LOG10, LOGIT for X: 
+use optional parameter Z to specify the power to use with POWER_Z.
+use optional parameter PERCENT = T for percent instead of proportions on LOGIT scale.</p>
+</td></tr>
+<tr valign="top"><td><code>MADFILTER</code></td>
+<td>
+<p>=0, if &gt;0 (typically 3,4, or 5) filters out Outliers beyond +- MADFILTER* mad</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>= &quot;Histogram with Density&quot; specifies the title of plot</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>specifies the x-axis-Label, if NULL the variable name of x is extracted from the call using PruneVarName</p>
+</td></tr>
+<tr valign="top"><td><code>YLAB</code></td>
+<td>
+<p>=&quot;Density&quot; specifies the y-axis-Label</p>
+</td></tr>
+<tr valign="top"><td><code>XLIM</code></td>
+<td>
+<p>= NULL sets the x-axis range to be plotted manually - generally not necessary</p>
+</td></tr>
+<tr valign="top"><td><code>NPRETTY</code></td>
+<td>
+<p>=6 influences approximate number of labels when using ID or POWER_Z (cf. base pretty)</p>
+</td></tr>
+<tr valign="top"><td><code>RUG</code></td>
+<td>
+<p>=T logical whether to plot individual values above x-axis</p>
+</td></tr>
+<tr valign="top"><td><code>HISTCOL</code></td>
+<td>
+<p>defines the colour of the histogram, default=7 (yellow)</p>
+</td></tr>
+<tr valign="top"><td><code>DENSCOL</code></td>
+<td>
+<p>defines the colour of the density curve, default=4 (blue). DENSCOL=NA suppresses the density curve,</p>
+</td></tr>
+<tr valign="top"><td><code>LEGEND</code></td>
+<td>
+<p>= T show legend, which is smartly placed on the side where there is most space.</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>controls the numbers of digits shown for location/scale parameters in the LEGEND</p>
+</td></tr>
+<tr valign="top"><td><code>CUTLINE</code></td>
+<td>
+<p>=NULL Draws vertical lines from cut values to the density curve</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>further parameters for scale transformations can be provided via ...
+Z specifies the power to use with POWER_Z when  using POWER_Z
+PERCENT =F Use percent instead of proportions in LOGIT when using LOGIT</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>data.frame Irregular with 4 variables: Rownr, and 2 logicals TransUndef and Outlier in order to identify irregular values.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-01-22, 2017-03-22, 2019-02-04, 2019-02-08, 2019-02-12
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="../../graphics/html/hist.html">hist</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+Metric&lt;-c(rnorm(200),rnorm(100,3,1))
+NiceHist(Metric)
+NiceHist(Metric,RUG=F,ADJ=.7)
+NiceHist(Metric,LEGEND = F)
+
+# Demo LOG10 scale
+NiceHist(exp(Metric),LEGEND = T,SCALE="ID",NCLASS=100)
+NiceHist(exp(Metric),LEGEND = T,SCALE="ID",NCLASS=1000,XLIM=c(0,50))
+NiceHist(exp(Metric),LEGEND = T,SCALE="LOG10")
+
+# Demo POWER_Z scale
+Metric&lt;-rnorm(300,5,1)^3
+NiceHist(Metric)
+NiceHist(Metric,SCALE="POWER_Z",Z=1/3,ADJ=.8)
+
+# Demo LOGIT scale
+Metric&lt;-runif(300)^3
+NiceHist(Metric)
+NiceHist(Metric,SCALE="LOGIT")
+NiceHist(Metric,SCALE="LOGIT",LEFT=T)
+NiceHist(100*Metric,SCALE="LOGIT",LEFT=T,PERCENT=T)
+NiceHist(100*Metric,SCALE="LOGIT",LEFT=T,PERCENT=T,XLAB="Percent values")
+
+# Dealing with outliers and missing values
+Metric&lt;-c(rnorm(200),rnorm(100,3,1),runif(10,5,100),rep(NA,5))
+NiceHist(Metric)
+Irregular&lt;-NiceHist(Metric,MADFILTER=4)
+Metric[Irregular$Outlier]
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

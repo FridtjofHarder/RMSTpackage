@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: NiceSurvPlot</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for NiceSurvPlot {OurTools}"><tr><td>NiceSurvPlot {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>NiceSurvPlot</h2>
+
+<h3>Description</h3>
+
+<p>Produces a time to event &quot;survival plot&quot; with many optional information outside the plot margins
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+NiceSurvPlot(
+  Times,
+  Status = NULL,
+  Groups = NULL,
+  ArmLabels = NULL,
+  ArmCols = NULL,
+  ByLineType = FALSE,
+  CensTicks = TRUE,
+  Main = "",
+  AnalysisString = "",
+  Xlab = NULL,
+  Ylab = "proportion event free",
+  Scale = 12,
+  Unit = "months",
+  Ylim = c(0, 1),
+  Timepoint = 12,
+  MaxTime = NULL,
+  OrderByPlateau = TRUE,
+  NriskBelow = TRUE,
+  Estimates = TRUE,
+  CIplot = FALSE,
+  Medians = FALSE,
+  CompareLogrank = TRUE,
+  LHRestimate = NULL,
+  YreferenceLine = NULL,
+  XreferenceLine = NULL
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>Times</code></td>
+<td>
+<p>EITHER Time to event variable of class &quot;Surv&quot; OR time component of time to event</p>
+</td></tr>
+<tr valign="top"><td><code>Status</code></td>
+<td>
+<p>=NULL status component von time to event (needed only if Times is not of class &quot;Surv&quot;)</p>
+</td></tr>
+<tr valign="top"><td><code>Groups</code></td>
+<td>
+<p>=NULL grouping variable; if NULL a single curve is plotted with confdence band (set ArmCols=c(1,0,0) to suppress it )</p>
+</td></tr>
+<tr valign="top"><td><code>ArmLabels</code></td>
+<td>
+<p>=NULL,    Specify Arm labels - if NULL: levels(Groups) ATTENTION: up to 10 characters!</p>
+</td></tr>
+<tr valign="top"><td><code>ArmCols</code></td>
+<td>
+<p>=NULL,    Specify colour code - if NULL  a standard is used</p>
+</td></tr>
+<tr valign="top"><td><code>ByLineType</code></td>
+<td>
+<p>=FALSE, black curves distinguished by LineType - ignore ArmCols</p>
+</td></tr>
+<tr valign="top"><td><code>CensTicks</code></td>
+<td>
+<p>=TRUE, show censoring ticks - better set to FALSE to show LineTypes</p>
+</td></tr>
+<tr valign="top"><td><code>Main</code></td>
+<td>
+<p>=&quot;&quot;, plot title</p>
+</td></tr>
+<tr valign="top"><td><code>AnalysisString</code></td>
+<td>
+<p>=&quot;&quot;, CharacterString to be plotted bottomright</p>
+</td></tr>
+<tr valign="top"><td><code>Xlab</code></td>
+<td>
+<p>=NULL, set x-axis label manually instead of automatically</p>
+</td></tr>
+<tr valign="top"><td><code>Ylab</code></td>
+<td>
+<p>=&quot;proportion event free&quot;, Specifiy y axis label</p>
+</td></tr>
+<tr valign="top"><td><code>Scale</code></td>
+<td>
+<p>=12, Time Unit for time axis</p>
+</td></tr>
+<tr valign="top"><td><code>Unit</code></td>
+<td>
+<p>=&quot;months&quot;, Time Unit name</p>
+</td></tr>
+<tr valign="top"><td><code>Ylim</code></td>
+<td>
+<p>=c(0,1), specify range y-axis, if lower &gt; 0 this is marked on the plot</p>
+</td></tr>
+<tr valign="top"><td><code>Timepoint</code></td>
+<td>
+<p>=12,    Time point to sort curves, provide rate estimates, and plot CIs</p>
+</td></tr>
+<tr valign="top"><td><code>MaxTime</code></td>
+<td>
+<p>=NULL, Restrict time axis to MaxTime, later events still count in tests etc</p>
+</td></tr>
+<tr valign="top"><td><code>OrderByPlateau</code></td>
+<td>
+<p>=TRUE, Order legend by decreasing order of curves at timepoint</p>
+</td></tr>
+<tr valign="top"><td><code>NriskBelow</code></td>
+<td>
+<p>=TRUE, Show Nrisk numbers below plot at ticks</p>
+</td></tr>
+<tr valign="top"><td><code>Estimates</code></td>
+<td>
+<p>=TRUE Show legend with rate estimates at timepoint with 95 percent CI</p>
+</td></tr>
+<tr valign="top"><td><code>CIplot</code></td>
+<td>
+<p>=    FALSE    plot with 95 percent CIs at Timepoint</p>
+</td></tr>
+<tr valign="top"><td><code>Medians</code></td>
+<td>
+<p>=FALSE, show legend with median estimates with 95 percent CI - if(Medians) Estimates set to FALSE</p>
+</td></tr>
+<tr valign="top"><td><code>CompareLogrank</code></td>
+<td>
+<p>=TRUE, compare groups with logrank test and show p.value</p>
+</td></tr>
+<tr valign="top"><td><code>LHRestimate</code></td>
+<td>
+<p>=NULL, Estimate of log hasard ratio Group first mentioned in legend as reference</p>
+</td></tr>
+<tr valign="top"><td><code>YreferenceLine</code></td>
+<td>
+<p>=NULL, Horizontal reference line at (possibly a vector)</p>
+</td></tr>
+<tr valign="top"><td><code>XreferenceLine</code></td>
+<td>
+<p>=NULL, Vertical reference line at (possibly avector)</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>produces a plot (choose: width:height 3:2) and returns an invisible list with components: missing = selector for missing observations, KMtable Kaplan-Meier table,  model summary of Coxmodelfit, Rates Rate estimates at Timepoint, Medians with Median estimates
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2011-08-30,  2012-10-26, 2017-11-22, 2018-01-18, 2018-02-09
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+require(MASS)
+
+## Set wide Window to about 3 x 2
+NiceSurvPlot(Times=VA$stime,Status=VA$status,Groups=VA$celltype,
+            Medians=T,Scale=180,Unit = "Days",Xlab="OSV",Timepoint = 360)
+
+VA$Karnvsky&lt;-factor(VA$Karn)
+levels(VA$Karnvsky)&lt;-c("10-40","10-40","10-40","10-40","50-74","50-74",
+                      "50-74","50-74","75-100","75-100","75-100","75-100")
+NiceSurvPlot(Times=VA$stime,Status=VA$status,Groups=VA$Karnvsky,
+             Medians=T,Scale=180,Unit = "Days",Xlab="OSV",Timepoint = 60,
+             OrderByPlateau = F, AnalysisString="NiceSurvPlot Demo",Main="OSV by Karnvsky")
+
+NiceSurvPlot(Times=VA$stime,Status=VA$status,Groups=VA$Karnvsky,
+             Medians=T,Scale=180,Unit = "Days",Timepoint = 180,OrderByPlateau = T)
+
+NiceSurvPlot(Times=VA$stime,Status=VA$status,Groups=VA$Karnvsky,
+             Medians=F,Scale=180,Unit = "Days",Xlab="OSV",Timepoint = 180, 
+             OrderByPlateau = T, AnalysisString="NiceSurvPlot Demo",ByLineType = T)
+
+NiceSurvPlot(Times=VA$stime,Status=VA$status,Groups=VA$treat,
+             Medians=T,Scale=180,Unit = "Days",Xlab="OSV [Days]",Timepoint = 180, 
+             OrderByPlateau = T, AnalysisString="NiceSurvPlot Demo")
+NiceSurvPlot(Times=VA$stime,Status=VA$status,Groups=VA$treat,
+             Medians=T,Scale=180,Unit = "Days",Xlab="OSV [Days]",Timepoint = 180, 
+             OrderByPlateau = T,
+             AnalysisString="NiceSurvPlot Demo",ArmLabels = c("standard","test"))
+
+NiceSurvPlot(Times=VA$stime,Status=VA$status,Groups=VA$treat, 
+             Medians=F,Scale=60,MaxTime = 540,Unit = "Days",Xlab="OSV [Days]",
+             Timepoint = 180,OrderByPlateau = T,AnalysisString	="NiceSurvPlot Demo",
+             ArmLabels = c("standard","test"),ArmCols = c(4,6))
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

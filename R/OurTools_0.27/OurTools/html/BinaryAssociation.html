@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: BinaryAssociation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for BinaryAssociation {OurTools}"><tr><td>BinaryAssociation {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>BinaryAssociation</h2>
+
+<h3>Description</h3>
+
+<p>BinaryAssociation produces a data.framed matrix of association measures between binary variables.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+BinaryAssociation(X, Y = NULL, TYPE = "YuleQ", DIGITS = 3, ASMATRIX = F)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>X</code></td>
+<td>
+<p>either a binary variable or a data.frame containing binary variables (non binaries are discarted)</p>
+</td></tr>
+<tr valign="top"><td><code>Y</code></td>
+<td>
+<p>=NULL only used of X is a binary variable</p>
+</td></tr>
+<tr valign="top"><td><code>TYPE</code></td>
+<td>
+<p>=&quot;YuleQ&quot;. Choose association measure among c(&quot;OddsRatio&quot;, &quot;logOddsRatio&quot;, &quot;YuleY&quot;, &quot;YuleQ&quot;, &quot;RR&quot;)</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>=3   Number of digits of association measures</p>
+</td></tr>
+<tr valign="top"><td><code>ASMATRIX</code></td>
+<td>
+<p>= F if TRUE returned result is a KxK matrix not a data.frame with rownames as first column (default)</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>a data.frame with colnames[1] indicating the TYPE or matrix if ASMATRIX = T)
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2018-01-07, 2019-02-05
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+require(MASS)
+BinaryAssociation(birthwt)
+Table(birthwt$smoke,birthwt$low)
+BinaryAssociation(birthwt$smoke,birthwt$low)
+BinaryAssociation(birthwt$smoke,birthwt$low,TYPE="logOddsRatio")
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

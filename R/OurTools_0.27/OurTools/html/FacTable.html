@@ -1,0 +1,86 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Creates a frequency table of a factorial variable</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for FacTable {OurTools}"><tr><td>FacTable {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Creates a frequency table of a factorial variable</h2>
+
+<h3>Description</h3>
+
+<p>The function creates a frequency table of a factorial variable.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+FacTable(fac, VARNAME = NULL, NOZEROS = T, SORT = F)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>fac</code></td>
+<td>
+<p>is a factorial variable</p>
+</td></tr>
+<tr valign="top"><td><code>VARNAME, </code></td>
+<td>
+<p>default=NULL, name the variable, if NULL, VARNAME generated from fac</p>
+</td></tr>
+<tr valign="top"><td><code>NOZEROS, </code></td>
+<td>
+<p>removed if 0 observations, TRUE is default</p>
+</td></tr>
+<tr valign="top"><td><code>SORT, </code></td>
+<td>
+<p>sort ascending, FALSE is default</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>FacTable
+</p>
+
+
+<h3>Value</h3>
+
+<p>a frequency table
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+fac&lt;-c(rep("D",56),rep("F",23),rep("AT",5))
+fac&lt;-factor(fac,levels=c("AT","B","D","F"))
+table(fac)
+FacTable(fac,NOZEROS=F)
+FacTable(fac,NOZEROS=F,SORT=F)
+FacTable(fac,VARNAME="Country Codes",NOZEROS=F,SORT=F)
+gr&lt;-factor(c(rep("Gr1",100),rep("Gr2",200)))
+FacTable(gr)
+
+gg&lt;-c(rep("Gr1",100),rep("Gr2",200),SORT=F)
+FacTable(gg)
+
+gn&lt;-c(rep(1,100),rep(2,200))
+FacTable(gn,VARNAME="NumerischerVektor")
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

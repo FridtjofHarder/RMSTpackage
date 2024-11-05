@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: QuantilesSurvivalCurves</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for QuantilesSurvivalCurves {OurTools}"><tr><td>QuantilesSurvivalCurves {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>QuantilesSurvivalCurves</h2>
+
+<h3>Description</h3>
+
+<p>Read off quantiles (default median) and corresponding CIs from a survfit object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+QuantilesSurvivalCurves(SVOBJECT, PROBS = 0.5, DIGITS = 1, SMARTLABEL = F)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>SVOBJECT, </code></td>
+<td>
+<p>Survival Object as produced by survfit()</p>
+</td></tr>
+<tr valign="top"><td><code>PROBS</code></td>
+<td>
+<p>= 0.5, vector of desired quantiles. CAVE: 0.25 corresponds to S(t)= 1-0.25!</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>= 1, number of digits in output</p>
+</td></tr>
+<tr valign="top"><td><code>SMARTLABEL</code></td>
+<td>
+<p>= F, if TRUE the group label will be shortened to the part after the &quot;=&quot;</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>QuantilesSurvivalCurves
+</p>
+
+
+<h3>Value</h3>
+
+<p>dataframe with Group Quantile Estimate Lower Upper
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+### Test SurvivalAtT
+Times&lt;-c(rexp(100,1),rexp(100,.5))*12
+Status&lt;-c(rbinom(100,1,.8),rbinom(100,1,.2))
+gr&lt;-sample(c("A","B"),200,replace=T)
+mod&lt;-survfit(Surv(Times,Status)~gr)
+plot(mod)
+QuantilesSurvivalCurves(mod,PROBS=c(.4,.6))
+QuantilesSurvivalCurves(mod,PROBS=c(.4,.6),SMARTLABEL = T)
+QuantilesSurvivalCurves(mod,SMARTLABEL = T)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

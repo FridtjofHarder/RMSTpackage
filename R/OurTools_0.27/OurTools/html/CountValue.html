@@ -1,0 +1,71 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: CountValue</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for CountValue {OurTools}"><tr><td>CountValue {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>CountValue</h2>
+
+<h3>Description</h3>
+
+<p>CountValue counts the number positive occurrences of a specified value in a vector X.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+CountValue(X, VALUE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>X</code></td>
+<td>
+<p>vector possibly containing NAs</p>
+</td></tr>
+<tr valign="top"><td><code>VALUE</code></td>
+<td>
+<p>specified value to be counted. VALUE=NA work.</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>CountValue
+</p>
+
+
+<h3>Value</h3>
+
+<p>number of components == VALUE
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2019-02-03
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+CountValue(c(1,2,NA,NA,5), NA)
+CountValue(c(1,2,2,2,NA,5), VALUE=2)
+## Typical application
+df&lt;-matrix(sample(LETTERS[1:5], 50, replace=T), ncol=10)
+df
+apply(df,1,CountValue,"A")
+apply(df,2,CountValue,"A")
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

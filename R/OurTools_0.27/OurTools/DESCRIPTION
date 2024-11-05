@@ -1,0 +1,22 @@
+Package: OurTools
+Title: OurTools for Structured Statistical Analysis
+Version: 0.27
+Date: 2020-11-13
+Description: A collection of functions designed to support 
+	structured statistical analysis of clinical studies. 
+	OurTools supports data preparation, data import and export, 
+	and provides smart functions for recurrent statistical tasks 
+	implementing a common methodological standard. 
+	Functions return either data.frames or plots 
+	that can be readily knitred in analysis reports.
+Author: Dirk Hasenclever <dirk.hasenclever@imise.uni-leipzig.de>
+Maintainer: Dirk Hasenclever <dirk.hasenclever@imise.uni-leipzig.de>
+Imports: graphics, stats, utils, boot, visreg, survival, robust,
+        cmprsk, gplots
+License: MIT + file LICENSE
+EnableCodeIndexing: Yes
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.1.1
+NeedsCompilation: no
+Built: R 4.0.3; ; 2020-11-13 16:54:43 UTC; windows

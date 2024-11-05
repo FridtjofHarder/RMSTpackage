@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: DataMaturityPlot</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for DataMaturityPlot {OurTools}"><tr><td>DataMaturityPlot {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>DataMaturityPlot</h2>
+
+<h3>Description</h3>
+
+<p>Produces a DataMaturity Plot comparing an actual Kaplan Meier curve with the optimistic one assuming all events known.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+DataMaturityPlot(
+  DFR,
+  TIMES,
+  STATUS,
+  IDEALTIMES,
+  TIMEPOINT = NULL,
+  MAIN = "Data Maturity Plot: fudged versus actual",
+  XLAB = "time",
+  YLAB = "proportion still under observation",
+  YLIM = c(0, 1),
+  UNITS = "months",
+  COLS = c(3, 2),
+  ABLINES = NULL,
+  CEX = 1.2
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR</code></td>
+<td>
+<p>data.frame with variables TIMES, STATUS, IDEALTIMES (colnames). Alternatively, if DFR set to NULL, TIMES, STATUS, IDEALTIMES will be treated as data vectors.</p>
+</td></tr>
+<tr valign="top"><td><code>TIMES</code></td>
+<td>
+<p>name of times component of time to event, alternatively data vector</p>
+</td></tr>
+<tr valign="top"><td><code>STATUS</code></td>
+<td>
+<p>name of status component of time to event, alternatively data vector</p>
+</td></tr>
+<tr valign="top"><td><code>IDEALTIMES</code></td>
+<td>
+<p>name of ideal observation time component of time to event, alternatively data vector</p>
+</td></tr>
+<tr valign="top"><td><code>TIMEPOINT</code></td>
+<td>
+<p>=NULL, time where to read off curves, set at about 80 percent percentile if not specified</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>=&quot;Data Maturity Plot - fudged versus actual&quot;, plot title</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>=&quot;time&quot;, label for time axis</p>
+</td></tr>
+<tr valign="top"><td><code>YLAB</code></td>
+<td>
+<p>=&quot;proportion still under observation&quot;, label for y axis</p>
+</td></tr>
+<tr valign="top"><td><code>YLIM</code></td>
+<td>
+<p>=c(0,1), you may shorten y-axis if desired</p>
+</td></tr>
+<tr valign="top"><td><code>UNITS</code></td>
+<td>
+<p>=&quot;months&quot;, unit of time appendend at XLAB if not NULL or blank. In addition, 'months', 'Months', 'days', 'Days' are recognised and used to find appropriate ticks.</p>
+</td></tr>
+<tr valign="top"><td><code>COLS</code></td>
+<td>
+<p>=c(3,2), colours for curves based on ideal and actual observations</p>
+</td></tr>
+<tr valign="top"><td><code>ABLINES</code></td>
+<td>
+<p>=NULL, horizontal dashed lines</p>
+</td></tr>
+<tr valign="top"><td><code>CEX</code></td>
+<td>
+<p>=1.2, scaling factor of fonts on axes and legend</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>DataMaturityPlot
+</p>
+
+
+<h3>Value</h3>
+
+<p>returns data.frame with estimates and 95percent-CI of survival times at TIMEPOINT (Fudged and Actual)
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-09-21, 2018-01-31
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+TIMES&lt;-rexp(100)*60
+CENS&lt;-runif(100,0,80)
+STATUS&lt;-(TIMES &lt;= CENS)
+TIMES[TIMES &gt; CENS]&lt;-CENS[TIMES &gt; CENS]
+IDEALTIMES&lt;-TIMES+12
+IDEALTIMES[STATUS]&lt;-TIMES[STATUS]
+
+DFR&lt;-data.frame(TIMES,STATUS,IDEALTIMES)
+DataMaturityPlot(DFR=DFR,"TIMES","STATUS","IDEALTIMES",UNITS="months")
+DataMaturityPlot(DFR=DFR,"TIMES","STATUS","IDEALTIMES",UNITS="years")
+DataMaturityPlot(DFR=NULL,TIMES,STATUS,IDEALTIMES,UNITS="months",COLS=c(4,3))
+DataMaturityPlot(DFR=NULL,TIMES,STATUS,IDEALTIMES,UNITS="days",CEX=1.0)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

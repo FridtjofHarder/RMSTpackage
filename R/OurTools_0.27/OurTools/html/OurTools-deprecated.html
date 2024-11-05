@@ -1,0 +1,171 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Deprecated functions in package 'OurTools'.</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for OurTools-deprecated {OurTools}"><tr><td>OurTools-deprecated {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Deprecated functions in package <span class="pkg">OurTools</span>.</h2>
+
+<h3>Description</h3>
+
+<p>The functions listed below are deprecated and should no longer be used. 
+When possible, alternative functions with similar functionality are mentioned.
+These functions still work in order to protect old R-scripts, but will not be developed further. 
+Help pages for deprecated functions are
+available at <code>help("&lt;function&gt;-deprecated")</code>.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+DescribeMetricBySplit(
+  DFR,
+  COLUMNS = NULL,
+  SPLIT = NULL,
+  LONGNAMES = NULL,
+  SEL = "All",
+  DIGITS = 3,
+  ALL = T,
+  FORTRANSPOSITION = F
+)
+
+MetricPlotBySplit(
+  METRIC,
+  SPLIT = NULL,
+  TYPE = "Ecdf",
+  XLAB = NULL,
+  XLIM = NULL,
+  MAIN = NULL,
+  COL = NULL,
+  ADJ = 1,
+  METHOD = "jitter"
+)
+
+findmode(x, ADJ = 1)
+
+nice.hist(
+  x,
+  HISTCOL = 7,
+  DENSCOL = 4,
+  XLAB = NULL,
+  YLAB = "Density",
+  NCLASS = 40,
+  ADJ = 1,
+  MAIN = "Histogram with Density",
+  XLIM = NULL,
+  XAXP = NULL,
+  DIGITS = 3,
+  LEGEND = F,
+  RUG = T,
+  LOG10 = F,
+  MADFILTER = 0,
+  ANALYSISSTRING = "",
+  CUTLINE = NULL
+)
+</pre>
+
+
+<h3><code>DescribeMetricBySplit</code></h3>
+
+<p>For <code>DescribeMetricBySplit</code>, use <code><a href="MetricsBySplit.html">MetricsBySplit</a></code>.
+</p>
+
+
+<h3><code>MetricPlotBySplit</code></h3>
+
+<p>For <code>MetricPlotBySplit</code>, use <code><a href="PlotMetricBySplit.html">PlotMetricBySplit</a></code>.
+</p>
+
+
+<h3><code>findmode</code></h3>
+
+<p>For <code>findmode</code>, use <code><a href="ModalValue.html">ModalValue</a></code>.
+</p>
+
+
+<h3><code>nice.hist</code></h3>
+
+<p>For <code>nice.hist</code>, use <code><a href="NiceHist.html">NiceHist</a></code>.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017, 2018-01-31, 2018-09-13, 2019-02-06
+</p>
+<p>Dirk Hasenclever 2017-03-09, 2019-02-06
+</p>
+<p>Dirk Hasenclever 2019-02-06
+</p>
+<p>Dirk Hasenclever 2017-01-22, 2017-03-22, 2019-02-06
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="MetricsBySplit.html">MetricsBySplit</a></code>
+</p>
+<p><code><a href="../../graphics/html/hist.html">hist</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+
+## Not run: 
+x&lt;-c(rnorm(100,2,1),rnorm(200,3,1))
+y&lt;-c(rnorm(100,5,1),rnorm(200,7,1))
+x[sample(1:300,13)]&lt;-NA
+gr&lt;-factor(c(rep("Gr1",100),rep("Gr2",200)))
+s&lt;-rep(c(1,2,3),100)
+s1&lt;-factor(rep(1,300))
+dfr&lt;-data.frame(X=x,Y=y,GR=gr,S=s,S1=s1)
+
+DescribeMetricBySplit(dfr,COLUMNS=c("X","Y"),
+              LONGNAMES=c("Variable1","Variable2"),dfr$S1)
+DescribeMetricBySplit(dfr,COLUMNS=c("X","Y"),
+              LONGNAMES=c("Variable1","Variable2"),DIGITS=1)
+DescribeMetricBySplit(dfr,COLUMNS=c("X","Y"),dfr[,"S"])
+
+DescribeMetricBySplit(dfr,COLUMNS=c("X","Y"),dfr$GR,
+              SEL=c("MEDIAN","SD","MEAN","NVALID"))
+
+DescribeMetricBySplit(dfr$X,SPLIT=gr,LONGNAMES="Variable1")
+DescribeMetricBySplit(dfr$X,COLUMNS=c("X"),gr,LONGNAMES="Variable1")
+DescribeMetricBySplit(dfr,COLUMNS=c("X","Y"),SPLIT=gr,
+                      LONGNAMES=c("Variable1","Variable2"),SEL="MEDIAN")
+
+## End(Not run)
+## Not run: 
+METRIC&lt;-c(rnorm(100,10,2),rnorm(200,12,4))
+SPLIT&lt;-c(rep("Good",100),rep("Bad",100),rep("DEVELISH",100))
+
+MetricPlotBySplit(METRIC,SPLIT,XLAB="test variable",COL=c(2,3,4),TYPE="Ecdf")
+MetricPlotBySplit(METRIC,SPLIT,XLAB="test variable",COL=c(2,3,4),TYPE="Dens",
+                  ADJ=c(1,.5,2))
+MetricPlotBySplit(METRIC,SPLIT,XLAB="test variable",COL=c(2,3,4),TYPE="Boxplot")
+MetricPlotBySplit(METRIC,SPLIT,XLAB="test variable",COL=c(2,3,4),
+                  TYPE="Stripchart",METHOD="jitter")
+
+## End(Not run)
+## Not run: 
+Metric&lt;-c(rnorm(200),rnorm(100,3,1))
+nice.hist(Metric)
+nice.hist(Metric,RUG=F)
+nice.hist(Metric,LEGEND = T)
+nice.hist(Metric,LEGEND = T,LOG10=T)
+# Dealing with outliers and missing values
+Metric&lt;-c(rnorm(200),rnorm(100,3,1),runif(10,5,100),rep(NA,5))
+nice.hist(Metric)
+SEL&lt;-nice.hist(Metric,MADFILTER=5)
+Metric[SEL]
+SEL&lt;-nice.hist(Metric,MADFILTER=5,LEGEND=T,LOG10=F,ADJ=.7)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>
