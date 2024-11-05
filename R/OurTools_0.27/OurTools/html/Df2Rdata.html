@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Df2Rdata</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for Df2Rdata {OurTools}"><tr><td>Df2Rdata {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Df2Rdata</h2>
+
+<h3>Description</h3>
+
+<p>Df2Rdata writes a data.frame to a .Rdata file renaming the DFR corresponding to the DFNAME 
+such that the DFR can be loaded for knitr. 
+ATTENTION: If there exists a ResultDir string pointing to a Results directory in the global environment, 
+DRF is saved there!
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+Df2Rdata(DFR, DFNAME, ROW.NAMES = T)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR</code></td>
+<td>
+<p>as dataframe</p>
+</td></tr>
+<tr valign="top"><td><code>DFNAME</code></td>
+<td>
+<p>is Filename (without the .Rdata !!)</p>
+</td></tr>
+<tr valign="top"><td><code>ROW.NAMES</code></td>
+<td>
+<p>=TRUE is default</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>nothing
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasencever 2017-03-22, 2018-01-18
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+test&lt;-data.frame(a=rnorm(10),b=rep(1:2,5), c=rep(rnorm(10)))
+Df2Rdata(DFR=test, DFNAME="Example")
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

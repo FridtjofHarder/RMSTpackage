@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: SurvivalAtT</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for SurvivalAtT {OurTools}"><tr><td>SurvivalAtT {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>SurvivalAtT</h2>
+
+<h3>Description</h3>
+
+<p>Read off survival rates and corresponding CIs at time T from a survfit object.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+SurvivalAtT(TIMEPOINT, SVOBJECT, DIGITS = 7)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>TIMEPOINT</code></td>
+<td>
+<p>is the time point at which to read off the Kaplan Meier Kurves is a factorial variable</p>
+</td></tr>
+<tr valign="top"><td><code>SVOBJECT, </code></td>
+<td>
+<p>Survival Object as produced by survfit()</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>=4, number of digits in output</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>SurvivalAtT
+</p>
+
+
+<h3>Value</h3>
+
+<p>dataframe with SVestimate, SE, lower95.CI, upper95.CI for each arm/strata
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever, 2018-02-26
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+### Test SurvivalAtT
+Times&lt;-c(rexp(100,1),rexp(100,.5))*12
+Status&lt;-c(rbinom(100,1,.8),rbinom(100,1,.2))
+gr&lt;-sample(c("A","B"),200,replace=T)
+mod&lt;-survival::survfit(survival::Surv(Times,Status)~gr)
+plot(mod)
+SurvivalAtT(40,mod)
+mod&lt;-survival::survfit(survival::Surv(Times,Status)~1)
+SurvivalAtT(40,mod)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Histogram with Density</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for nice.hist-deprecated {OurTools}"><tr><td>nice.hist-deprecated {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Histogram with Density</h2>
+
+<h3>Description</h3>
+
+<p>nice.hist is a tool to examine a metric variable in data inspection, cleaning and description.
+A histogram with density curve is produced. 
+Location and scale parameter as well as information on valid values can be displayed as legend right beside the plot.
+If the variable was already log10 transformed a log scale can be plotted.
+Outliers can be identified and filtered out using a +- factor* mad filer.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+nice.hist(
+  x,
+  HISTCOL = 7,
+  DENSCOL = 4,
+  XLAB = NULL,
+  YLAB = "Density",
+  NCLASS = 40,
+  ADJ = 1,
+  MAIN = "Histogram with Density",
+  XLIM = NULL,
+  XAXP = NULL,
+  DIGITS = 3,
+  LEGEND = F,
+  RUG = T,
+  LOG10 = F,
+  MADFILTER = 0,
+  ANALYSISSTRING = "",
+  CUTLINE = NULL
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>x</code></td>
+<td>
+<p>metric variable</p>
+</td></tr>
+<tr valign="top"><td><code>HISTCOL</code></td>
+<td>
+<p>defines the colour of the histogram, default=7 (yellow)</p>
+</td></tr>
+<tr valign="top"><td><code>DENSCOL</code></td>
+<td>
+<p>defines the colour of the density curve, default=4 (blue). DENSCOL=NA suppresses the density curve,</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>specifies the x-axis-Label, if NULL the variable name of x is extracted from the call using PruneVarName</p>
+</td></tr>
+<tr valign="top"><td><code>YLAB</code></td>
+<td>
+<p>=&quot;Density&quot; specifies the y-axis-Label</p>
+</td></tr>
+<tr valign="top"><td><code>NCLASS</code></td>
+<td>
+<p>defines the number of classes (=bins)in the histogram</p>
+</td></tr>
+<tr valign="top"><td><code>ADJ</code></td>
+<td>
+<p>controls the smoothing of the density curve relative to default=1</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>title of plot</p>
+</td></tr>
+<tr valign="top"><td><code>XLIM</code></td>
+<td>
+<p>= NULL sets the x-axis range to be plotted manually - generally not necessary</p>
+</td></tr>
+<tr valign="top"><td><code>XAXP</code></td>
+<td>
+<p>= NULL specifices ticks on x-axis - generally not necessary</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>controls the numbers of digits shown for location/scale parameters</p>
+</td></tr>
+<tr valign="top"><td><code>LEGEND</code></td>
+<td>
+<p>set to TRUE to get extensive legend at right border instead a simple legend topright</p>
+</td></tr>
+<tr valign="top"><td><code>RUG</code></td>
+<td>
+<p>=T logical whether to plot individual values above x-axis</p>
+</td></tr>
+<tr valign="top"><td><code>LOG10</code></td>
+<td>
+<p>=F If true, x values are on the log10 scale and logarithmic x-axis is plotted</p>
+</td></tr>
+<tr valign="top"><td><code>MADFILTER</code></td>
+<td>
+<p>=0, if &gt;0 (typically 3,4, or 5) filter out Outliers</p>
+</td></tr>
+<tr valign="top"><td><code>ANALYSISSTRING</code></td>
+<td>
+<p>=&quot;&quot;, optional string to indicate data source and/or date of analysis</p>
+</td></tr>
+<tr valign="top"><td><code>CUTLINE</code></td>
+<td>
+<p>=NULL Draws vertical lines from cut values to the density curve (CAUTION: Later abline may use wrong coordinates)</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>produces a histogram with density, if MADFILTER &gt; 0 a logical selector vector is returned invisibly useful to examine outliers
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ourPkg-deprecated</code>
+</p>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

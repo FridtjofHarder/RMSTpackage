@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: CompareMetricBySplit</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for CompareMetricBySplit {OurTools}"><tr><td>CompareMetricBySplit {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>CompareMetricBySplit</h2>
+
+<h3>Description</h3>
+
+<p>compares one metric variable by a split variable with t.test-oneway.test and wilcox.test-kruskal.test. 
+For two groups confidence intervals for mean difference, difference in pseudomedians (Hodge-Lehmann),
+and proversion probabilities are provided.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+CompareMetricBySplit(DFR, METRIC, SPLIT, DIGITS = 3, CONF.LEVEL = 0.95)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR, </code></td>
+<td>
+<p>is a dataframe</p>
+</td></tr>
+<tr valign="top"><td><code>METRIC, </code></td>
+<td>
+<p>name of metric variable in DFR</p>
+</td></tr>
+<tr valign="top"><td><code>SPLIT, </code></td>
+<td>
+<p>name of split factor (grouping variable) in DFR</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>= 3,   Number of digits for estimates</p>
+</td></tr>
+<tr valign="top"><td><code>CONF.LEVEL</code></td>
+<td>
+<p>= 0.95,  Confidence Level for confidence interval</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>CompareMetricBySplit
+</p>
+
+
+<h3>Value</h3>
+
+<p>a data.frame with results
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-12-10
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+x&lt;-c(rnorm(100,2,1),rnorm(200,2.4,1))
+x[sample(1:300,13)]&lt;-NA
+x&lt;-c(rnorm(100,2,1),rnorm(200,2.5,1))
+gr2&lt;-factor(c(rep("Gr1",100),rep("Gr2",200)))
+gr3&lt;-factor(c(rep("Gr1",100),rep("Gr2",100),rep("Gr3",100)))
+dfr&lt;-data.frame(X=x,GR2=gr2,GR3=gr3)# 
+CompareMetricBySplit(dfr,METRIC="X",SPLIT="GR2")
+CompareMetricBySplit(dfr,METRIC="X",SPLIT="GR3") 
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

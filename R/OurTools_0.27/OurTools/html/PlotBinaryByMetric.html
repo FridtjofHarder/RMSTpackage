@@ -1,0 +1,111 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Plot Binary versus Metric</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for PlotBinaryByMetric {OurTools}"><tr><td>PlotBinaryByMetric {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Plot Binary versus Metric</h2>
+
+<h3>Description</h3>
+
+<p>Basic plot to look at the dependence of a binary variable from a metric one.
+Scatterplot BINARY verus METRIC. 
+BINARY is jittered to avoid overplotting.
+Blue line is logistic regression curve. 
+Grey line is lowess smoother. 
+Legend details Nvalid, Baserate and Wald pValue of METRIC in logistic regession.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+PlotBinaryByMetric(
+  BINARY,
+  METRIC,
+  BNAME = NULL,
+  MNAME = NULL,
+  MAIN = "",
+  SCALE = "ID",
+  XLIM = NULL,
+  NPRETTY = 6,
+  SPAN = 0.75,
+  LOWESSCOL = 8,
+  ...
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>BINARY</code></td>
+<td>
+<p>is a variable of any type with only two values</p>
+</td></tr>
+<tr valign="top"><td><code>METRIC</code></td>
+<td>
+<p>is a metric variable</p>
+</td></tr>
+<tr valign="top"><td><code>BNAME</code></td>
+<td>
+<p>= NULL is an optional label for BINARY</p>
+</td></tr>
+<tr valign="top"><td><code>MNAME</code></td>
+<td>
+<p>= NULL is an optional label for M</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>= &quot;&quot; is an optional title</p>
+</td></tr>
+<tr valign="top"><td><code>SCALE</code></td>
+<td>
+<p>=&quot;ID&quot; chooses a ScaleTransformation ID, POWER_Z, LOG10, LOGIT for X: 
+use optional parameter Z to specify the power to use with POWER_Z.
+use optional parameter PERCENT = T for percent instead of proportions on LOGIT scale.</p>
+</td></tr>
+<tr valign="top"><td><code>XLIM</code></td>
+<td>
+<p>= NULL sets the x-axis range to be plotted manually - generally not necessary</p>
+</td></tr>
+<tr valign="top"><td><code>NPRETTY</code></td>
+<td>
+<p>= 6 influences approximate number of labels when using ID or POWER_Z (cf. base pretty)</p>
+</td></tr>
+<tr valign="top"><td><code>SPAN</code></td>
+<td>
+<p>= 0.75 is the smoothing parameter for lowess</p>
+</td></tr>
+<tr valign="top"><td><code>LOWESSCOL</code></td>
+<td>
+<p>= 8  Colour of Lowess-Smoother. Set to 0 to eliminate the curve</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>Specify Z or PERCENT for SCALE = &quot;POWER_Z&quot; or &quot;LOGIT&quot;</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Generates a plot and returns the summary of the logistic regression.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever old; new version 2019-08-09
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+METRIC&lt;-rnorm(200); BINARY&lt;-(METRIC+rnorm(200))&gt;0; PlotBinaryByMetric(BINARY,METRIC)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: PseudoMedian</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for PseudoMedian {OurTools}"><tr><td>PseudoMedian {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>PseudoMedian</h2>
+
+<h3>Description</h3>
+
+<p>Calculate the PseudoMedian of a metric variable. 
+The PseudoMedian is the median of all means of pairs of data points.
+Difference in PseudoMedian underlies the Mann-Whitney-U test.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+PseudoMedian(METRIC, DIGITS = 7)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>METRIC</code></td>
+<td>
+<p>is a metric variable</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>=7 number of digits</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>PseudoMedian
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+x&lt;-c(rt(200,df=12),rnorm(15,4,1),rnorm(200,5,1),11*runif(100))
+PseudoMedian(x,3)
+nice.hist(x,LEGEND=T,CUTLINE=PseudoMedian(x),
+   XLAB=paste("x ---&gt; PseudoMedian=",PseudoMedian(x,3)))
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

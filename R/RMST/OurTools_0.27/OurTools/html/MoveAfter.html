@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: MoveAfter</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for MoveAfter {OurTools}"><tr><td>MoveAfter {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>MoveAfter</h2>
+
+<h3>Description</h3>
+
+<p>Reorders columns of a data.frame by moving MOVECOLS in the sequence listed 
+to a position after AFTER
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+MoveAfter(DFR, MOVECOLS, AFTER)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR</code></td>
+<td>
+<p>data.frame to be reordered</p>
+</td></tr>
+<tr valign="top"><td><code>MOVECOLS</code></td>
+<td>
+<p>colnames or colnumbers of the block to be moved</p>
+</td></tr>
+<tr valign="top"><td><code>AFTER</code></td>
+<td>
+<p>=NULL colname or colnumber after which the block MOVECOLS should be placed. 
+If NULL MOVECOLS are put in front.</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>reordered data.frame
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-03-15
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+a&lt;-c(rep("M",240),rep("F",170))
+b&lt;-sample(c(rep("Stage1",110),rep("Stage2",180),rep("Stage3",120)),410)
+DFR&lt;-CrossTabs(a,b,TYPE="COL",PVALUE=F,VARNAME=T,LONGNAME="EGON",NOZEROS=T,ALL=NULL)
+colnames(DFR)
+DFR
+MoveAfter(DFR,c("%All","  All"),NULL)
+MoveAfter(DFR,c(10,9),1)
+MoveAfter(DFR,c("  All","%All"),"  Stage1")
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

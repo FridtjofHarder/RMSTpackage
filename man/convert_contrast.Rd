@@ -16,6 +16,8 @@ convert_contrast(
   percentile = NULL,
   survival_diff = NULL,
   t = NULL,
+  RMSTD = NULL,
+  RMSTR = NULL,
   output = "RMSTD",
   tau = NULL
 )
@@ -46,22 +48,38 @@ convert_contrast(
 
 \item{t}{A scalar specifying the time \eqn{t} at which to evaluate \code{survival_diff}.}
 
+\item{RMSTD}{A scalar specifying the RMSTD between control group and treatment group. Allows for converting RMSTD to HR.}
+
+\item{RMSTR}{A scalar specifying the RMSTR between control group and treatment group. Allows for converting RMSTD to HR.}
+
 \item{output}{A string specifying whether to calculate the difference in RMSTs (\code{"RMSTD"}) or the ratio between RMSTs (\code{"RMSTR"}).}
 
 \item{tau}{A scalar speifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
 }
 \value{
-Returns either the difference (RMSTD) or ratio (RMSTR) in between RMSTs of treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.
+Returns either the difference (RMSTD) or ratio (RMSTR) between RMSTs of treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.
 }
 \description{
-This function returns the RMST difference or RMST ratio.
+This function converts different contrasts into either the difference or the ratio of restricted mean surival times (RMSTs).
+Convertible contrasts are: \itemize{
+\item hazard ratio (HR).
+\item median difference: the difference in times \eqn{t} at which each survival curve passes \eqn{S(t) = 0.5}.
+\item percentile difference: the difference in times \eqn{t} at which each survival curve passes a certain \eqn{S(t)}. Simplifies to the median difference when the percentile \eqn{0.5} is chosen. TODO: discuss the term "percentile"! Should multiply by 100?]
+\item survival difference: difference between two survival curves \eqn{S(t)} at a specified time \eqn{t}.}
+Survival is assumed to follow Weibull distributions in both control and treatment group with a constant HR, implying the same shape parameter in treatment and control group.
 }
 \details{
-This is a text providing some details of this function. This is \strong{strong}, this is \bold{bold}.
-\code{code}, \preformatted{preformatted}, \kbd{keyboard-characters}. \samp{samp}
-\verb{verb}, \pkg{package_name}, \env{environment_variable}, \option{option},\command{command_name}
-\dfn{term}, \abbr{abbr}
+ToDo:
+Output als df
+Plot
+
+Function details (missing)
 }
 \examples{
-RMSTD <- convert_contrast(2)
+RMSTD <- convert_contrast(scale_trt = 1, shape_trt = 1, HR = 0.9,
+output = "RMSTD", tau = 1)
+RMSTR <- convert_contrast(scale_trt = 1, shape_trt = 1, survival_diff = 0.01,
+t = 1, output = "RMSTR", tau = 1)
+RMSTR <- convert_contrast(scale_trt = 1, shape_trt = 1, survival_diff = 0.01,
+t = 1, output = "RMSTR", tau = 1)
 }

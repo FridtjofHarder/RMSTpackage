@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: CompareSuccessRatesBySplit</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for CompareSuccessRatesBySplit {OurTools}"><tr><td>CompareSuccessRatesBySplit {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>CompareSuccessRatesBySplit</h2>
+
+<h3>Description</h3>
+
+<p>CompareSuccessRatesBySplit compares one factor variable by a split variable with prop.test and glm. 
+For two groups confidence intervals for difference in success rate, odds ratio, and risk ratio are provided.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+CompareSuccessRatesBySplit(
+  DFR,
+  FAC,
+  SPLIT,
+  SUCCESS = 2,
+  DIGITS = 3,
+  CONF.LEVEL = 0.95
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR</code></td>
+<td>
+<p>is a dataframe</p>
+</td></tr>
+<tr valign="top"><td><code>FAC</code></td>
+<td>
+<p>name of factor in DFR. Will be converted to a factor if not a factor.</p>
+</td></tr>
+<tr valign="top"><td><code>SPLIT</code></td>
+<td>
+<p>name of split factor (grouping variable) in DFR</p>
+</td></tr>
+<tr valign="top"><td><code>SUCCESS</code></td>
+<td>
+<p>=2 factor level that defines success. If numeric, the respective level of FAC is assumed.</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>=3 Number of digits for estimates</p>
+</td></tr>
+<tr valign="top"><td><code>CONF.LEVEL</code></td>
+<td>
+<p>=0.95  Confidence Level for confidence interval</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>CompareSuccessRatesBySplit
+</p>
+
+
+<h3>Value</h3>
+
+<p>a data.frame: two groups: proabability difference, odds ration and relative risk with CI;
+more than two groups: chisqr.test and likelihood ratio test of glm
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-12-12; 2018-02-05; 2018-08-14
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+require(MASS)
+DAT&lt;-survey
+colnames(DAT)&lt;-toupper(colnames(DAT))
+CrossTabs(DAT$SMOKE,DAT$SEX,TYPE="COL")
+DAT$Smoker&lt;-DAT$SMOKE
+levels(DAT$Smoker)&lt;-c("Smoker","NonSmoker","Smoker","Smoker")
+CrossTabs(DAT$Smoker,DAT$SEX,TYPE="COL")
+CompareSuccessRatesBySplit(DAT,FAC="SMOKE",SUCCESS="Never",SPLIT="SEX")
+CrossTabs(DAT$SMOKE,DAT$FOLD)
+CompareSuccessRatesBySplit(DAT,FAC="SMOKE",SUCCESS="Never",SPLIT="FOLD")
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

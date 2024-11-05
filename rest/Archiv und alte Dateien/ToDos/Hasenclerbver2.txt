@@ -1,0 +1,10 @@
+Nächstes mal per integrate
+Checken ob npsurvss wie R?
+Rauschen
+Royston RMSTD oder R
+shape zwischen 1 und 2,5
+scale siehe mail
+Zensur raus
+against horizon, besodners bei crossing curves
+reale daten als grundlage
+Verhalten an den rändern

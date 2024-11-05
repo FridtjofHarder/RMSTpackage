@@ -1,0 +1,75 @@
+BinaryAssociation       BinaryAssociation
+CompareMetricBySplit    CompareMetricBySplit
+CompareSuccessRatesBySplit
+                        CompareSuccessRatesBySplit
+ConfusionTableStatistics
+                        ConfusionTableStatistics
+CorDiffCI               CorDiffCI
+CountBarplot            CountBarplot
+CountValue              CountValue
+Cox2Df                  Cox2Df
+CrossTabs               CrossTabs
+DataMaturityPlot        DataMaturityPlot
+Df2Csv                  Df2Csv writes a data.frame to a csv file
+Df2Rdata                Df2Rdata
+FacTable                Creates a frequency table of a factorial
+                        variable
+FactorsBySplit          produces a data.frame describing one or many
+                        factor variables by a grouping factor SPLIT
+FollowUpPlot            FollowUpPlot
+Glm2Df                  Glm2Df
+HLProgFactors           Data form the International Prognostic Factor
+                        Project in advanced Hodgkin Lymphoma.
+Level2NA                Level2NA
+LhrPlot                 LhrPlot
+LocationScaleEstimates
+                        LocationScaleEstimates
+MartingalePlot          MartingalePlot
+Matrix2Df               Matrix2Df
+MergeWithMaster         MergeWithMaster - Safe and error controlled
+                        merging of dataframes
+MetricBySplit           MetricBySplit produces a data.frame describing
+                        one metric variable by an optional SPLIT
+                        grouping
+MetricsBySplit          MetricsBySplit produces a data.frame describing
+                        one or many metric variables by a grouping
+                        factor SPLIT
+MissingRateTable        MissingRateTable
+ModalValue              ModalValue
+MoveAfter               MoveAfter
+MultiParameterTimeCourses
+                        MultiParameterTimeCourses
+NAasLevel               NAasLevel
+NiceCumIncPlot          NiceCumIncPlot produces a cumulative incidence
+                        curve plot in competing risk analysis
+NiceHist                NiceHist Histogram with Density
+NiceSurvPlot            NiceSurvPlot
+NiceVennDiagram         NiceVennDiagram draws a Venn diagram for up to
+                        five sets and returns a data.frame with pattern
+                        frequencies and proportions.
+Nmissing                Nmissing
+NoUmlaute               NoUmlaute eliminates all German Umlaute and sz
+Nvalid                  Nvalid
+PlotAxis                PlotAxis
+PlotBinaryByMetric      Plot Binary versus Metric
+PlotDepMetrics          PlotDepMetrics
+PlotMetricBySplit       PlotMetricBySplit
+PlotOrdinalCourse       Plot Ordinal Course
+Positive_Comparators    Collection of positive ordinal comparators
+ProversionProb          ProversionProb
+PruneVarName            Prune a deparse(substitute(X)) type VarName
+PseudoMedian            PseudoMedian
+QuantilesSurvivalCurves
+                        QuantilesSurvivalCurves
+ReconcileLists          ReconcileLists
+ScaleTransformations    Collection of scale Transformations
+ScatterPlot             ScatterPlot
+SlidingWindow           SlidingWindow
+SuccessRate             SuccessRate
+SurvivalAtT             SurvivalAtT
+SymLine                 SymLine
+Table                   Table
+TrimStr                 TrimStr removes leading or trailing blanks
+                        within a string
+UnivariateCoxTable      UnivariateCoxTable
+VisualiseCoxModel       VisualiseCoxModel

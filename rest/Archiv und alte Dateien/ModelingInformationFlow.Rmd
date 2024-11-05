@@ -1,0 +1,438 @@
+---
+title: "Modeling information flow in studies with a time to event endpoint"
+author: "Dirk Hasenclever"
+date: "2018-12-14"
+abstract: 
+output:
+  pdf_document:
+    fig_caption: yes
+  word_document: default
+header-includes:
+- \usepackage{pdflscape}
+- \newcommand{\blandscape}{\begin{landscape}}
+- \newcommand{\elandscape}{\end{landscape}}
+- \usepackage{longtable}\setlength{\LTleft}{2em}
+# - \usepackage{float}
+- \usepackage{floatrow}
+- \floatsetup[figure]{capposition=top}
+- \floatsetup[table]{capposition=top}
+- \usepackage{booktabs}
+- \usepackage{xcolor}
+- \usepackage{fancyhdr}
+- \pagestyle{fancy}
+- \lfoot{Modeling information flow\\{}}
+- \cfoot{2018-12-14}
+- \usepackage{lastpage}
+- \rfoot{\thepage\ of \pageref{LastPage}}
+- \fancyhead[L]{}
+- \renewcommand{\footrulewidth}{0.4pt}
+geometry: margin = 0.7in
+fontsize: 10pt
+
+---
+
+
+```{r setup, include=FALSE,results='asis'}
+library("knitr")
+library("pander")
+library("xtable")
+library("png")
+library("markdown") 
+library("rmarkdown")
+require("OurTools")
+require("numDeriv")
+#library(tidyverse)
+library(gridExtra)
+library(grid)
+library(downloader)
+library(grDevices)
+opts_chunk$set(echo = FALSE, fig.pos="H")
+opts_chunk$set(cache = FALSE)
+ResultDir<-"./Results/"
+```
+
+
+\normalsize 
+\tableofcontents
+\setcounter{tocdepth}{2}
+
+\newpage
+
+# Introduction
+
+## Studies with time to event endpoint
+
+We consider a 1:1 randomised two-arm study with a time to event endpoint that will be analysed with a proportional hazard model. The treatment difference is described by the log hazard ratio $\theta$.
+
+Let $S_i$ denote the so-called survival function i.e. the inversely cumulated distribution function of the time to event in arm i.
+
+In order to choose and justify $\theta$, one first specifies a time horizon $H$ on which one wants to investigate the interventions to be compared. Then the treatment difference to be detected in the trial can be discussed and specified as rate differences at the chosen time horizon $H$. 
+
+The respective $\theta$ can be calculated:
+
+
+
+ $$\theta = log (\frac {log(S_2(H)) } {log(S_1(H))} )$$
+
+
+
+The number of patients N does not determine information in the data, but the overall number of observed events E.
+
+ $$se(\theta) \approx \sqrt{\frac{ 4}{E}}$$
+
+N and E can be markedly different in studies in which a relevant proportion of patients do not experience the event within the observation period.
+
+
+
+
+
+## Sample size planning in studies with time to event endpoint
+
+Sample size considerations are two-step.
+\begin{itemize}
+
+\item First determine the required number of observed events.
+\item Then choose a patient number N such that it is likely that E events will have been observed at the planned end of the study.
+
+\end{itemize}
+
+
+\newpage
+
+### Determine the required number of events
+
+The number of required events is easy to calculate: 
+
+
+```{r, echo=TRUE}
+#----------------------------------------------------------------------------------------------
+# The standard error setheta for the lhr estimate theta is sqrt(4/E) with E = # observed events
+# Under H0:  theta/setheta ~ N(0,1)
+# Under HA:  theta/setheta ~ N(lhr/setheta,1)
+# Thus:  with alpha and beta rquirements specified
+#     E = 4*(Z_(1-alpha/2) + Z_(1-beta))^2 / lhr^2
+# DH 2015-07-22
+#----------------------------------------------------------------------------------------------
+requiredEvents<-function(lhr,alpha=0.05,beta=0.2){
+  ceiling(4*( qnorm(1-alpha/2) + qnorm(1-beta) )^2 / lhr^2)}
+
+# Example
+HR=0.7
+alpha=.05
+beta= .2
+requiredEvents(log(HR),alpha,beta)  # 247
+
+
+```
+
+
+### Determine a number of patients sufficient to observe the required number of events 
+
+The number of required patients depends on a guestimate of the survival rate in the control arm.
+
+```{r, echo=TRUE}
+#----------------------------------------------------------------------------------------------
+# Simple approximation when using rates S1, S2 at a given time
+#           1:1 Randomisation
+# requiredEvents / (proportionEvents under HA)
+#        proportionEvents under HA = ((1-S1)+(1-S2))/2
+#    CAVE:  Add drop outs           DH 2015-07-22
+#----------------------------------------------------------------------------------------------
+
+requiredN<-function(S1,S2,alpha,beta){
+  ceiling(   4*( qnorm(1-alpha/2) + qnorm(1-beta) )^2 / 
+          ((log(log(S1)/log(S2)))^2)/(((1-S1)+(1-S2))/2))
+  }
+
+S1<-0.55      # control arm at Horizon time point
+S2<-S1^HR    # experimental arm under alternative hypothesis
+
+requiredN(S1,S2,alpha,beta)   # 624
+
+```
+
+It is particularly important to have a good guestimate of the outcome in the control arm.
+If one underestimates $S_1$ in study design, the study may fail to achieve the required statistical power.
+
+In addition, timing of interim analyses and of the final analysis depend on a projection at what calendar time after the start of accrual how many of events are expected to have been observed.
+
+\newpage
+
+# Modeling the information flow
+
+This information flow can be easily modelled specifying 
+
+\begin{itemize}
+
+\item an accrual curve describing at what calendar time patients enter the study and 
+
+\item the expected pooled time to event curve (under the alternative hypothesis). 
+
+\end{itemize}
+
+From these two specified functions, the expected information flow can be calculated by convolution, describing how events cumulate in calendar time since the start of the study.
+
+We generally model the information flowat the planning stage, and possibly update the model during the trial for statistical monitoring and timing of analyses.
+
+
+
+## Specifing the study in calender time
+
+In designing a study with time to event endpoint, one typically specifies:
+
+ * The target number of patients *Target*,
+
+ * the duration of the accrual period *AccrualDuration*, and
+
+ * the follow-up period *Follow-up* i.e. the observation time after the last patients was included.
+
+ * time horizon *Horizon* i.e. the chosen average time until which the treatment effect is investigated and at which the hazard ratio was calculated from assumed survival rates.
+
+
+
+
+
+
+```{r, echo=TRUE}
+TargetN <- 624           # planned number of patients
+TargetE <- 247            # required number of events
+AccrualDuration <-36      # months
+FollowUp <- 36            # months
+Horizon <- 60             # months
+```
+
+
+
+
+
+The Accrual curve describes at what calendar time after start of accrual how many patients are already in the trial.
+
+It is convenient to divide the accrual period into segments on which the accrual rate per month is assumed constant. This rate typically varies in time because of initial delays in opening up centres, a staggering start of the trial in different countries, and perhaps a decreasing enthusiasm for the study with time. Specifying accrual rates per month allows one to define the *Accrual* function by integrating the accrual rate step function.
+
+
+
+
+
+```{r, echo=TRUE}
+
+# segment accrual period
+CumPeriods <- c(6, 12, 24, 36)       # after this number of months
+Periods<-diff(c(0,CumPeriods))
+
+# specify accrual rates
+
+CumRates <- c(100, 300, 790, 1200)    /1200*624  # Faktor to get 624 patients
+accrualRates<-diff(c(0,CumRates))/Periods
+
+# Define the accrual rate function
+
+accrual<-stepfun(c(0,CumPeriods),c(0,accrualRates,0))
+
+# Define a piecewise linear Accrual function (integral over accrual)
+Accrual<-approxfun(c(0,CumPeriods),c(0, CumRates),method="linear",0,TargetN)
+
+# # Alternatively interpolate with a smooth monotone spline
+# Accrual1<-splinefun(c(0,CumPeriods), c(0, CumRates), method="hyman")
+# Accrual<-function(x){ return(min(c(Accrual1(x) , Accrual1(CumPeriods[length(CumPeriods)]))))}
+# Accrual<-Vectorize(Accrual)
+# # Smoothed out accrual rate function
+# accrual1<-approxfun((0:4200)/100,grad(Accrual,c((0:4200)/100)),method="linear",0,TargetN)
+
+```
+
+
+
+
+
+
+
+```{r, echo=TRUE,fig.width = 7,fig.asp = .8, fig.align = "center"}
+
+
+plot(accrual,lwd=3,col=4, xlim=c(0,AccrualDuration*1.15),
+     ylim=c(0,max(accrualRates)*1.15),
+     xaxp=c(0, AccrualDuration+12, (AccrualDuration+12) %/% 6),
+     xlab="months of accrual after trial start",
+     ylab="# of patients per month",
+     main="Accrual rates by accrual period")
+# lines((0:4200)/100,accrual1((0:4200)/100),col=2,lwd=2)
+legend("bottom",c(
+  paste("Periods:    ",paste(Periods,collapse="    ")," months"),
+  paste("a-Rates:    ",paste(round(accrualRates,1),collapse=" ")," pts. per month")  ),
+  cex=0.8)
+
+
+
+
+```
+
+\newpage
+
+```{r, echo=TRUE,fig.width = 7,fig.asp = .8, fig.align = "center"}
+
+
+plot(Accrual,lwd=3,col=3,
+     xlim=c(0,AccrualDuration*1.15),
+     ylim=c(0,TargetN*1.15),
+     xaxp=c(0, AccrualDuration+12, (AccrualDuration+12) %/% 6),
+     xlab="months of accrual after trial start",
+     ylab="# of patients on study",
+     main="Accrual curve")
+abline(h=TargetN,lty=2)
+abline(v=AccrualDuration,lty=4)
+legend("topleft",
+       c( paste("Study Duration: ",AccrualDuration,"months"),
+                    paste("Target sample size: N=", TargetN)),
+       cex=0.8)
+
+
+```
+
+
+\newpage
+
+## Specifing the time to event curve
+
+The second ingredient to specify is the survival function for the overall study pooling the arms.  It is important to use the planning scenario with the fewest number of events. In superiority studies, this is the planning alternative hypothesis.
+
+Each disease group has a typical hazard function and thus a typical form for the respective survival curve. Information on the form of the survival function $S_1$ for the control arm should be carefully obtained from the literature. $S_2$ can be calculated under the alternative hypothesis.
+
+$$S_2 = S_1^{exp(\theta)}$$
+
+
+
+
+```{r, echo=TRUE}
+
+
+## use e.g. linear interpolation
+
+## read off S in control arm from the literature
+
+Times<-	      c(0,  3     ,6    ,12   ,18    ,24      ,36   ,60    ,72)
+Scontrol<-	  c(1,	0.955	,0.92	,0.84	, 0.78 ,0.7275	,0.65	,0.55	 , 0.51 )
+
+# Alternative hypothesis
+
+Sexperimental<- Scontrol^HR
+
+# Pooled Survival
+Spooled<-0.5*Scontrol + 0.5*Sexperimental
+#
+# Define Survival function using a monotone spline
+
+S<-splinefun(Times,Spooled ,method="hyman")
+
+
+```
+
+
+
+```{r, echo=TRUE,fig.width = 7,fig.asp = .8, fig.align = "center"}
+
+
+## Plot pooled Survival curve
+
+plot(S,	lwd=3,col=2,
+     xlim=c(0,AccrualDuration+FollowUp),
+     ylim=c(0.0,1),
+     xaxp=c(0, AccrualDuration+FollowUp, 12),
+     xlab="month of follow up",
+     main="Assumed POOLED Time to Event curve")
+abline(v=Horizon,lty=2)
+
+# Note: Iterate until survival curve looks right...
+
+```
+\newpage
+
+## Calculating the information flow
+
+
+How many events do we expect at calendar time $T_0$?
+
+A patient included in the study at calendar time $t  < T_0$ has probability $(1-S_{pooled}(T_0-t))$ to experience an event up to $T_0$.
+
+Thus the expected number of events up to calendar time $T_0$ is
+
+$$\int\limits_0^{T_0}  accrualRate(t) \times (1-S_{pooled}(T_0-t)) dt$$
+
+
+
+
+```{r, echo=TRUE}
+
+
+# Step 3
+# Calculate the expected number of events at time T0 since start of accrual
+# as an Intergal 0:T0 over
+#        accrual rate at time t    times
+#        probability of an event up to time (T0-t)
+
+
+Events<-function(T0){
+  IN<-function(t){accrual(t)*(1-S(T0-t))}
+  res<-integrate(IN,0,T0)
+  return(res$value)
+}
+Events<-Vectorize(Events)
+
+
+
+
+```
+
+
+
+
+```{r, echo=TRUE,fig.width = 7,fig.asp = .8, fig.align = "center"}
+
+
+TimePoints<-(0:96)
+EventsObs<-Events(TimePoints)
+plot(TimePoints,EventsObs,type="l",lwd=3,col=2,
+     ylim=c(0,max(c(TargetE*1.15,EventsObs))),
+     xlab="months after trial start",
+     ylab="# observed events",
+     main="Information Flow")
+
+abline(v=AccrualDuration,lty=3,col=1,lwd=2)
+abline(v=AccrualDuration + FollowUp,lty=2,col=3,lwd=2)
+abline(h=TargetE,col=4,lwd=2)
+
+
+legend("topleft",c("End of Accrual","End of Follow-Up","Target #events at Horizon"),
+       col=c(1,3,4),lty=c(3,2,1),lwd=2,cex=0.8)
+
+
+
+
+```
+
+
+
+
+
+
+```{r, echo=TRUE,fig.width = 7,fig.asp = .8, fig.align = "center"}
+Observed<-function(st){Accrual(AccrualDuration+FollowUp-st )/TargetN}
+
+
+
+plot(Observed,xlim=c(0,(AccrualDuration+FollowUp)*1.15),col=4,lwd=2,
+     main="Expected distribution of observation times")
+
+Observed1<-function(st){Accrual(AccrualDuration+FollowUp-st )/TargetN -0.5}
+MedianObs<-uniroot(Observed1,c(0,AccrualDuration+FollowUp))$root
+abline(v=MedianObs,lwd=2,lty=2,col=3)
+legend("bottomleft",paste(c("Median Observation Time at end of Follow-up",
+                          paste(round(MedianObs,1),"months"))),cex=.8 )  
+```
+
+
+Note that instantaneous reporting of events is assumed here.
+
+Interpretation: 
+The required number of events will no yet be achieved at the planned end of follow up. 
+Consider extending follow-up or preferably increase of sample size and safeguard the option to extend follow-up in case you underestimated the event rate in the control arm. 
+

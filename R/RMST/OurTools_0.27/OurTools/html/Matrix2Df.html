@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Matrix2Df</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for Matrix2Df {OurTools}"><tr><td>Matrix2Df {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Matrix2Df</h2>
+
+<h3>Description</h3>
+
+<p>Matrix2Df converts a matrix (e.g. result of base::table) 
+into a dataframe with the rownames as an additional first column ROW. 
+Matrix2Df(M) is ready to be pandered.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+Matrix2Df(M)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>M</code></td>
+<td>
+<p>as a matrix</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>dataframe
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2018-01-12
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+x&lt;-rep(LETTERS[1:3],each=20)
+y&lt;-rep(letters[1:5],12)
+
+# Generate a matrix as it is 
+tt&lt;-Table(x,y,USENA=T)
+
+tt
+is.matrix(tt)
+
+data.frame(tt)  # Not what we want!
+
+Matrix2Df(tt)   # is a Data.frame that can be pandered
+
+M&lt;-diag(10)
+M
+Matrix2Df(M)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

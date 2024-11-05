@@ -1,0 +1,227 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: ScatterPlot</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for ScatterPlot {OurTools}"><tr><td>ScatterPlot {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>ScatterPlot</h2>
+
+<h3>Description</h3>
+
+<p>ScatterPlot produces a scatterplot including legend of valid values, 
+pearson correlation coefficient with confidence interval,
+outlier detection including option to exclude outlier,
+principal axis and_or regression lines Y~X and X~Y shown,
+subgroup (SPLIT) shown by colour and_or point type together with optional partial correlation coefficient given the subgroup information.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+ScatterPlot(
+  X,
+  Y,
+  SCALE_X = "ID",
+  SCALE_Y = "ID",
+  SPLIT = NULL,
+  COL = 4,
+  PCH = 19,
+  LINECOL = 4,
+  CONF.LEVEL = 0.95,
+  XLAB = NULL,
+  YLAB = NULL,
+  MAIN = NULL,
+  OUTLIER = 4,
+  NO_OUTLIERS = F,
+  SHOW_COR = T,
+  DIGITS = 3,
+  LINE_THRESHOLD = 0.3,
+  XY_LINE = T,
+  Y_ON_X = F,
+  X_ON_Y = F,
+  SUBLINES = F,
+  MEANPOINT = F,
+  PARCOR = T,
+  PLOT = T,
+  ...
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>X</code></td>
+<td>
+<p>metric variable for x-axis</p>
+</td></tr>
+<tr valign="top"><td><code>Y</code></td>
+<td>
+<p>metric variable for y-axis</p>
+</td></tr>
+<tr valign="top"><td><code>SCALE_X</code></td>
+<td>
+<p>=&quot;ID&quot; chooses a ScaleTransformation ID, POWER_Z, LOG10, LOGIT for X: 
+use optional parameter ZX to specify the power to use with POWER_Z.
+use optional parameter PERCENT_X = T for percent instead of proportions on LOGIT scale.</p>
+</td></tr>
+<tr valign="top"><td><code>SCALE_Y</code></td>
+<td>
+<p>=&quot;ID&quot; chooses a ScaleTransformation ID, POWER_Z, LOG10, LOGIT for X: 
+use optional parameter ZY to specify the power to use with POWER_Z.
+use optional parameter PERCENT_Y = T for percent instead of proportions on LOGIT scale.</p>
+</td></tr>
+<tr valign="top"><td><code>SPLIT</code></td>
+<td>
+<p>=NULL   split analysis by subgrouping factor</p>
+</td></tr>
+<tr valign="top"><td><code>COL</code></td>
+<td>
+<p>=4 colour of points. For subgroups, specifiy COL as vector with length=nlevel(SPLIT), else 1:nlevel(SPLIT)</p>
+</td></tr>
+<tr valign="top"><td><code>PCH</code></td>
+<td>
+<p>=19 point type(s). For subgroups, specifiy PCH as vector with length=nlevel(SPLIT), else 1:nlevel(SPLIT)</p>
+</td></tr>
+<tr valign="top"><td><code>LINECOL</code></td>
+<td>
+<p>=4 colour of SymLine or plotted line if only one line is plotted</p>
+</td></tr>
+<tr valign="top"><td><code>CONF.LEVEL</code></td>
+<td>
+<p>=0.95 confidence level for CI of correlation coefficient</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>=NULL  optional label for X, otherwise derived from call X</p>
+</td></tr>
+<tr valign="top"><td><code>YLAB</code></td>
+<td>
+<p>=NULL  optional label for Y, otherwise derived from call Y</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>=NULL  specifiy title, if MAIN = NULL no title</p>
+</td></tr>
+<tr valign="top"><td><code>OUTLIER</code></td>
+<td>
+<p>=4  outlier are identified using lmRob from package robust a points with |residue| &gt; OUTLIER * robustSd.
+set OUTLIER=Inf if no outliers should be highlighted.</p>
+</td></tr>
+<tr valign="top"><td><code>NO_OUTLIERS</code></td>
+<td>
+<p>=F set to TRUE to eliminate outliers from the plot and the analysis</p>
+</td></tr>
+<tr valign="top"><td><code>SHOW_COR</code></td>
+<td>
+<p>=T show legend with correlation corefficient and its CI</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>=3   Number of digits for correlation coefficients</p>
+</td></tr>
+<tr valign="top"><td><code>LINE_THRESHOLD</code></td>
+<td>
+<p>=.3 only show lines iff |cor| &gt;= LINE_THRESHOLD</p>
+</td></tr>
+<tr valign="top"><td><code>XY_LINE</code></td>
+<td>
+<p>=T  As a default the SymLine, i.e. the principal componant axis (symmetrical in X and Y!) is plotted. 
+This line minimises the sum of the squares of the Euclidian distances between points and line.</p>
+</td></tr>
+<tr valign="top"><td><code>Y_ON_X</code></td>
+<td>
+<p>=F   Plot the usual but asymmetric regression line Y~X. 
+This line minimises the sum of the squares of the Euclidian distances between points and line parallel to the Y-axis.</p>
+</td></tr>
+<tr valign="top"><td><code>X_ON_Y</code></td>
+<td>
+<p>=F   Plot the regression line X~Y. 
+This line minimises the sum of the squares of the Euclidian distances between points and line parallel to the X-axis.</p>
+</td></tr>
+<tr valign="top"><td><code>SUBLINES</code></td>
+<td>
+<p>=F If TRUE SymLines for subgroups defined by SPLIT are plotted instead of any overall line.</p>
+</td></tr>
+<tr valign="top"><td><code>MEANPOINT</code></td>
+<td>
+<p>=F Option to plot the overall mean within the plot.</p>
+</td></tr>
+<tr valign="top"><td><code>PARCOR</code></td>
+<td>
+<p>=T   As a default, the partial correlation pcor(x,y |SPLIT) is given in the legend reporting correlation.</p>
+</td></tr>
+<tr valign="top"><td><code>PLOT</code></td>
+<td>
+<p>= T   Option to suppress plot - only to pick the outliers</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>further parameters for scale transformations can be provided via ...
+ZX, ZY specifies the power to use with POWER_Z when  using POWER_Z
+PERCENT =F Use percent instead of proportions in LOGIT when using LOGIT</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>data.frame with the index and the X,Y values of the identified outliers if SPLIT=NULL or SUBLINES=F.
+If SUBLINES=T and more than one subgroup a data.frame is returned with all pairwise comparisons of subgroup correlation coefficients.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2018-01-03, 2018-08-13, 2019-03-12, 2020-04-02, 2020-10-08.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="SymLine.html">SymLine</a></code> for adding a symetric line, <code><a href="CorDiffCI.html">CorDiffCI</a></code> for confidence intervals for difference of correlation coefficients.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+
+## Not run: 
+x &lt;- rnorm(100, 10, 2)
+y &lt;- rnorm(100, 100, 4) + 1.7 * x
+
+ScatterPlot(x, y, PCH = 2)
+
+x &lt;- c(x, 10 + 0.2 * rnorm(20))
+y &lt;- c(y, 170 + rnorm(20))
+x[1] &lt;- NA
+
+# check Outlier detection and listing
+
+ScatterPlot(x, y, NO_OUTLIERS = F)
+ScatterPlot(x, y, NO_OUTLIERS = F, OUTLIER = 2)
+ScatterPlot(x, y, NO_OUTLIERS = T, MAIN = "Example with outliers removed")
+
+# Check SPLIT 
+x &lt;- c(rnorm(50), rnorm(50)+5)
+y &lt;- c(rnorm(50), rnorm(50)+5)  
+Split &lt;- factor(paste("Group", rep(LETTERS[1:2], each = 50), sep = "-"))
+ScatterPlot(x, y, SPLIT = Split)
+ScatterPlot(x, y, SPLIT = Split, SUBLINES=T)
+
+x &lt;- c(rnorm(50), rnorm(50, 3))
+y &lt;- c(rnorm(50), rnorm(50, 3) + 5 * x[51:100]) * 2
+Split &lt;- factor(rep(LETTERS[1:2], each = 50))
+ScatterPlot(x, y, SPLIT = Split, CONF.LEVEL = 0.99)
+
+ScatterPlot(x, y, SPLIT = Split, CONF.LEVEL = 0.99,
+               SUBLINES=T, COL=c(4,6), PCH=c(19,21))
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

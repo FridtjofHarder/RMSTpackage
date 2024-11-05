@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: MergeWithMaster - Safe and error controlled merging of...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for MergeWithMaster {OurTools}"><tr><td>MergeWithMaster {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>MergeWithMaster - Safe and error controlled merging of dataframes</h2>
+
+<h3>Description</h3>
+
+<p>MergeWithMaster combines two dataframes using a single key variable and 
+prints a Match-Report: 
+MASTER keys not in SLAVE, 
+SLAVE keys not in MASTER, and 
+presence of duplicates in MASTER, SLAVE and MASTESLAVE.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+MergeWithMaster(
+  MASTER,
+  SLAVE,
+  BY = "PATNO",
+  SUB = NULL,
+  DROP_DOUBLE = c("PATSTUID", "CNO", "PATNO"),
+  REPORT = T
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>MASTER</code></td>
+<td>
+<p>as 1st dataframe</p>
+</td></tr>
+<tr valign="top"><td><code>SLAVE</code></td>
+<td>
+<p>as 2nd dataframe</p>
+</td></tr>
+<tr valign="top"><td><code>BY</code></td>
+<td>
+<p>=&quot;PATNO  key name both in MASTER and SLAVE</p>
+</td></tr>
+<tr valign="top"><td><code>SUB</code></td>
+<td>
+<p>=NULL is the extention the second colname of a doublette gets as &quot;.SUB&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>DROP_DOUBLE</code></td>
+<td>
+<p>=c(&quot;PATSTUID&quot;,&quot;CNO&quot;,&quot;PATNO&quot;) redundant colnames to be droped from SLAVE</p>
+</td></tr>
+<tr valign="top"><td><code>REPORT</code></td>
+<td>
+<p>= T In general we definitely want a report, but not always.</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>MergeWithMaster
+</p>
+
+
+<h3>Value</h3>
+
+<p>a merged dataframe
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-03-10; 2017-12-12; 2019-02-08
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+df1 = data.frame(CustomerId=c(1:6),Product=c(rep("Toaster",3),rep("Radio",3)))
+df2 = data.frame(CustomerId=c(2,4,4,7),State=c(rep("Alabama",3),rep("Ohio",1)))
+MergeWithMaster(df1,df2,"CustomerId") 
+MergeWithMaster(df1,df2,"CustomerId",REPORT = F)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

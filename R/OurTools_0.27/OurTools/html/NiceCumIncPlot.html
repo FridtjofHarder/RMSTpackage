@@ -1,0 +1,210 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: NiceCumIncPlot produces a cumulative incidence curve plot in...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for NiceCumIncPlot {OurTools}"><tr><td>NiceCumIncPlot {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>NiceCumIncPlot produces a cumulative incidence curve plot in competing risk analysis</h2>
+
+<h3>Description</h3>
+
+<p>Cumulative incidence curve plot in competing risk analysis by split groups, 
+including a table describing competing events and group comparison using the proportional 
+subdistribution hazards regression model described in Fine and Gray (1999).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+NiceCumIncPlot(
+  TIMES,
+  STATUS,
+  SPLIT = NULL,
+  CENSCODE = 0,
+  TARGETCODE = 1,
+  EVENTTABLE = TRUE,
+  COMPARE = T,
+  RATETABLE = T,
+  TIMEPOINT = NULL,
+  ORDER = T,
+  MAIN = "Cumulative Incidence Function",
+  XLAB = NULL,
+  YLAB = "cumulative incidence",
+  XLIM = NULL,
+  YLIM = c(0, 1),
+  SCALE = NULL,
+  UNIT = "???",
+  COL = NULL,
+  EVENTNAME = "Event",
+  COMPETENAME = "Competing",
+  CEX = 0.8,
+  DIGITS_RATES = 3,
+  DIGITS_HR = 2,
+  ...
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>TIMES</code></td>
+<td>
+<p>time variable in competing risk setting</p>
+</td></tr>
+<tr valign="top"><td><code>STATUS</code></td>
+<td>
+<p>status variable in competing risk setting default 
+0 = Censored 1= Events of interest, 2= Competing EVENT(s)</p>
+</td></tr>
+<tr valign="top"><td><code>SPLIT</code></td>
+<td>
+<p>=NULL optional split variable</p>
+</td></tr>
+<tr valign="top"><td><code>CENSCODE</code></td>
+<td>
+<p>=0, non-standard code for censored observations</p>
+</td></tr>
+<tr valign="top"><td><code>TARGETCODE</code></td>
+<td>
+<p>=1, non-standard code for Events of interest</p>
+</td></tr>
+<tr valign="top"><td><code>EVENTTABLE</code></td>
+<td>
+<p>= T, show event table</p>
+</td></tr>
+<tr valign="top"><td><code>COMPARE</code></td>
+<td>
+<p>=T, show table with comparisons based on proportional 
+subdistribution hazards regression model. If model does not converge, a warning is given and no table plotted.</p>
+</td></tr>
+<tr valign="top"><td><code>RATETABLE</code></td>
+<td>
+<p>= T, show table with rate estimates at TIMEPOINT and their 95 percent CI. 
+Set to FALSE if TIMEPOINT not specified! CI borders &lt;= 0 and &gt;= 1 are set to NA with warning.</p>
+</td></tr>
+<tr valign="top"><td><code>TIMEPOINT</code></td>
+<td>
+<p>=NULL, time point at which ordering of curves is read off if desired</p>
+</td></tr>
+<tr valign="top"><td><code>ORDER</code></td>
+<td>
+<p>=T, order legends such that legends matched curves from top to bottom</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>=&quot;Cumulative Incidence Function&quot; plot title</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>=NULL, x-axis label, default is &quot;Time&quot; with UNITS added in brackets if UNITS specified</p>
+</td></tr>
+<tr valign="top"><td><code>YLAB</code></td>
+<td>
+<p>=&quot;cumulative incidence&quot;, y-axis label</p>
+</td></tr>
+<tr valign="top"><td><code>XLIM</code></td>
+<td>
+<p>=NULL, range of x-axis - NOTE that for the comparison also Events beyond XLIM are used.</p>
+</td></tr>
+<tr valign="top"><td><code>YLIM</code></td>
+<td>
+<p>=c(0,1), range of y-axis</p>
+</td></tr>
+<tr valign="top"><td><code>SCALE</code></td>
+<td>
+<p>=NULL, unit for tick distance on time axis</p>
+</td></tr>
+<tr valign="top"><td><code>UNIT</code></td>
+<td>
+<p>=&quot;???&quot;, specify time unit to be included in XLAB, e.g. &quot;days&quot;, &quot;Months&quot;, &quot;years&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>COL</code></td>
+<td>
+<p>=NULL, specify colours for curves to overwrite the default</p>
+</td></tr>
+<tr valign="top"><td><code>EVENTNAME</code></td>
+<td>
+<p>=&quot;Event&quot; colname for Event in Event table</p>
+</td></tr>
+<tr valign="top"><td><code>COMPETENAME</code></td>
+<td>
+<p>=&quot;Competing&quot; colname for competing events in Event table</p>
+</td></tr>
+<tr valign="top"><td><code>CEX</code></td>
+<td>
+<p>= .8  letter size for legends</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS_RATES</code></td>
+<td>
+<p>= 2 Display DIGITS_RATES ciphers in total in Rate estimates</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS_HR</code></td>
+<td>
+<p>= 2 Round to DIGITS_HR in Hazard ratio table</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>further plot parameter passed to graphics::plot. 
+TIP: las=1 makes numbers on y-axis horizontal.</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>NiceCumIncPlot
+</p>
+
+
+<h3>Value</h3>
+
+<p>produces a plot and invisibly returns the fitted proportional subdistribution hazard model
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2018-02-10, 2018-08-31, 2018-09-13, 2019-02-05, 2019-02-14, 2020-02-26, 2020-07-16
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+ N&lt;-200
+ TimeToEvent&lt;-rweibull(N,1)
+ Events&lt;-sample(0:2,N,replace=T,prob=c(.3,.5,.2))
+ Arm&lt;-sample(LETTERS[1:2],N,replace=T)
+ xx&lt;-NiceCumIncPlot(
+  TIMES=TimeToEvent,
+  STATUS=Events,
+  SPLIT=Arm,
+  CENSCODE=0,
+  TARGETCODE=1,
+  EVENTTABLE = F,
+  COMPARE = T,
+  RATETABLE = T,
+  TIMEPOINT=2,
+  ORDER=T,
+  MAIN="Cumulative Incidence Function",
+  XLAB=NULL,
+  YLAB="cumulative incidence",
+  XLIM=NULL,
+  YLIM=c(0,1),
+  SCALE=NULL,
+  UNIT="years",
+  COL=NULL,
+  EVENTNAME ="Event",
+  COMPETENAME ="Competing",
+  CEX=.8,
+  las=1)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

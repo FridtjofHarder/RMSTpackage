@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: MetricPlotBySplit</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for MetricPlotBySplit-deprecated {OurTools}"><tr><td>MetricPlotBySplit-deprecated {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>MetricPlotBySplit</h2>
+
+<h3>Description</h3>
+
+<p>Produces plots of a METRIC variables by a SPLIT factor. 
+Available TYPEs are Ecdf, Dens, Boxplot, Stripchart.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+MetricPlotBySplit(
+  METRIC,
+  SPLIT = NULL,
+  TYPE = "Ecdf",
+  XLAB = NULL,
+  XLIM = NULL,
+  MAIN = NULL,
+  COL = NULL,
+  ADJ = 1,
+  METHOD = "jitter"
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>METRIC</code></td>
+<td>
+<p>is the metric variable to be plotted</p>
+</td></tr>
+<tr valign="top"><td><code>SPLIT</code></td>
+<td>
+<p>=NULL is a factor or convertable to a factor. If NULL a single group ALL is assumed.</p>
+</td></tr>
+<tr valign="top"><td><code>TYPE</code></td>
+<td>
+<p>=&quot;Ecdf chooses between &quot;Ecdf&quot;, &quot;Dens&quot;, &quot;Boxplot&quot;, &quot;Stripchart&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>=NULL  optional, otherwise derived from call METRIC</p>
+</td></tr>
+<tr valign="top"><td><code>XLIM</code></td>
+<td>
+<p>=NULL  optional, otherwise derived from pretty</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>=NULL plot title</p>
+</td></tr>
+<tr valign="top"><td><code>COL</code></td>
+<td>
+<p>=NULL   colours for the levels of Split - otherwise 2:(G+1)</p>
+</td></tr>
+<tr valign="top"><td><code>ADJ</code></td>
+<td>
+<p>=1      Density smoothing parameter relative to density standard</p>
+</td></tr>
+<tr valign="top"><td><code>METHOD</code></td>
+<td>
+<p>=&quot;jitter&quot; METHOD for stripchart</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Generates a plot.
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ourPkg-deprecated</code>
+</p>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

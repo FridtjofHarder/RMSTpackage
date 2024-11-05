@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Plot Ordinal Course</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for PlotOrdinalCourse {OurTools}"><tr><td>PlotOrdinalCourse {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Plot Ordinal Course</h2>
+
+<h3>Description</h3>
+
+<p>Creates a bar graph of the cumulative maximum CTC GRADE 0:5 in the course of chemotherapy cycles. 
+The ORDLEVELS parameter can be used to select another ordinal variable.
+The COURSELABEL parameter defines the course variable. 
+The maximum number of bars of the course variable is 16.
+A frequency table is displayed on the right.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+PlotOrdinalCourse(
+  proztab,
+  COL = c(0, 7, 3, 4, 6, 2),
+  XLAB = "cumulative maximum CTC grade",
+  MAIN = "Barplot course of ordinal",
+  ORDLEVELS = "CTC",
+  COURSELABEL = "CY",
+  SHOW_TABLE = TRUE
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>proztab</code></td>
+<td>
+<p>is a prepared data matrix with cumulative frequencies of ORDLEVELS and COURSLABEL</p>
+</td></tr>
+<tr valign="top"><td><code>COL</code></td>
+<td>
+<p>Colour of Subgroups, default = c(0,7, 3, 4, 6, 2) works for CTC0:4 and CTC 0:5, but can be adjusted</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>=&quot;cumulative maximum CTC grade&quot; is default and can be adjusted</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>=&quot;Barplot course of ordinal&quot; is default and can be adjusted</p>
+</td></tr>
+<tr valign="top"><td><code>ORDLEVELS</code></td>
+<td>
+<p>=&quot;CTC&quot; is default and can be adjusted</p>
+</td></tr>
+<tr valign="top"><td><code>COURSELABEL</code></td>
+<td>
+<p>=&quot;CY&quot; is default and can be adjusted</p>
+</td></tr>
+<tr valign="top"><td><code>SHOW_TABLE</code></td>
+<td>
+<p>= TRUE logical switch to supress the table</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Generates a stacked barplot with a frequency table.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever Update 2019-04.11
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run:  
+# Simulate CTC 0:4 data
+tt&lt;-list( factor(sample(0:4,101,replace=T, prob=c(.2, .3, .4, .08, .02)),levels=paste(0:4)),
+          factor(sample(0:4,101,replace=T, prob=c(.1, .2, .5, .1, .1)),levels=paste(0:4)),
+          factor(sample(0:4,100,replace=T, prob=c(.1, .15, .4, .2, .15)),levels=paste(0:4)),
+          factor(sample(0:4,99,replace=T,  prob=c(.05, .12, .38, .25, .2)),levels=paste(0:4)),
+          factor(sample(0:4,100,replace=T, prob=c(.1, .15,.4,.2,.15)),levels=paste(0:4)),
+          factor(sample(0:4,99,replace=T,  prob=c(.05, .12,.38,.25,.2)),levels=paste(0:4)))
+
+# Percent Table
+
+ttt&lt;-prop.table(sapply(tt,function(x){table(x)}),2)*100
+colnames(ttt)&lt;-paste("CY",1:length(tt),sep="-")
+PlotOrdinalCourse(ttt)
+PlotOrdinalCourse(ttt,SHOW_TABLE = F)
+
+# Simulate CTC 0:5 data
+tt&lt;-list( factor(sample(0:5,101,replace=T, prob=c(.2, .3, .4, .08, .02, .01)),levels=paste(0:5)),
+          factor(sample(0:5,101,replace=T, prob=c(.1, .2, .5, .1, .1, .01)),levels=paste(0:5)),
+          factor(sample(0:5,100,replace=T, prob=c(.1, .15, .4, .2, .15, .01)),levels=paste(0:5)),
+          factor(sample(0:5,99,replace=T,  prob=c(.05, .12, .38, .25, .2, .01)),levels=paste(0:5)),
+          factor(sample(0:5,100,replace=T, prob=c(.1, .15,.4,.2,.15,.01)),levels=paste(0:5)),
+          factor(sample(0:5,99,replace=T,  prob=c(.05, .12,.38,.25,.2,.05)),levels=paste(0:5)))
+
+# Percent Table
+
+ttt&lt;-prop.table(sapply(tt,function(x){table(x)}),2)*100
+colnames(ttt)&lt;-paste("CY",1:length(tt),sep="-")
+PlotOrdinalCourse(ttt)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

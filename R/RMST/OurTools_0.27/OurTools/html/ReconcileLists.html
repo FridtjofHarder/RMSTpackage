@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: ReconcileLists</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for ReconcileLists {OurTools}"><tr><td>ReconcileLists {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>ReconcileLists</h2>
+
+<h3>Description</h3>
+
+<p>used to compare and reconsile two lists.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+ReconcileLists(OldDFR, NewDFR, KEYS, ONLYNEW = F)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>OldDFR</code></td>
+<td>
+<p>is an old list possibly amended by data managment</p>
+</td></tr>
+<tr valign="top"><td><code>NewDFR</code></td>
+<td>
+<p>is a newly created, updated list</p>
+</td></tr>
+<tr valign="top"><td><code>KEYS</code></td>
+<td>
+<p>is a vector of variable names both in OLDDFR and NEWDFR which identify the entries.</p>
+</td></tr>
+<tr valign="top"><td><code>ONLYNEW</code></td>
+<td>
+<p>= F logical switch to only filter new entries</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>returns an updated list either with onlynew entries (ONLYNEW=T)or with new and still unresolved entries.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Annett Schrock &amp; Dirk Hasenclever
+</p>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

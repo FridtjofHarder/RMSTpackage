@@ -1,0 +1,119 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: PlotAxis</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for PlotAxis {OurTools}"><tr><td>PlotAxis {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>PlotAxis</h2>
+
+<h3>Description</h3>
+
+<p>Function to plot a transformed axis. 
+Available TYPEs are ID, POWER_Z, LOG10, LOGIT.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+PlotAxis(
+  x,
+  AXIS = 1,
+  SCALE = "ID",
+  LIM = NULL,
+  NPRETTY = 8,
+  UNIT = NULL,
+  LINE = NA,
+  COL = 1,
+  ...
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>x</code></td>
+<td>
+<p>is the untransformed metric variable to be plotted</p>
+</td></tr>
+<tr valign="top"><td><code>AXIS</code></td>
+<td>
+<p>=1 Choose which axis 1=x-axis, 2=y-axis</p>
+</td></tr>
+<tr valign="top"><td><code>SCALE</code></td>
+<td>
+<p>=&quot;ID&quot; chooses between ID, POWER_Z, LOG10, LOGIT</p>
+</td></tr>
+<tr valign="top"><td><code>LIM</code></td>
+<td>
+<p>=NULL plot interval for axis i.e. xlim or ylim</p>
+</td></tr>
+<tr valign="top"><td><code>NPRETTY</code></td>
+<td>
+<p>= 8 influences approximate number of labels when using ID or POWER_Z (cf. base pretty)</p>
+</td></tr>
+<tr valign="top"><td><code>UNIT</code></td>
+<td>
+<p>=NULL if SCALE =&quot;ID&quot; AND diff(LIM) divisable by UNIT plot interval will have UNIT based ticks</p>
+</td></tr>
+<tr valign="top"><td><code>LINE</code></td>
+<td>
+<p>= NA will be passed to axis as line=LINE</p>
+</td></tr>
+<tr valign="top"><td><code>COL</code></td>
+<td>
+<p>= 1 will be passed to axis as col = COL to colour the axis</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>further parameters for scale transformations can be provided via ...
+Z specifies the power to use with POWER_Z when  using POWER_Z
+PERCENT =F Use percent instead of proportions in LOGIT when using LOGIT</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>plots the chosen axis in the currently open plot.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-03-29, 2018-09-12, 2020-02-15 (LINE parameter)
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+x&lt;-rnorm(300,10,3)
+hist(x,xaxt="n")
+PlotAxis(x,AXIS=1,SCALE="ID",NPRETTY=12)
+hist(x,xaxt="n")
+PlotAxis(x,AXIS=1,SCALE="ID",NPRETTY=3)
+
+x&lt;-rnorm(300,10,6)^(3/2)
+hist(x^(2/3),xaxt="n")
+PlotAxis(x,AXIS=1,SCALE="POWER_Z", Z=2/3)
+
+x&lt;-exp(rnorm(700,1,1))
+hist(log10(x),xaxt="n")
+PlotAxis(x,AXIS=1,SCALE="LOG",LIM=NULL,NPRETTY=2)
+
+x&lt;-rbeta(300,12,1)
+hist(T_Logit(x),xaxt="n",nclass=40)
+PlotAxis(x,AXIS=1,SCALE="LOGIT",NPRETTY=8)
+x&lt;-rbeta(300,3,1)*100
+hist(T_Logit(x,PERCENT=T),xaxt="n",nclass=40)
+PlotAxis(x,AXIS=1,SCALE="LOGIT",NPRETTY=8,PERCENT=T)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

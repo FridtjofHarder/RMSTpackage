@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Level2NA</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for Level2NA {OurTools}"><tr><td>Level2NA {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Level2NA</h2>
+
+<h3>Description</h3>
+
+<p>Level2NA recodes one selected LEVEL of a factor X to NA and eliminates it from levels(X). 
+Level2NA can be applied to a factor or to all factors in a data.frame. 
+NOTE: Level2NA has no effect on character vectors.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+Level2NA(X, LEVEL, EXCEPT = NULL)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>X</code></td>
+<td>
+<p>is either a factor or a data.frame</p>
+</td></tr>
+<tr valign="top"><td><code>LEVEL</code></td>
+<td>
+<p>which is to be recoded to NA and has to be specified</p>
+</td></tr>
+<tr valign="top"><td><code>EXCEPT</code></td>
+<td>
+<p>=NULL list colnames of a df that should not be transformed</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>the transformed factor or data.frame
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-03-22, 2018-01-09
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+# Applied to a vector
+Y&lt;-factor(c("BALI","BALI","SUMATRA","LOMBOK","n.n.", "JAVA"))
+Y
+Level2NA(Y, LEVEL="n.n.")
+
+# Applied to a data.frame
+DFR&lt;-data.frame(X=1:6,
+                Y=c("BALI","BALI","SUMATRA","LOMBOK","n.n.", "JAVA"),
+                Z=factor(c(LETTERS[1:5],"n.n.")))
+DFR
+DFR&lt;-Level2NA(DFR, LEVEL="BALI")
+DFR
+DFR&lt;-Level2NA(DFR, LEVEL="n.n.",EXCEPT="Z")
+DFR
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

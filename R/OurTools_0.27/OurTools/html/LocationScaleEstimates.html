@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: LocationScaleEstimates</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for LocationScaleEstimates {OurTools}"><tr><td>LocationScaleEstimates {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>LocationScaleEstimates</h2>
+
+<h3>Description</h3>
+
+<p>LocationScaleEstimates estimates mean, pseudomedian, sd, mad and 
+mode (of density) of a numeric variable.
+Estimates and CIs are based on t.test and wilcox.test for mean and pseudomedian. 
+For other parameters the CI is based on bca-bootstrap relying on package boot.
+CAUTION: Bootstrap may take a while with large data.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+LocationScaleEstimates(
+  METRIC,
+  PARAM = c("Mean", "Pseudomedian", "Sd"),
+  CONF.LEVEL = 0.95,
+  DIGITS = 3,
+  MODEADJ = 1,
+  NBOOT = 999
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>METRIC</code></td>
+<td>
+<p>is a numeric variable</p>
+</td></tr>
+<tr valign="top"><td><code>PARAM</code></td>
+<td>
+<p>=c(&quot;Mean&quot;,&quot;Pseudomedian&quot;,&quot;Sd&quot;) vector of parameter names. 
+Choose from PARAM=c(&quot;Mean&quot;,&quot;Pseudomedian&quot;,&quot;Sd&quot;,&quot;Mad&quot;,&quot;Mode&quot;)</p>
+</td></tr>
+<tr valign="top"><td><code>CONF.LEVEL</code></td>
+<td>
+<p>= 0.95  Confidence Level for confidence interval</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>=3   Number of digits for estimates</p>
+</td></tr>
+<tr valign="top"><td><code>MODEADJ</code></td>
+<td>
+<p>adjust, default=1 for density for mode estimation</p>
+</td></tr>
+<tr valign="top"><td><code>NBOOT</code></td>
+<td>
+<p>=999 number of bootstrap replicates</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>data.frame with parameters as rows and estimate, lower and upper 95
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-12-14
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+METRIC&lt;-c(rnorm(200),rnorm(100,2,1),10:17)
+## Not run: 
+LocationScaleEstimates(METRIC)
+LocationScaleEstimates(METRIC,PARAM=c("Mean","Pseudomedian","Mode"),MODEADJ = .7)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

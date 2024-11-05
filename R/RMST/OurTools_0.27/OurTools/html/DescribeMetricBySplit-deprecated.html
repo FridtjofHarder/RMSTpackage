@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: DescribeMetricBySplit produces a data.frame describing one or...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for DescribeMetricBySplit-deprecated {OurTools}"><tr><td>DescribeMetricBySplit-deprecated {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>DescribeMetricBySplit produces a data.frame describing one or many metric variables</h2>
+
+<h3>Description</h3>
+
+<p>This OUT_DATED function produces a data.frame describing one or many metric variables  
+selected from a data.frame DFR by their names in a character vector COLUMNS
+SPLIT is a group variable which may be left out
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+DescribeMetricBySplit(
+  DFR,
+  COLUMNS = NULL,
+  SPLIT = NULL,
+  LONGNAMES = NULL,
+  SEL = "All",
+  DIGITS = 3,
+  ALL = T,
+  FORTRANSPOSITION = F
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR</code></td>
+<td>
+<p>is a dataframe (if vector, COLUMNS must remain NULL)</p>
+</td></tr>
+<tr valign="top"><td><code>COLUMNS</code></td>
+<td>
+<p>=NULL colnames in DFR to be described (at least one, unless DFR is a vector)</p>
+</td></tr>
+<tr valign="top"><td><code>SPLIT</code></td>
+<td>
+<p>=NULL   split factor (variable), if NULL simple description, NULL is default</p>
+</td></tr>
+<tr valign="top"><td><code>LONGNAMES</code></td>
+<td>
+<p>=NULL   optional long names for variables specified by COLUMNS</p>
+</td></tr>
+<tr valign="top"><td><code>SEL</code></td>
+<td>
+<p>=&quot;ALL&quot; if specified select statistics from 
+c(&quot;MEAN&quot;, &quot;SD&quot;, &quot;P25&quot;, &quot;MEDIAN&quot;, &quot;P75&quot;, &quot;MIN&quot;, &quot;MAX&quot;, &quot;MAD&quot;, &quot;NVALID&quot;, &quot;NMISSING&quot;)</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>Number of digits for percentages , digits=1 is default</p>
+</td></tr>
+<tr valign="top"><td><code>ALL</code></td>
+<td>
+<p>=T  If TRUE, also overall statistics are calculated</p>
+</td></tr>
+<tr valign="top"><td><code>FORTRANSPOSITION</code></td>
+<td>
+<p>=F Set to T if you later want to transpose the resulting data.frame - VARIABLE stays redundant</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>a data.frame with statistics for each COLUMN by the group variable SPLIT
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code>ourPkg-deprecated</code>
+</p>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

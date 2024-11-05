@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Collection of scale Transformations</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for ScaleTransformations {OurTools}"><tr><td>ScaleTransformations {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Collection of scale Transformations</h2>
+
+<h3>Description</h3>
+
+<p>Scale Transformation functions with INVerse option, safely dealing with NaN and +-Inf
+</p>
+
+<ul>
+<li><p> T_Power_Z 
+</p>
+</li>
+<li><p> T_Log_B 
+</p>
+</li>
+<li><p> T_Logit
+</p>
+</li></ul>
+
+
+
+<h3>Usage</h3>
+
+<pre>
+T_Power_Z(x, INV = FALSE, Z)
+
+T_Log_B(x, INV = FALSE, B = 10)
+
+T_Logit(x, INV = FALSE, PERCENT = FALSE)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>x</code></td>
+<td>
+<p>metric variable</p>
+</td></tr>
+<tr valign="top"><td><code>INV</code></td>
+<td>
+<p>=FALSE logical switch between transformation and its inverse</p>
+</td></tr>
+<tr valign="top"><td><code>Z</code></td>
+<td>
+<p>Exponent of power transformation (T_Power_Z only)</p>
+</td></tr>
+<tr valign="top"><td><code>B</code></td>
+<td>
+<p>=10 base of the logarithm         (T_Log_B only)</p>
+</td></tr>
+<tr valign="top"><td><code>PERCENT</code></td>
+<td>
+<p>=FALSE logical switch proportions as percent (T_Logit only)</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>transformed metric
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+T_Power_Z(2,Z=1/2)
+T_Power_Z( T_Power_Z(2,Z=1/2), INV=TRUE,Z=1/2)
+T_Log_B(100)
+T_Log_B(128,2)
+T_Log_B( T_Log_B(128,2), INV=TRUE) # = 1e+07
+T_Logit(T_Logit(0.2),INV=TRUE)
+T_Logit(T_Logit(0.2),INV=TRUE,PERCENT=TRUE)
+T_Logit(0) # NA (not -Inf because used for PlotAxis)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

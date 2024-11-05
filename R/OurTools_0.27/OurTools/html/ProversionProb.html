@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: ProversionProb</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for ProversionProb {OurTools}"><tr><td>ProversionProb {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>ProversionProb</h2>
+
+<h3>Description</h3>
+
+<p>ProversionProb calculates a confidence interval for the
+proversion probability   pr(X&gt;Y)+0.5*pr(X=Y)
+using method 5 of 
+Newcombe RG (2006).
+Confidence intervals for an effect size measure based on the Mann-Whitney statistic. Part 1: General issues and tail-area based methods. Stat Med 25(4):543-557
+Newcombe RG (2006);
+Confidence intervals for an effect size measure based on the Mann-Whitney statistic. Part 2: Asymptotic methods and evaluation. Stat Med 25(4):559-573
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+ProversionProb(X, Y, CI_LEVEL = 0.95, DIGITS = 7)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>X, Y</code></td>
+<td>
+<p>metric or at least ordinal numeric</p>
+</td></tr>
+<tr valign="top"><td><code>CI_LEVEL</code></td>
+<td>
+<p>=0.95 desired confidence level</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>=7 number of digits</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Vector of estimated ProversionProbability with Lower, Upper of CI_LEVEL confidence interval
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2010-04-28, 2017-12-12, 2018-08-23
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+X&lt;-rnorm(30,10,1)
+Y&lt;-rnorm(30,9.5,1)
+PlotMetricBySplit(c(X,Y),c(rep("X",length(X)),rep("Y",length(Y))))
+ProversionProb(X,Y,DIGITS=4)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

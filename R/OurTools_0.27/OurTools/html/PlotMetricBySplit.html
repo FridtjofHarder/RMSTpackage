@@ -1,0 +1,159 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: PlotMetricBySplit</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for PlotMetricBySplit {OurTools}"><tr><td>PlotMetricBySplit {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>PlotMetricBySplit</h2>
+
+<h3>Description</h3>
+
+<p>Produces plots of a METRIC variables by a SPLIT factor. 
+Available TYPEs are Ecdf, Dens, Boxplot, Stripchart.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+PlotMetricBySplit(
+  METRIC,
+  SPLIT = NULL,
+  TYPE = "Ecdf",
+  SCALE = "ID",
+  MLAB = NULL,
+  MLIM = NULL,
+  UNIT = NULL,
+  MAIN = NULL,
+  COL = NULL,
+  DRAW_STEPS = F,
+  ECDF_POINTS = T,
+  NVALID = T,
+  ADJ = 1,
+  METHOD = "jitter",
+  NPRETTY = 8,
+  PCH = 19,
+  TEST = NULL,
+  ...
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>METRIC</code></td>
+<td>
+<p>is the metric variable to be plotted</p>
+</td></tr>
+<tr valign="top"><td><code>SPLIT</code></td>
+<td>
+<p>=NULL is a factor or convertable to a factor. If NULL a single group ALL is assumed.</p>
+</td></tr>
+<tr valign="top"><td><code>TYPE</code></td>
+<td>
+<p>=&quot;Ecdf chooses between &quot;Ecdf&quot;, &quot;Dens&quot;, &quot;Boxplot&quot;, &quot;Stripchart&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>SCALE</code></td>
+<td>
+<p>=&quot;ID&quot; chooses a ScaleTransformation ID, POWER_Z, LOG10, LOGIT</p>
+</td></tr>
+<tr valign="top"><td><code>MLAB</code></td>
+<td>
+<p>=NULL  optional label for METRIC, otherwise derived from call METRIC</p>
+</td></tr>
+<tr valign="top"><td><code>MLIM</code></td>
+<td>
+<p>=NULL  optional ON THE ORIGINAL SCALE, otherwise derived from pretty</p>
+</td></tr>
+<tr valign="top"><td><code>UNIT</code></td>
+<td>
+<p>=NULL  if SCALE =&quot;ID&quot; AND diff(LIM) divisable by UNIT plot interval will have UNIT based ticks</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>=NULL, specifiy title, if MAIN = NULL type of plot</p>
+</td></tr>
+<tr valign="top"><td><code>COL</code></td>
+<td>
+<p>=NULL   colours for the levels of Split - otherwise 2:(G+1)</p>
+</td></tr>
+<tr valign="top"><td><code>DRAW_STEPS</code></td>
+<td>
+<p>=F Set to TRUE for drawing the ecdf steps in full</p>
+</td></tr>
+<tr valign="top"><td><code>ECDF_POINTS</code></td>
+<td>
+<p>=T Set to FALSE to suppress plotting points in ecdf</p>
+</td></tr>
+<tr valign="top"><td><code>NVALID</code></td>
+<td>
+<p>=T logical switch whether to show number of valid observations per SPLIT group</p>
+</td></tr>
+<tr valign="top"><td><code>ADJ</code></td>
+<td>
+<p>=1      Density smoothing parameter relative to density standard</p>
+</td></tr>
+<tr valign="top"><td><code>METHOD</code></td>
+<td>
+<p>=&quot;jitter&quot; METHOD for stripchart. Options: &quot;jitter&quot;, &quot;stack&quot;, &quot;overplot&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>NPRETTY</code></td>
+<td>
+<p>=6 influences approximate number of labels when using ID or POWER_Z (cf. base pretty)</p>
+</td></tr>
+<tr valign="top"><td><code>PCH</code></td>
+<td>
+<p>= 19  Point type used in Stripchart - possibly a vector specifying different pointtypes by group.</p>
+</td></tr>
+<tr valign="top"><td><code>TEST</code></td>
+<td>
+<p>= NULL  if TEST = &quot;Means&quot; plot p-value of t-test or oneway-test on transformed scale, 
+if TEST = &quot;Medians&quot; plot p-value of MW-U-test or Kruskal-Wallis-Test</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>further parameters for scale transformations can be provided via ...
+Z specifies the power to use with POWER_Z when  using POWER_Z
+PERCENT =F Use percent instead of proportions in LOGIT when using LOGIT</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Generates a plot.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-03-09; 2017-03-20 with scale options; 2017-04-02; 
+2017-12-05; 2018-02-05; 2018-08-13, 2018-10-23, 2019-09-02, 2020-07-16, 2020-10-01
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+METRIC&lt;-c(rnorm(100,10,2),rnorm(200,12,4))
+SPLIT&lt;-c(rep("Good",100),rep("Bad",100),rep("DEVELISH",100))
+
+PlotMetricBySplit(METRIC,SPLIT,MLAB="test variable",COL=c(2,3,4),TYPE="Ecdf")
+PlotMetricBySplit(METRIC,SPLIT,
+COL=c(2,3,4),TYPE="Ecdf",NPRETTY=4,SCALE="ID",DRAW_STEPS = T)
+PlotMetricBySplit(METRIC,SPLIT,
+                  COL=c(2,3,4),TYPE="Ecdf",NPRETTY=4,SCALE="ID",DRAW_STEPS = T,ECDF_POINTS = F)
+PlotMetricBySplit(METRIC,SPLIT,MLAB="test variable",COL=c(2,3,4),
+                 TYPE="Dens",ADJ=c(1,.5,2))
+PlotMetricBySplit(METRIC,SPLIT,MLAB="test variable",COL=c(2,3,4),TYPE="Boxplot")
+PlotMetricBySplit(METRIC,SPLIT,MLAB="test variable",COL=c(2,3,4),
+                 TYPE="Stripchart",METHOD="jitter")
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

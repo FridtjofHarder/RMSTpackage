@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Df2Csv writes a data.frame to a csv file</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for Df2Csv {OurTools}"><tr><td>Df2Csv {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Df2Csv writes a data.frame to a csv file</h2>
+
+<h3>Description</h3>
+
+<p>Df2Csv writes a data.frame to a csv file such that it can be opended in excel
+and excel interprets numerics with &quot;.&quot; as decimal
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+Df2Csv(
+  df,
+  FILENAME = NULL,
+  TABLECAPTURE = NULL,
+  DIGITS = 4,
+  WIDTH = 12,
+  JUSTIFY = "right",
+  ROW.NAMES = T
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>df</code></td>
+<td>
+<p>as dataframe</p>
+</td></tr>
+<tr valign="top"><td><code>FILENAME</code></td>
+<td>
+<p>as the saved name</p>
+</td></tr>
+<tr valign="top"><td><code>TABLECAPTURE</code></td>
+<td>
+<p>as header for table</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS, </code></td>
+<td>
+<p>4 is default</p>
+</td></tr>
+<tr valign="top"><td><code>WIDTH, </code></td>
+<td>
+<p>width=12 is default</p>
+</td></tr>
+<tr valign="top"><td><code>JUSTIFY</code></td>
+<td>
+<p>, right is default</p>
+</td></tr>
+<tr valign="top"><td><code>ROW.NAMES, </code></td>
+<td>
+<p>TRUE is default</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>csv file
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+test&lt;-data.frame(a=rnorm(10),b=rep(1:2,5), c=rep(rnorm(10)))
+Df2Csv(df=test,TABLECAPTURE="Test of data frame output",DIGITS=2)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

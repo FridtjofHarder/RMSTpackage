@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: CountBarplot</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for CountBarplot {OurTools}"><tr><td>CountBarplot {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>CountBarplot</h2>
+
+<h3>Description</h3>
+
+<p>Plot a barplot of a count variable avoiding left-out bars at zero counts in [min; MAX]
+A frequency table including zeros is returned invisibly. There are three options: Frequency, Proportion, and Percent on y-axis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+CountBarplot(
+  COUNTS,
+  TYPE = "Frequency",
+  MAIN = "Barplot of",
+  XLAB = "Counts",
+  YLAB = NULL,
+  COL = 4
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>COUNTS</code></td>
+<td>
+<p>is a prepared data matrix with cumulative frequencies of ORDLEVELS and COURSLABEL</p>
+</td></tr>
+<tr valign="top"><td><code>TYPE</code></td>
+<td>
+<p>=&quot;Frequency other options for y-axis: &quot;Proportion&quot; and &quot;Percent</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>=&quot;Barplot of&quot; is default. If left as default name of variable COUNTS is appended automatically.</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>Label on x-axis set to &quot;Counts&quot; by default</p>
+</td></tr>
+<tr valign="top"><td><code>YLAB</code></td>
+<td>
+<p>=NULL y-axis label. Set to TYPE if left NULL. ( Nvalid = xxx ) appended automatically</p>
+</td></tr>
+<tr valign="top"><td><code>COL</code></td>
+<td>
+<p>=4 Colour of bars, default = 4 (blue).</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Invisible return of the count variable as ordered factor with non observed counts intercalated. Side-effect: generates a barplot.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2014-04-13, 2018-09-10
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run:  
+Counts&lt;-sample(1:28,52,replace=T)
+CountBarplot(Counts)
+Counts[3]&lt;-NA
+CountBarplot(Counts,TYPE="Proportion",YLAB="Hallo World")
+Countsfactor&lt;-CountBarplot(Counts,TYPE="Percent",COL=2)
+Countsfactor
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

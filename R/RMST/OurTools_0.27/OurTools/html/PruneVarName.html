@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: Prune a deparse(substitute(X)) type VarName</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for PruneVarName {OurTools}"><tr><td>PruneVarName {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>Prune a deparse(substitute(X)) type VarName</h2>
+
+<h3>Description</h3>
+
+<p>PruneVarName postprocesses a deparse(substitute(X)) type VarName 
+assigned to an argument variable in a funcion.
+In a subscripted vector &quot;V[1:3]&quot; the brackets are deleted. 
+In a subscripted data.frame &quot;DF[, \&quot;b\&quot;]&quot; b is extracted. 
+From DF$b b is extracted.
+A function call around is preserved.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+PruneVarName(str)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>str</code></td>
+<td>
+<p>is a string, typically the result of deparse(substitute(X))</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>pruned string
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+DF&lt;-data.frame(a=rnorm(10),b=rep(1:2,5))
+PruneVarName(VarName)
+VarName&lt;-deparse(substitute(LETTERS[1:3]))
+PruneVarName(VarName)
+VarName&lt;-deparse(substitute(DF$a))
+PruneVarName(VarName)
+VarName&lt;-deparse(substitute(DF[,"b"]))
+PruneVarName(VarName)
+VarName&lt;-deparse(substitute(DF[1:2,"b"]))
+PruneVarName(VarName)
+VarName&lt;-deparse(substitute(DF[,2]))
+PruneVarName(VarName)
+VarName&lt;-deparse(substitute( log10(DF[,"a"]) )
+PruneVarName(VarName)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: MartingalePlot</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for MartingalePlot {OurTools}"><tr><td>MartingalePlot {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>MartingalePlot</h2>
+
+<h3>Description</h3>
+
+<p>Produces a plot of the martingale or deviance residuals, smoothed with lowess and a confidence band based on visreg asymptotics. Additionally, a bootstrap confidence band can be obtained.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+MartingalePlot(
+  DFR,
+  TIMES,
+  STATUS,
+  METRIC,
+  COLUMNS = NULL,
+  TYPE = "martingale",
+  SPANLOESS = 2/3,
+  NBOOT = 0,
+  XLIM = NULL,
+  YLIM = NULL,
+  XLAB = NULL,
+  YLAB = "Martingale residuals",
+  MAIN = NULL,
+  SUB = NULL,
+  PCH = 1,
+  PCEX = 1
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR</code></td>
+<td>
+<p>data.frame containing the time to event and metric variable</p>
+</td></tr>
+<tr valign="top"><td><code>TIMES</code></td>
+<td>
+<p>name of variable in DFR: EITHER Time to event variable of class &quot;Surv&quot; OR time component of time to event</p>
+</td></tr>
+<tr valign="top"><td><code>STATUS</code></td>
+<td>
+<p>name of variable in DFR:  status component von time to event (needed only if TIMES is not of class &quot;Surv&quot;)</p>
+</td></tr>
+<tr valign="top"><td><code>METRIC</code></td>
+<td>
+<p>name of metric variable in DFR to be investigated</p>
+</td></tr>
+<tr valign="top"><td><code>COLUMNS</code></td>
+<td>
+<p>= NULL, vector of further covariate names in DFR != METRIC to adjust for in calculating the residuals.</p>
+</td></tr>
+<tr valign="top"><td><code>TYPE</code></td>
+<td>
+<p>=&quot;martingale&quot;, specifies type of residuum, &quot;martingale&quot; or the more symmetric &quot;deviance&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>SPANLOESS</code></td>
+<td>
+<p>=2/3, smoothing parameter for lowess smoother</p>
+</td></tr>
+<tr valign="top"><td><code>NBOOT</code></td>
+<td>
+<p>=0, number of Bootstrap simulations. Set to &gt; 0 (e.g. 1000), if additional bootstrap confidence band desired</p>
+</td></tr>
+<tr valign="top"><td><code>XLIM</code></td>
+<td>
+<p>=NULL, set range on x-axis manually instead of automatically</p>
+</td></tr>
+<tr valign="top"><td><code>YLIM</code></td>
+<td>
+<p>=NULL, set range on y-axis manually instead of automatically</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>=NULL, set x-axis label manually instead of automatically</p>
+</td></tr>
+<tr valign="top"><td><code>YLAB</code></td>
+<td>
+<p>=&quot;Martingale residuals&quot;, standard y-axis label</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>=NULL, for no main title set MAIN=&quot;&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>SUB</code></td>
+<td>
+<p>=NULL, subtitle below XLAB, if unspecified adjusted for: COLUMNS</p>
+</td></tr>
+<tr valign="top"><td><code>PCH</code></td>
+<td>
+<p>=1 pointtype for martingalresidues</p>
+</td></tr>
+<tr valign="top"><td><code>PCEX</code></td>
+<td>
+<p>=1 pont size (cex)</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>MartingalePlot
+</p>
+
+
+<h3>Value</h3>
+
+<p>produces a plot
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-09-20
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+require(MASS)
+data(VA)
+# The Martingal plot shows the functional form of the dependence of 
+#              a time to event and a metric variable.
+MartingalePlot(VA,"stime","status","age")
+MartingalePlot(VA,"stime","status","age",SPANLOESS = .9)
+MartingalePlot(VA,"stime","status","age", XLIM=c(40,70))
+
+MartingalePlot(VA,"stime","status","Karn")
+MartingalePlot(VA,"stime","status","Karn",SPANLOESS = .9)
+
+# Martingal residues of age after adjusting linearly for karno
+MartingalePlot(VA,"stime","status","age",COLUMNS ="Karn",
+            SPANLOESS = .9, XLIM=c(40,70))
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

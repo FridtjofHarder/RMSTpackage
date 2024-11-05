@@ -1,0 +1,6 @@
+library(npsurvSS)
+library(SSRMST)
+library(devtools)
+library(RMSTdesign)
+library(roxygen2)
+print("installed some packages")

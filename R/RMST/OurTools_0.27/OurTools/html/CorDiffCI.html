@@ -1,0 +1,82 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: CorDiffCI</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for CorDiffCI {OurTools}"><tr><td>CorDiffCI {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>CorDiffCI</h2>
+
+<h3>Description</h3>
+
+<p>CorDiffCI calculates a confidence interval for the difference of two independent correlation coefficients.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+CorDiffCI(R1, R2, N1, N2 = N1, CONF.LEVEL = 0.95, DIGITS = 3)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>R1</code></td>
+<td>
+<p>estimate of first correlation coefficient</p>
+</td></tr>
+<tr valign="top"><td><code>R2</code></td>
+<td>
+<p>estimate of second correlation coefficient</p>
+</td></tr>
+<tr valign="top"><td><code>N1</code></td>
+<td>
+<p>number of valid values for R1</p>
+</td></tr>
+<tr valign="top"><td><code>N2</code></td>
+<td>
+<p>=N1 number of valid values for R2</p>
+</td></tr>
+<tr valign="top"><td><code>CONF.LEVEL</code></td>
+<td>
+<p>=0.95 desired confidence level</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>=3  Number of digits for correlation difference</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>data.frame of R1, OR, CorDiff, Lower and Upper
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2018-01-02 based on Zou, G. Y. (2007). Toward using confidence intervals to compare correlations. Psychological Methods, 12, 399-413.
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+CorDiffCI(.49,.36,145,87,CONF.LEVEL=.95)  ## Example from Zou 2007 reproduced
+x&lt;-c(rnorm(50),rnorm(50,5))
+y&lt;-c(rnorm(50),rnorm(50,5)+10*x[51:100])*2
+Split&lt;-factor(paste("Group",rep(LETTERS[1:2],each=50),sep="-"))
+ScatterPlot(x,y,SPLIT=Split)
+CorDiffCI(cor(x[Split=="Group-A"],y[Split=="Group-A"]),
+           cor(x[Split=="Group-B"],y[Split=="Group-B"]),
+           50,50)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

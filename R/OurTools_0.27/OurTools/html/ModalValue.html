@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: ModalValue</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for ModalValue {OurTools}"><tr><td>ModalValue {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>ModalValue</h2>
+
+<h3>Description</h3>
+
+<p>ModalValue identifies the mode of a numeric variable from a density estimate..
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+ModalValue(METRIC, ADJ = 1)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>METRIC</code></td>
+<td>
+<p>is a numeric variable</p>
+</td></tr>
+<tr valign="top"><td><code>ADJ</code></td>
+<td>
+<p>adjust, default=1</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Modal value of a numeric variable
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2019-02-06
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+METRIC&lt;-c(rt(200,df=12),rnorm(15,4,1),rnorm(200,5,1),11*runif(100))
+ModalValue(METRIC)
+ModalValue(METRIC,ADJ=.2)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

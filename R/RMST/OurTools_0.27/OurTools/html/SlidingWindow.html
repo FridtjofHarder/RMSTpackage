@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: SlidingWindow</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for SlidingWindow {OurTools}"><tr><td>SlidingWindow {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>SlidingWindow</h2>
+
+<h3>Description</h3>
+
+<p>SlidingWindow time trends of arbitrary statistic.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+SlidingWindow(
+  DFR,
+  DATE,
+  ARGUMENTS,
+  STATISTIC,
+  WINDOW = 30,
+  BY = 7,
+  STARTDATE = NULL,
+  ENDDATE = NULL,
+  PLOT = T,
+  MAIN = "Sliding Window Plot",
+  XLAB = NULL,
+  YLAB = NULL,
+  UNIT = 30,
+  YLIM = NULL,
+  COL = 4,
+  ...
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR</code></td>
+<td>
+<p>a data.frame containing a DATE variable and ARGUMENTS for the STATISTIC</p>
+</td></tr>
+<tr valign="top"><td><code>DATE</code></td>
+<td>
+<p>name of a date variable in DFR of class POSIXct or Date, or character of form &quot;YYYY-MM-DD&quot; or &quot;YYYY/MM/DD&quot;.</p>
+</td></tr>
+<tr valign="top"><td><code>ARGUMENTS</code></td>
+<td>
+<p>vector of names of those variables in DFR that are used by STATISTIC function; can be set to NULL.</p>
+</td></tr>
+<tr valign="top"><td><code>STATISTIC</code></td>
+<td>
+<p>user supplied function evaluating a data.frame restricting DFR to ARGUMENTS</p>
+</td></tr>
+<tr valign="top"><td><code>WINDOW</code></td>
+<td>
+<p>= 30 width of the sliding window in days</p>
+</td></tr>
+<tr valign="top"><td><code>BY</code></td>
+<td>
+<p>= 7 shift to the next window in days</p>
+</td></tr>
+<tr valign="top"><td><code>STARTDATE</code></td>
+<td>
+<p>= NULL. If not specified, set to the minimum date encountered, ignoring time part. Use &quot;YYYY-MM-DD&quot; format to specify.</p>
+</td></tr>
+<tr valign="top"><td><code>ENDDATE</code></td>
+<td>
+<p>= NULL. If not specified, set to the maximum date encountered, ignoring time part. Use &quot;YYYY-MM-DD&quot; format to specify.</p>
+</td></tr>
+<tr valign="top"><td><code>PLOT</code></td>
+<td>
+<p>= T logical whether a plot is desired</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>= &quot;Sliding Window Plot&quot; is an optional title, to suppress set MAIN = &quot;&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>= NULL if left NULL, set to Days or years since earliest DATE</p>
+</td></tr>
+<tr valign="top"><td><code>YLAB</code></td>
+<td>
+<p>= NULL if left NULL, set to the name of the supplied STATISTIC function.</p>
+</td></tr>
+<tr valign="top"><td><code>UNIT</code></td>
+<td>
+<p>= 30 days between ticks on time axis. NOTE: UNIT Will be doubled while more than 12 ticks result. Set UNIT = NULL to switch scale to years of 365 days.</p>
+</td></tr>
+<tr valign="top"><td><code>YLIM</code></td>
+<td>
+<p>= NULL optional control over limits of yaxis</p>
+</td></tr>
+<tr valign="top"><td><code>COL</code></td>
+<td>
+<p>= 4 set colour of sliding curve</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>further arguments passed to STATISTIC, e.g. na.rm = T</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>Returns a data.frame with statistics at sliding windows, 
+and generates a Plot if PLOT = T, plotting values of the statistic at window mids.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2020-06-05, Norbert Koehler 2020-06-08, DH 2020-06-08, DH 2020-06-23
+</p>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

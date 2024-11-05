@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: UnivariateCoxTable</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for UnivariateCoxTable {OurTools}"><tr><td>UnivariateCoxTable {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>UnivariateCoxTable</h2>
+
+<h3>Description</h3>
+
+<p>Produces a table with univariate results of COX models for various covariates.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+UnivariateCoxTable(DFR, COLUMNS, TIMES, STATUS, SORT = T, DIGITS = 3)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR</code></td>
+<td>
+<p>data.frame containing the time to event and the covariates</p>
+</td></tr>
+<tr valign="top"><td><code>COLUMNS</code></td>
+<td>
+<p>vector of covariate names in DFR</p>
+</td></tr>
+<tr valign="top"><td><code>TIMES</code></td>
+<td>
+<p>EITHER Time to event variable of class &quot;Surv&quot; OR time component of time to event</p>
+</td></tr>
+<tr valign="top"><td><code>STATUS</code></td>
+<td>
+<p>status component von time to event (needed only if TIMES is not of class &quot;Surv&quot;)</p>
+</td></tr>
+<tr valign="top"><td><code>SORT</code></td>
+<td>
+<p>=T, sort by p.value?</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>=3, round to DIGITS</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>UnivariateCoxTable
+</p>
+
+
+<h3>Value</h3>
+
+<p>data.frame with univariate results
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-09-20, 2017-12-20
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+require(MASS)
+UnivariateCoxTable(VA,"stime","status",
+                    COLUMNS=c("treat","age","Karn","prior"))
+UnivariateCoxTable(VA,"stime","status",
+                    COLUMNS=c("treat","age","Karn","prior"),SORT=F,DIGITS=2)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

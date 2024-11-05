@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: MultiParameterTimeCourses</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for MultiParameterTimeCourses {OurTools}"><tr><td>MultiParameterTimeCourses {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>MultiParameterTimeCourses</h2>
+
+<h3>Description</h3>
+
+<p>MultiParameterTimeCourses plots courses of multiple metric parameters over a common x-axis,
+with multiple y-axis.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+MultiParameterTimeCourses(
+  DFR,
+  TIME,
+  COURSES,
+  LEFTRIGHT = F,
+  SCALES = NULL,
+  XLIM = NULL,
+  YLIMMIN = NULL,
+  YLIMMAX = NULL,
+  HLINES = NULL,
+  MAIN = "",
+  XLAB = "Time Axis",
+  YLABS = NULL,
+  LWD = 2,
+  LTY = NULL,
+  COLS = 1,
+  PCH = NULL,
+  ...
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR</code></td>
+<td>
+<p>is a dataframe</p>
+</td></tr>
+<tr valign="top"><td><code>TIME</code></td>
+<td>
+<p>colname in DFR of available time points to be plotted on the x-axis</p>
+</td></tr>
+<tr valign="top"><td><code>COURSES</code></td>
+<td>
+<p>vector of colnames in DFR for metric parameters to be plotted</p>
+</td></tr>
+<tr valign="top"><td><code>LEFTRIGHT</code></td>
+<td>
+<p>= F default is all y-axes on the left, 
+if set to TRUE y-axis are placed altervatingly left and right.</p>
+</td></tr>
+<tr valign="top"><td><code>SCALES</code></td>
+<td>
+<p>= NULL, specify type of scale for each course out of c(&quot;ID&quot;,&quot;LOG10&quot;,&quot;POWER_Z&quot;,&quot;LOGIT&quot;)</p>
+</td></tr>
+<tr valign="top"><td><code>XLIM</code></td>
+<td>
+<p>= NULL, specify limits of the time axis</p>
+</td></tr>
+<tr valign="top"><td><code>YLIMMIN</code></td>
+<td>
+<p>= NULL, specify lower limits of axis of the the metric parameters, a vector of length COURSES</p>
+</td></tr>
+<tr valign="top"><td><code>YLIMMAX</code></td>
+<td>
+<p>= NULL, specify upper limits of axis of the the metric parameters, a vector of length COURSES</p>
+</td></tr>
+<tr valign="top"><td><code>HLINES</code></td>
+<td>
+<p>= NULL, plot horizontal lines in the respective scales, a vector of length COURSES with NA to leave out.</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>= &quot;&quot; Plot Title</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>= &quot;Time Axis&quot; x-axis label</p>
+</td></tr>
+<tr valign="top"><td><code>YLABS</code></td>
+<td>
+<p>= NULL optional long y-labels for each parameter in COURSES.</p>
+</td></tr>
+<tr valign="top"><td><code>LWD</code></td>
+<td>
+<p>= 2 line width, one of all or a vector of length COURSES</p>
+</td></tr>
+<tr valign="top"><td><code>LTY</code></td>
+<td>
+<p>= NULL line type, defaults to 1:K, else one of all or a vector of length COURSES</p>
+</td></tr>
+<tr valign="top"><td><code>COLS</code></td>
+<td>
+<p>= 1 colours for parameters, one of all or a vector of length COURSES</p>
+</td></tr>
+<tr valign="top"><td><code>PCH</code></td>
+<td>
+<p>= NULL Point type for measured values, one of all or a vector of length COURSES</p>
+</td></tr>
+<tr valign="top"><td><code>...</code></td>
+<td>
+<p>specify Z for SCALE = &quot;POWER_Z&quot; and/or &quot;PERCENT&quot; for SCALE = &quot;LOGIT&quot;</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>lower and upper limit of the last plotted y-axis, useful to place points afterwarts.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2020-02-26 
+Thanks to #https://www.r-bloggers.com/multiple-y-axis-in-a-r-plot/
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="PlotAxis.html">PlotAxis</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+TT&lt;-1:10
+X1&lt;-1:10 + rnorm(10)
+X2&lt;- 10^(1:10 + rnorm(10))
+X3&lt;- (1:10 + rnorm(10))^3
+X4&lt;- T_Logit((1:10 + rnorm(10))/3,INV=T)
+X5&lt;- T_Logit((1:10 + rnorm(10))/3,INV=T)*100
+
+X2[4]&lt;-NA
+
+DFR&lt;-data.frame(TT,X1,X2,X3,X4,X5)
+
+MultiParameterTimeCourses(DFR, TIME="TT", COURSES=c("X1","X2","X3","X4","X5"), LEFTRIGHT = F, 
+                          YLIMMIN=NULL, YLIMMAX=NULL,
+                          SCALES = NULL,
+                          HLINES = NULL,
+                          YLABS = NULL, LWD = 2, LTY = NULL, COLS = 1:5, PCH = NULL, 
+                          XLAB = "Time Axis",
+                          XLIM = NULL,MAIN = "")
+
+Lim&lt;-MultiParameterTimeCourses(DFR, TIME="TT", COURSES=c("X1","X2","X3","X4","X5"), LEFTRIGHT = T, 
+               YLIMMIN=c(0,.1,0,.3,40), YLIMMAX=c(12,1e12,2000,1,100),
+               SCALES = c("ID","LOG10","POWER_Z","LOGIT","LOGIT"),
+               HLINES = c(5,1000,NA,.75,80),
+               YLABS = c("Linear","log10","to the power of 1/3","logit","logit in percent"), 
+               LWD = 3, LTY = 1, COLS = 1:5, PCH = 15, 
+               XLAB = "Time Axis [months]",
+               XLIM = NULL, MAIN = "Demo MultiParameterTimeCourses",
+               Z=1/3,PERCENT=c(F,F,F,F,T))
+# The y-coordinates of theplots remain defined by the last axis plotted.
+# This scale is invisably returned. It can be used to place points in the plot afterwarts.
+graphics::points(5,Lim[1],bg=2,cex=1.7,pch=21)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

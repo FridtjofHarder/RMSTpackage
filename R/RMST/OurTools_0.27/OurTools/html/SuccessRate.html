@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: SuccessRate</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for SuccessRate {OurTools}"><tr><td>SuccessRate {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>SuccessRate</h2>
+
+<h3>Description</h3>
+
+<p>SuccessRate calculates the Wilson-confidence interval for a sucess-rate (using prop.test).
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+SuccessRate(FAC, SUCCESS = 2, CONF.LEVEL = 0.95, DIGITS = 1)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>FAC</code></td>
+<td>
+<p>is a factor. Will be converted to a factor if not a factor.</p>
+</td></tr>
+<tr valign="top"><td><code>SUCCESS</code></td>
+<td>
+<p>=2, factor level that defines success. If numeric, the respective level of FAC is assumed.</p>
+</td></tr>
+<tr valign="top"><td><code>CONF.LEVEL</code></td>
+<td>
+<p>=0.95, desired confidence level</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>=7 number of digits</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>data.frame with SuccessCategory, Number of Successes, Nvalid, Rate estimate in procent and lower and upper of the CONF.LEVEL confidence interval.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever, 2017-12-12
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+SuccessRate(rbinom(453,1,0.33)) 
+x&lt;-sample(c("Male", "Female","Inter"),453,replace=T, prob = c(.503,.494,.003)) 
+x&lt;-factor(x,levels = c("Male", "Female","Inter")) 
+table(x) 
+SuccessRate(x,DIGITS=2,SUCCESS=3)
+SuccessRate(x,DIGITS=3,SUCCESS=3,CONF.LEVEL=.9)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

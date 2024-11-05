@@ -1,0 +1,99 @@
+reference:
+  - title: "Data Control"
+    desc: "Functions for data control"
+    contents:
+    - MergeWithMaster
+    - MissingRateTable
+    - MoveAfter
+  - title: "Positive Ordinal Comparators"
+    desc: "Collection of positive ordinal comparators"
+    contents:
+    - EQ
+    - GE
+    - GT
+    - LE
+    - LT
+    - NE
+  - title: "Factor Manipulation"
+    desc: "Factor Manipulation: Dealing with NAs"
+    contents:
+    - NAasLevel
+    - Level2NA
+  - title: "Export"
+    desc: "Exporting data frames"
+    contents:
+    - Df2Csv
+    - Df2Rdata
+    - ReconcileLists
+  - title: "Utility Functions"
+    desc: "Collection of utility functions"
+    contents:
+    - Nvalid
+    - Nmissing
+    - CountValue
+    - TrimStr
+    - PruneVarName
+  - title: "Scale Transformations"
+    desc: "Scale Transformation functions with Inverse option, safely dealing with NaN and +-Inf"
+    contents:
+    - T_Logit
+    - T_Log_B
+    - T_Logit
+  - title: "Metric Variables -- Numeric Tables"
+    desc: "Table output of metric variables"
+    contents:
+    - MetricBySplit
+    - MetricsBySplit
+    - LocationScaleEstimates
+    - PseudoMedian
+    - ProversionProb
+    - ModalValue
+    - CorDiffCI
+    - CompareMetricBySplit
+    - Glm2Df
+  - title: "Metric Variables -- Plots"
+    desc: "Plotting metric variables"
+    contents:
+    - NiceHist
+    - PlotMetricBySplit
+    - PlotDepMetrics
+    - ScatterPlot
+    - SymLine
+  - title: "Ordinal / Count Data -- Plots"
+    desc: "Plotting ordinal variables"
+    contents:
+    - CountBarplot
+    - PlotOrdinalCourse
+  - title: "Factor / Binary -- Numeric Tables"
+    desc: "Table output of factors and binary variables"
+    contents:
+    - FacTable
+    - Table
+    - Matrix2Df
+    - CrossTabs
+    - FactorsBySplit
+    - SuccessRate
+    - CompareSuccessRatesBySplit
+    - BinaryAssociation
+    - ConfusionTableStatistics
+  - title: "Factor / Binary -- Plots"
+    desc: "Plotting factors and binary variables"
+    contents:
+    - PlotBinaryByMetric
+  - title: "Time-to-Event -- Numeric Tables"
+    desc: "Table output of Time-to-Event analysis"
+    contents:
+    - QuantilesSurvivalCurves
+    - SurvivalAtT
+    - UnivariateCoxTable
+    - Cox2Df
+  - title: "Time-to-Event -- Plots"
+    desc: "Plotting Time-to-Event variables"
+    contents:
+    - NiceSurvPlot
+    - FollowUpPlot
+    - DataMaturityPlot
+    - MartingalePlot
+    - LhrPlot
+    - VisualiseCoxModel
+    - NiceCumIncPlot

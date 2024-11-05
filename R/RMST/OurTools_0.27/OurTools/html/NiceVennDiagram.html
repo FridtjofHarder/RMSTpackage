@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: NiceVennDiagram draws a Venn diagram for up to five sets and...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for NiceVennDiagram {OurTools}"><tr><td>NiceVennDiagram {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>NiceVennDiagram draws a Venn diagram for up to five sets and returns a data.frame with pattern frequencies and proportions.</h2>
+
+<h3>Description</h3>
+
+<p>NiceVennDiagram is a wrapper function for gplots::venn. It draws a Venn diagram and 
+returns a data.frame with pattern frequencies and proportions. The patterns are sorted by combinatorically.
+Cases with any missing set indicators are discarded with an appropriate warning.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+NiceVennDiagram(BINARY_SET_INDICATORS, PLOT = T, SORT_BY_FREQ = F)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>BINARY_SET_INDICATORS</code></td>
+<td>
+<p>data.frame of binary indicators of class logical or binary numeric 0 / 1</p>
+</td></tr>
+<tr valign="top"><td><code>PLOT</code></td>
+<td>
+<p>= T generate a plot</p>
+</td></tr>
+<tr valign="top"><td><code>SORT_BY_FREQ</code></td>
+<td>
+<p>= F sort patterns by frequency, not combinatorically</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>NiceVennDiagram
+</p>
+
+
+<h3>Value</h3>
+
+<p>a data.frame with pattern frequencies and proportions
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2019-02-21
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+ input.df&lt;-data.frame(fever=sample(0:1,200,replace = T, prob = c(.8,.2)),
+                      sweat=sample(0:1,200,replace = T, prob = c(.7,.3)),
+                 weightloss=sample(0:1,200,replace = T, prob = c(.75,.25)),
+                  nightmare=sample(0:1,200,replace = T, prob = c(.6,.4)))
+ input.df[4,4]&lt;-NA    # generate warning 
+ NiceVennDiagram(input.df, PLOT = F)                
+ NiceVennDiagram(input.df, SORT_BY_FREQ = T)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

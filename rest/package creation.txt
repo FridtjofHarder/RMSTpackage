@@ -1,0 +1,9 @@
+package creation in r
+
+use_r() creates new r script or edits existing one.
+document()
+load_all()
+code->create roxygen skeleton
+install()
+use_pacakge("package"): import package. 
+rename_files("from", "to")

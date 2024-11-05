@@ -1,0 +1,111 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: LhrPlot</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for LhrPlot {OurTools}"><tr><td>LhrPlot {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>LhrPlot</h2>
+
+<h3>Description</h3>
+
+<p>Produces a plot of log hazard ratios (lhr) for varying cut-values on a metric variabele, smoothed with lowess and a confidence band based on visreg asymptotics.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+LhrPlot(
+  DFR,
+  TIMES,
+  STATUS,
+  METRIC,
+  COLUMNS = NULL,
+  SPANLOESS = 1/2,
+  XLAB = NULL,
+  YLAB = "log hasard ratio",
+  MAIN = "Lhr plot",
+  SUB = "Note: Lhr depends strongly on distribution"
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR</code></td>
+<td>
+<p>data.frame containing the time to event and metric variable</p>
+</td></tr>
+<tr valign="top"><td><code>TIMES</code></td>
+<td>
+<p>name of variable in DFR: EITHER Time to event variable of class &quot;Surv&quot; OR time component of time to event</p>
+</td></tr>
+<tr valign="top"><td><code>STATUS</code></td>
+<td>
+<p>name of variable in DFR:  status component von time to event (needed only if TIMES is not of class &quot;Surv&quot;)</p>
+</td></tr>
+<tr valign="top"><td><code>METRIC</code></td>
+<td>
+<p>name of metric variable in DFR to be investigated</p>
+</td></tr>
+<tr valign="top"><td><code>COLUMNS</code></td>
+<td>
+<p>= NULL vector of further covariate names in DFR != METRIC to adjust for in calculating the residuals.</p>
+</td></tr>
+<tr valign="top"><td><code>SPANLOESS</code></td>
+<td>
+<p>=2/3 smoothing parameter for lowess smoother</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>=NULL set range on x-axis label manually instead of automatically</p>
+</td></tr>
+<tr valign="top"><td><code>YLAB</code></td>
+<td>
+<p>=&quot;log hasard ratio&quot; standard y-axis label</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>=NULL for no main title set MAIN=&quot;&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>SUB</code></td>
+<td>
+<p>=&quot;Note: Lhr depends strongly on distribution&quot;, subtitle below XLAB</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>LhrPlot
+</p>
+
+
+<h3>Value</h3>
+
+<p>produces a plot and returns a matrix of cuts and lhrs
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-11-07, 2018-01-09, 2018-02-14
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+require(MASS)
+data(VA)
+LhrPlot(VA,"stime","status","age")
+LhrPlot(VA,"stime","status","age",COLUMNS="Karn")
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

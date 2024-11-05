@@ -1,0 +1,8 @@
+Bei Studie überlegen, unter welchen Bediungungen klarer Vortel für RMST, Übersetzung der Differenzen zwischen verschiednen Zahlen,
+Voraussetzungen, ändern sich die Fallzahlen je nac Maß, welche REgerssionen möglich. KNITTING. Plotroutinen
+Pat > 70 AML.
+Anfangen mit 1 Weibull. Innerhalb der Weibull Prop Hazard und AFT. Differenz in einem, dann 
+Maß gegen die Differenz in anderem Maß plotten, mit zwei unterschiedlichen Zeithorizonten: also plotte z.B. HR gegen RMSR
+18.03. 16:30 Hasenclever
+
+check sim_arm and sim_trial

@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: CrossTabs</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for CrossTabs {OurTools}"><tr><td>CrossTabs {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>CrossTabs</h2>
+
+<h3>Description</h3>
+
+<p>CrossTables with margins and either overall, row or column percentages.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+CrossTabs(
+  fac1,
+  fac2 = NULL,
+  TYPE = "ALL",
+  NOZEROS = T,
+  DIGITS = 1,
+  PVALUE = F,
+  VARNAME = F,
+  LONGNAME = NULL,
+  ALL = NULL
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>fac1</code></td>
+<td>
+<p>factor or variable convertible to factor</p>
+</td></tr>
+<tr valign="top"><td><code>fac2</code></td>
+<td>
+<p>= NULL factor or variable convertible to factor. If not provided a dummy factor is generated.</p>
+</td></tr>
+<tr valign="top"><td><code>TYPE</code></td>
+<td>
+<p>= &quot;ALL&quot; chooses between &quot;ALL&quot;, &quot;ROW&quot;, &quot;COL&quot;</p>
+</td></tr>
+<tr valign="top"><td><code>NOZEROS</code></td>
+<td>
+<p>= T Option to discard factor levels which do not occur</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>= 1 Number of decimals for percentages</p>
+</td></tr>
+<tr valign="top"><td><code>PVALUE</code></td>
+<td>
+<p>= F p-value from Chi2-test</p>
+</td></tr>
+<tr valign="top"><td><code>VARNAME</code></td>
+<td>
+<p>= F Option to add a column on the left with the varname of fac1</p>
+</td></tr>
+<tr valign="top"><td><code>LONGNAME</code></td>
+<td>
+<p>= NULL alternative to varname derived from function call</p>
+</td></tr>
+<tr valign="top"><td><code>ALL</code></td>
+<td>
+<p>= NULL If ALL=NULL 'All' columns on the right, if ALL=T on the left and if ALL=F omitted</p>
+</td></tr>
+</table>
+
+
+<h3>Value</h3>
+
+<p>CrossTable as data.frame with Counts and Percentages intercalated.
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-03-08; 2017-03-14, 2018-01-05
+</p>
+
+
+<h3>See Also</h3>
+
+<p><code><a href="FactorsBySplit.html">FactorsBySplit</a></code>
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+a&lt;-c(rep("M",240),rep("F",170))
+b&lt;-sample(c(rep("Stage1",110),rep("Stage2",180),rep("Stage3",120)),410)
+
+CrossTabs(a,b,TYPE="ALL")
+CrossTabs(a,b,TYPE="ROW")
+CrossTabs(a,b,TYPE="ROW",ALL=F)
+CrossTabs(a,b,TYPE="ROW",ALL=T)
+CrossTabs(a,b,TYPE="COL")
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

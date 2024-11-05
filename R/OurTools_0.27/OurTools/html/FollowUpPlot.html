@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: FollowUpPlot</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for FollowUpPlot {OurTools}"><tr><td>FollowUpPlot {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>FollowUpPlot</h2>
+
+<h3>Description</h3>
+
+<p>Produces a Follow-Up (or inverse Kaplan Meier Plot) comparing actual and ideal observation times. Patients with event are censored. Medians are indicated.
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+FollowUpPlot(
+  DFR,
+  TIMES,
+  STATUS,
+  IDEALTIMES,
+  MAIN = "Distribution of ideal and actual observation times",
+  XLAB = "follow-up time",
+  YLAB = "proportion still under observation",
+  UNITS = "months",
+  COLS = c(3, 2),
+  CEX = 1.2
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>DFR</code></td>
+<td>
+<p>data.frame with variables TIMES, STATUS, IDEALTIMES (colnames). Alternatively, if DFR set to NULL, TIMES, STATUS, IDEALTIMES will be treated as data vectors.</p>
+</td></tr>
+<tr valign="top"><td><code>TIMES</code></td>
+<td>
+<p>name of times component of time to event, alternatively data vector</p>
+</td></tr>
+<tr valign="top"><td><code>STATUS</code></td>
+<td>
+<p>name of status component of time to event, alternatively data vector</p>
+</td></tr>
+<tr valign="top"><td><code>IDEALTIMES</code></td>
+<td>
+<p>name of ideal observation time component of time to event, alternatively data vector</p>
+</td></tr>
+<tr valign="top"><td><code>MAIN</code></td>
+<td>
+<p>=&quot;Distribution of ideal and actual observation times&quot;, plot title</p>
+</td></tr>
+<tr valign="top"><td><code>XLAB</code></td>
+<td>
+<p>=&quot;follow-up time&quot;, label for time axis</p>
+</td></tr>
+<tr valign="top"><td><code>YLAB</code></td>
+<td>
+<p>=&quot;proportion still under observation&quot;,label for y axis</p>
+</td></tr>
+<tr valign="top"><td><code>UNITS</code></td>
+<td>
+<p>=&quot;months&quot;, unit of time appendend at XLAB if not NULL or blank. In addition, 'months', 'Months', 'days', 'Days' are recognised and used to find appropriate ticks.</p>
+</td></tr>
+<tr valign="top"><td><code>COLS</code></td>
+<td>
+<p>=c(3,2), colours for ideal and actual observation curves</p>
+</td></tr>
+<tr valign="top"><td><code>CEX</code></td>
+<td>
+<p>=1.2, scaling factor of fonts on axes and legend</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>FollowUpPlot
+</p>
+
+
+<h3>Value</h3>
+
+<p>returns data.frame with estimates and 95
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-09-21
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+### Test FollowUpPlot
+TIMES&lt;-rexp(100)*12
+TIMES[1:5]&lt;--TIMES[1:5]
+STATUS&lt;-rbinom(100,1,.2)
+IDEALTIMES&lt;-runif(100,min=1,max=70)
+DFR&lt;-data.frame(TIMES,STATUS,IDEALTIMES)
+FollowUpPlot(DFR=DFR,"TIMES","STATUS","IDEALTIMES",UNITS="months")
+FollowUpPlot(DFR=DFR,"TIMES","STATUS","IDEALTIMES",UNITS="years")
+FollowUpPlot(DFR=NULL,TIMES,STATUS,IDEALTIMES,UNITS="months",COLS=c(4,3))
+FollowUpPlot(DFR=NULL,TIMES,STATUS,IDEALTIMES,UNITS="days",CEX=1.5)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>

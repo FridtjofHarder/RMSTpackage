@@ -1,0 +1,116 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><title>R: MetricBySplit produces a data.frame describing one metric...</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<link rel="stylesheet" type="text/css" href="R.css" />
+</head><body>
+
+<table width="100%" summary="page for MetricBySplit {OurTools}"><tr><td>MetricBySplit {OurTools}</td><td style="text-align: right;">R Documentation</td></tr></table>
+
+<h2>MetricBySplit produces a data.frame describing one metric variable by an optional SPLIT grouping</h2>
+
+<h3>Description</h3>
+
+<p>The function produces a data.frame describing one metric variable METRIC with various statistics 
+SPLIT is a group variable which may be left out.
+Tests may be preformed on Mean (t.test, oneway.test) or Median (wilcox.test,kruskal.test)
+</p>
+
+
+<h3>Usage</h3>
+
+<pre>
+MetricBySplit(
+  METRIC,
+  SPLIT = NULL,
+  VARNAME = T,
+  LONGNAME = NULL,
+  PVALUE = F,
+  TEST = NULL,
+  ALL = T,
+  SEL = NULL,
+  SHOW_N = T,
+  DIGITS = 2
+)
+</pre>
+
+
+<h3>Arguments</h3>
+
+<table summary="R argblock">
+<tr valign="top"><td><code>METRIC</code></td>
+<td>
+<p>is a numeric variable</p>
+</td></tr>
+<tr valign="top"><td><code>SPLIT</code></td>
+<td>
+<p>=NULL split factor (group variable), if NULL an ungrouped description is returned</p>
+</td></tr>
+<tr valign="top"><td><code>VARNAME</code></td>
+<td>
+<p>=T indicate the VARNAME name of METRICS in the first column</p>
+</td></tr>
+<tr valign="top"><td><code>LONGNAME</code></td>
+<td>
+<p>=NULL   optional long name for METRICS if NULL a LONGNAME is derived from the call</p>
+</td></tr>
+<tr valign="top"><td><code>PVALUE</code></td>
+<td>
+<p>=F  If TRUE, tests on mean and Median are performed and added as last column</p>
+</td></tr>
+<tr valign="top"><td><code>TEST</code></td>
+<td>
+<p>=NULL Choose TEST from c(&quot;Mean&quot;,&quot;Median&quot;). If not specified set to both i.e. c(&quot;Mean&quot;,&quot;Median&quot;)</p>
+</td></tr>
+<tr valign="top"><td><code>ALL</code></td>
+<td>
+<p>=T  If TRUE, also overall statistics</p>
+</td></tr>
+<tr valign="top"><td><code>SEL</code></td>
+<td>
+<p>=NULL if specified select statistics 
+from c(&quot;Mean&quot;, &quot;Sd&quot;, &quot;Median&quot;, &quot;Mad&quot;, &quot;Perc25&quot;, &quot;Perc75&quot;, &quot;Min&quot;, &quot;Max&quot;)</p>
+</td></tr>
+<tr valign="top"><td><code>SHOW_N</code></td>
+<td>
+<p>=T Show N=length(METRIC) top left</p>
+</td></tr>
+<tr valign="top"><td><code>DIGITS</code></td>
+<td>
+<p>=2   Number of digits for statistics</p>
+</td></tr>
+</table>
+
+
+<h3>Details</h3>
+
+<p>MetricBySplit
+</p>
+
+
+<h3>Value</h3>
+
+<p>a data.frame OF CHARACTERS with statistics by the group variable SPLIT
+</p>
+
+
+<h3>Author(s)</h3>
+
+<p>Dirk Hasenclever 2017-03-16, 2017-12-21
+</p>
+
+
+<h3>Examples</h3>
+
+<pre>
+## Not run: 
+Metric&lt;-c(rnorm(57),rnorm(43,2,2))
+Split&lt;-c(rep("Arm A",57),rep("Arm B",43))
+# 
+MetricBySplit(Metric,Split)
+MetricBySplit(Metric,Split,PVALUE=T,TEST=c("Mean","Median"),
+                           SEL=c("Mean","Median"),DIGITS=3)
+
+## End(Not run)
+</pre>
+
+<hr /><div style="text-align: center;">[Package <em>OurTools</em> version 0.27 <a href="00Index.html">Index</a>]</div>
+</body></html>
