@@ -1,0 +1,450 @@
+\documentclass[main.tex]{subfiles}
+
+\begin{document}
+\graphicspath{{images/}}
+\section{Introduction to Survival analysis}
+\subsection{Survival times and censoring}
+Clinical trials are commonly analyzed by conceptualizing the outcome variable of interest as \textit{survival time}, which signifies the time at which a subject experiences a specified event. Despite being typically termed survival time, other designated experiences such as remission, recovery from an illness, the diagnosis of a medical condition, or a biochemical marker passing a specified threshold, may be chosen as the event of interest. In the context of this thesis, survival analysis is limited to non-recurring events, which means that a subject is excluded from observation after having experienced the event. Likewise, this thesis is not concerned with competing risk survival times, therefore only a single type of event is considered.
+
+A characteristic key problem pertinent to survival analysis is the phenomenon of \textit{censoring}, which is marked by incomplete information about some subjects' survival time. Censoring is mostly due to one of the following three reasons \parencite{ref1}, which prevent the survival time from being recorded accurately:
+\begin{enumerate}
+    \item The study ends before the subject experiences the event of interest. This type of censoring is typically referred to as \textit{administrative censoring}.
+    \item A subject was known to be event-free at some point during follow-up, but neither an event nor event-free survival is reported past censoring; possible reasons for this to occur include lost records, or the subject having moved during the course of the study. This type is termed \textit{loss to follow-up}.
+    \item A subject withdraws from the study at a documented point in time or drops out of the study due to some competing event not directly related to the event of interest, such as death to an unrelated cause.
+\end{enumerate}
+Note that in the above cases, it is known that the subject experienced the event of interest, if it occurred at all, at some time point after being censored. These types of censoring are therefore known as \textit{right censored}, which is a frequently encountered type of censoring in clinical trials \cite{prinja2010censoring} \textcite{prinja2010censoring} \parencite{prinja2010censoring}.
+\cite{prinja2010censoring}
+
+The duration of the true survival time may also be obscured by \textit{left} and \textit{interval censoring}: In left-censored data, a subject is known to have experienced the event at some point between inclusion into the study and the observed survival time. The true survival time is thus equal to or shorter than the observed time. In interval censoring, the true survival time is known only up to a specific time window \parencite{lindsey1998methods}. In the context of clinical trials, this might occur if an event is recorded as having occurred at some time between two pre-scheduled appointments, with both appointments marking the infimum and maximum of the true survival time. Right and left censoring might be interpreted as special cases of interval censoring: In left censoring, the time $t = 0$ is the minimum and the time of event recording the maximum of the interval, in right censoring the interval extends from the time of censoring as its infimum to infinity. In this thesis, only right censoring is considered as a source of uncertainty. Censoring in the context of this thesis is furthermore assumed to be random, such that the hazard rate $h(t)$ of a subject censored at time $t$ is presumed identical to the hazard rate of subjects remaining in the risk set. Censoring is also assumed to be non-informative, which means that the distribution of censorship times is not related to the distribution of event times. A  more detailed discourse on random, independent, and non-informative censoring can be found in \parencite{kleinbaum2012survival}.
+
+% uncertainty through censoring
+\subsection{Notation and visual representation of survival data}
+Let the continuous random non-negative variable $T\geq0$ denote the survival time with $t$ signifying a specific realization of $T$. The random variable $d = (0,1)$ represents whether a subject experienced the observed event of interest within the study period ($d = 1$) or censorship of a subject ($d = 0$). In case of right censoring at time point $C$, the survival time $T$ will only be known if $T\leq C$. Each subject can be sufficiently be described by a pair of random variables $(X, d)$, when X denotes the either the time of the event or the time of censoring with $X=\min(T, C)$.
+
+The key function in survival analysis is the survival function
+\begin{align}
+S(t)=P(T>t) = 1-F(t) = \int\limits_t^\infty f(s)ds,
+\end{align}
+which gives the probability of a subject's survival past specified time $t$ and is complementary to the cumulative distribution function $F(t)=P(T \leq t)$. $f(t)$ is the probability density function to the survival function. All survival functions are non-increasing with $S(0)=1$. Another useful instrument in survival analysis is the hazard function
+\begin{align}
+h(t)=\lim_{\Delta t \to 0}\frac{P(t\leq T < t + \Delta t|T \geq t)}{\Delta t},
+\end{align}
+which specifies the instantaneous event rate at time $t$ on the condition of survival up to time point, and is occasionally termed \textit{conditional failure rate}. The hazard function is non-monotonic and ranges from $0$ to $\infty$. In some instances, it may be useful to construct the cumulative hazard function
+\begin{align}
+H(t)=\int\limits_0^t h(s)ds.
+\end{align}
+The relationship between $S(t)$, $h(t)$, and $H(t) $is given by
+\begin{align}
+S(t)=\exp{\left[-\int\limits_0^t h(s)ds\right]}=\exp{(-H(t))},
+\end{align}
+thus
+\begin{align}\label{hazardtosurvival}
+h(t) = -\left[\frac{dS(t)/dt}{S(t)}\right]
+\end{align}
+
+All functions $S(t)$, $f(t)$, $F(t)$, $h(t)$, and $H(t)$ are convertible into each other. 
+
+Actual survival data is represented as the estimate survivor function $\hat{S}(t)$, which takes the form of a step function and is constructed following the Kaplan-Meier (KM) approach. The KM survival probability of survival up to time $t_f$ is obtained by multiplying the probability estimate of survival past the event time point $t_{f-1}$ by the conditional estimate probability of surviving past event time $t_i$ given survival up to at least time point $t_i$, which takes the general form of
+\begin{align}
+\hat{S}_{KM}(t_f)\times \hat{P}(T > t_f | T \geq t_f).
+\end{align}
+This equation may be expressed as a \textit{product limit}, which is the product of all fractions which estimate the conditional probabilities for failure times $t_i$ and earlier:
+\begin{align}
+\hat{S}_{KM}(t_{f-1})=\prod_{i=1}^{f-1}\hat{P} (T>t_{i}|T\geq t_{i}).
+\end{align}
+The estimated survival curve constructed via the KM estimator takes the value of $hat{S}(t_{max})=0$, if the largest time point is an event. If the largest time point is a censure, then the survival curve is not well defined past $t_{max}$. 
+
+Several suggestions for dealing with this issue have been brought forward, such as estimating $\hat{S}(t>t_{max})$ by $0$ or by $\hat{S}(t_{max})$, or by extrapolating  
+
+The variance of the KM curve $\hat{S}_{KM}(t)$ at time $t$ is commonly calculated using Greenwood's formula from the number of events $m_f$ and the number of subjects at risk $n_f$ over all ordered event times $t_(f)$ before time $t$:
+\begin{align}
+\hat{Var}[\hat{S}_{KM}(t)]=\hat{S}_{KM}(t)^2\sum_{f:t_{(f)}\leq t}\left[ \frac{m_f}{n_f(n_f-m_f)} \right].
+\end{align}
+The variance may be used to construct the 95\% point-wise confidence interval (CI) of the KM curve:
+\begin{align}
+\hat{S}_{KM}(t)]=\pm 1.96 \sqrt{\hat{Var}[\hat{S}_{KM}(t)]}.
+\end{align}
+
+\subsection{Inference statistics for proportional hazards}
+\subsubsection{Log-rank test}
+Whether two KM curves originate from two distinct populations  is commonly evaluated using a log-rank test. This non-parametric test calculates the expected number of events $e_{if}$ and $e_{if}$ for both groups  $i = 0,1$ from the number of subjects under risk $n_{if}$ and the number of subjects experiencing the event of interest $m_{if}$ for each ordered event time $t_{(f)}$:
+\begin{align}
+e_{if}=\frac{n_{if}}{n_{1f}+n_{2f}}(m_{1f}+m_{2f}).
+\end{align}
+Subsequently, the $\chi^2$-distributed log-rank test statistic is computed from the sum of the differences between the observed $m_{(0f)}$ minus the expected number of events $n_{(0f)}$ over all $k$ event times $t_{(f)}$ and from the variance of the differences for one of both groups, in this instance group $0$:
+\begin{align}
+O_0-E_0=\sum_{f=1}^{k}(m_{0f}-e_{0f})
+\end{align}
+\begin{align}
+ \text{log-rank test statistic}=\frac{(O_0-E_0)^2}{Var(O_0-E_0)}.
+\end{align}
+The log-rank test has been described as the most widely employed test in analyzing as well as designing clinical trials with time-to-event endpoints \parencite{Yung2020-ht}. Several variations of the log-rank test exist, such was the Wilcoxon, Tarone-Ware, Peto, and Flemington-Harrington test, which allow for attributing weights to different time sections of the survival curves in several ways.
+
+\subsubsection{Cox regression}
+The most popular instrument for conducting a regression over survival data is the Cox regression, which yields a regression coefficient $k$ for each explanatory variable included in the regression model, the coefficient's standard error, and its p-value. The Cox regression depends on a model of survival times which assumes proportional hazards between groups. According to the model, each variable's effect is conceptualized as an estimated hazard ratio given by the exponential function of the regression coefficient $e^k$.
+
+The Cox model describes the hazard $h(t, \textbf{X})$ as the product of the time-dependent baseline hazard $h_0(t)$ and an exponential function of $p$ time-independent predictor variables $\textbf{X} = (X_1, X_2, ..., X_p)$ and  their regression coefficients $\beta_1, \beta_2, ..., \beta _p$:
+
+\begin{align}
+h(t, \textbf{X}) = h_0(t)\exp{\left[\sum_{i=1}^p\beta_i X_i\right]}.
+\end{align}
+which yields a relationship between a survival function and its baseline survival function of
+\begin{align}
+S(t, \textbf{X}) = S_0(t)^{\exp{\left[\sum_{i=1}^p\beta_i X_i\right]}}.
+\end{align}
+The Cox model is described as a \textit{semi-parametric} model, since it specifies the hazard ratio, but leaves the baseline hazard $h_0(t)$ undefined. The hazard ratio $HR$ is given as
+\begin{align}\label{hazardRate}
+HR = \frac{h(t, \textbf{X}^*)}{h(t, \textbf{X})} = \exp{\left[ \sum_{i=1}^p \beta_i(X^*_i - X_i)\right]}
+\end{align}
+for two sets of predictor variables $\textbf{X}^*$ and $\textbf{X}$, with $\textbf{X} = 0$ being the set of predictor variables for the baseline hazard function $h_0(t)$. As evident from equation (\ref{hazardRate}), the hazard rate in a Cox regression is dependent only on the covariate values and their regression coefficients. If allocation to two treatment groups is the only coefficient with $\textbf{X} = 0$ and $\textbf{X}^*=1$, equation \ref{hazardRate} simplifies to
+\begin{align}
+HR = \exp({\beta}).
+\end{align}
+Although the application of the Cox model does not require specifying the baseline hazard function, it might be estimated according to \textcite[p.83]{kalbfleisch2011statistical} as cited in \textcite{Royston2002-ud}, and several other strategy's to estimate (and smooth out) if necessary the baseline hazard under the PH assumption exist.
+
+While the log rank test assesses the null hypothesis of $H_0: HR=1$, the Cox regression assesses $H_0: \beta = 0$. \textcite{Royston2011-bd} point out that the log rank test is asymptotically equivalent to tests based on Cox regression. Both tests' power is diminished in case of non-PH.
+
+\subsection{Testing the assumption of proportional hazards}
+The Cox regression assumes proportional hazards between groups with a time-independent proportionality factor, such that the hazard ratio $HR$ is constant. Similarly, the log-rank test loses power when hazards are non-proportional \parencite{karrison2016versatile} and should thus be avoided when the proportional hazards assumption is dubious. Several visual approaches, as well as diagnostic tests, exist for the assessment of the PH assumption, of which the two most popular ones according to \textcite{kuitunen2021testing} will be introduced in the following.
+
+\subsubsection{Log-log plots}
+Log-log plots are constructed by taking the negative log of the KM curve twice, forming $-\ln{-\ln{\hat{S}}}$, which should yield approximately parallel step functions if the assumption of PH is met. Interpreting visual indicators of goodness of fit is inherently subjective. \textcite{kleinbaum2012survival} suggests inspecting the resulting plot under a conservative criterion, thus only rejecting the PH assumption in case of conspicuous non-parallelism between plots.
+\subsubsection{Diagnostic tests based on Schoenfeld residuals}
+Several tests for the assessment of the PH assumption based on Schoenfeld residuals have been proposed, among them a global test devised by \parencite{grambsch1994proportional}. Schoenfeld residuals are defined for each non-censored subject and for each covariate. A Schoenfeld residual at event time $t_{(f)}$ is obtained by taking the covariate value for the subject experiencing the event at $t_{(f)}$ and subtracting the expected covariate value. The expected value is defined as the weighted average of the covariate values of all subjects still at risk at $t_{(f)}$, weighted by each subject's respective hazard. The resulting Schoenfeld residuals may then by regressed against survival time, with rejection of the regression's null hypothesis indicating a violation of the PH assumption.
+
+Alternatively, the Schoenfeld residuals may may be visually inspected by plotting them against the ordered event time. Any non-random pattern in the resulting plot will suggest a dependence of the residuals on time, and thus cast doubt on the assumption of PH.
+\textcite{kleinbaum2012survival} propose a dual approach of using both a graphical and a statistical assessment of the PH: They suggest the statistical test as an objective assessment of the PH, and a graphical representation as a tool for recognizing specific patterns of PH violations. \textcite{klein2003survival} prefer graphical assessments of the PH assumption, since they consider formal diagnostic tests to be too liberal in rejecting the assumption of PH for large sample sizes, and to be underpowered conversely in cases of low sample sizes.
+
+\subsection{Classical parametric survival models}
+Cox regression models don't require any assumptions about the distribution of survival times, and while they estimate regression coefficient and consequently hazard ratios, the baseline hazard itself is not estimated. Such models are thus called semi-parametric. Parametric models in contrast assume survival times to follow a certain distribution. Two popular parametric models, namely the exponential and the Weibull model, will be introduced below.
+\subsubsection{Exponential and Weibull survival models}
+The exponential survival function assumes a single parameter in the form of a constant hazard $h(t) = \lambda>0$, which according to equation (\ref{hazardtosurvival}) yields a survival of 
+\begin{align}\label{exponential}
+S(t)= \exp{(-\lambda t)},
+\end{align}
+with a hazard function of
+\begin{align}
+h(t)= \lambda,
+\end{align}
+and a cumulative hazard of
+\begin{align}
+H(t)= \lambda t.
+\end{align}
+Despite the exponential model's popularity, \textcite{klein2003survival} argue that its assumption of a constant hazard rate may be too restrictive for many applications. The Weibull model, conversely, depends on two parameters, namely the scale parameter $\lambda>0$ and the shape parameter $p>0$. Those parameters define the survival function as
+\begin{align}\label{weibull}
+S(t)= \exp{(-\lambda t^p)},
+\end{align}
+with a hazard rate of
+\begin{align}
+h(t)= p\lambda t^{p-1}.
+\end{align}
+For $p=1$, equation (\ref{weibull}) reduces to the exponential model in equation (\ref{exponential}).
+
+The Weibull distribution of survival thus allows for increasing ($p>1$), constant ($p=1$), and decreasing ($p<1$) hazard rates.
+%Hier zwei Abbildungen
+\subsubsection{Flexible parametric models}
+
+\subsection{Estimating the mean survival time}
+While $S(t)$ and $\hat{S}(t)$ respectively inform on the survival probability at $t$, another quantity of interest is the mean survival time $\mu$ and may be obtained by
+\begin{align}
+\mu = \int_0^{\infty}S(t)dt.
+\end{align}
+However, as pointed out above, the estimator $\hat{S}(t)$ is not well defined if the largest observation time is a censure. One solution is to determine a Restricted mean survival time (RMST) up to a time point $\tau$, where $\tau$ might be chosen as the maximum observed time (event or censure):
+\begin{align}
+\hat{\mu}_{\tau} = \int_0^{\tau}\hat{S}(t)dt,
+\end{align}
+which reduces to the sample mean in the absence of censored survival times.
+%Formel unten aber für Mit Zensur, oder? Dann fehlt noch RP 2013 für ohne Zensur
+The variance of $\mu_{\tau}$ is given (\parencite{klein2003survival}) by:
+\begin{align}
+\widehat{Var}[\hat{\mu_{\tau}}] = \sum_{i=1}^D\left[ \int_{t_i}^\tau \hat{S}(t)dt\right]^2 \frac{d_i}{Y_i(Y_i - d_i)}
+\end{align}
+\subsection{Trial design in case of proportional hazards} \label{chap:Trial_Design_PH}
+% is sanple size calculated or estimated
+Planning a prospective randomized trial with survival data as outcome includes several design decisions, most critically the duration of the accrual period $A$, length of follow-up $F$, desired test power, acceptable Type~I~error, and sample size. \textcite{kleinbaum2012survival} suggests several algorithms for estimating sample sizes in case of a constant hazard ratio, which will be outlined below.
+
+Sample size estimation in clinical trials most commonly begins with calculatibased on \textcite{kleinbaum2012survival} determines the number of events $N_{EVi}$ totaled over all groups $i$ required given a certain effect size $\Delta$, a certain Type I error $\alpha$, and a certain test power $1-\beta$. Furthermore predefined are the length of accrual $A$ and the duration of follow-up $F$. The total number of study subjects $N_i$ is calculated subsequently. Such approaches for sample size estimation, which calculate a number of events in a first step and the total sample size only later are widely used \parencite{Yung2020-ht}.
+
+\textcite{kleinbaum2012survival} suggest calculating the effect size from the hazard ratio in case of proportional hazards with $\Delta=\frac{\lambda_1}{\lambda_0}$ via a method adopted from \textcite{freedman1982tables}. For two groups, this yields a required number of events of
+\begin{align}\label{EventNumber}
+N_{EV}=\left( \frac{(z_{1-\alpha /2}+z_{1-\beta})(\Delta +1)}{\Delta-1}\right)^2
+\end{align} \label{Freedman}
+for an equal allocation of subjects between groups. Equation (\ref{EventNumber}) may be extended to unequal group allocation with a group allocation ratio of $R=\frac{N_1}{N_0}$ to
+\begin{align}\label{general_sample_size}
+N_{EV}=\left( \frac{(z_{1-\alpha /2}+z_{1-\beta})(R\Delta +1)}{\sqrt{R}(\Delta-1)}\right)^2.
+\end{align}
+Unequal allocation of subjects may be advised e.g. in case of different treatment costs. The calculation of the total number of subjects from the estimate of events according to \textcite{kleinbaum2012survival} assumes that the total number $N_i$ in group $i$ is equal to the number of events $N_{EVi}$ divided by the probability $p_{EVi}$ of a subject in group $i$ experiencing the event after enrollment with $N_i=\frac{N_{EVi}}{p_{EVi}}$:
+\begin{align}\label{sample_size}
+N=\frac{N_{EV}}{\frac{R}{R+1}p_{EV1}+\frac{1}{R+1}p_{EV0}},
+\end{align}
+which, in case of equal group allocation with $R=1$, collapses to
+\begin{align}
+N=\frac{N_{EV}}{(p_{EV1}+p_{EV0})/2}.
+\end{align}
+Alternatively, $p_{EVi}$ may be approximated in terms of the survival probability $S_i(M_F)$ at median follow-up time $M_F=A/2+F$ with $p_{EVi}\approx 1-S_i(M_F)$:
+\begin{align}
+N=\frac{N_{EV}}{\frac{R}{R+1}(1-S_1(M_F))+\frac{1}{R+1}(1-S_0(M_F))}.
+\end{align}
+For an exponential function, the total sample size is calculated as
+\begin{align}
+N=\frac{N_{EV}}{\frac{R}{R+1}(1-\exp{(- \lambda_1 M_F)})+\frac{1}{R+1}(1-\exp{(-\lambda_0 M_F)}}.
+\end{align}
+An alternative approach approach suggested by \textcite{kleinbaum2012survival} in case of exponential survival functions is based on equation (\ref{sample_size}). Assuming uniform accrual of subjects, $p_{EVi}$ is determined as a function of the length of the accrual period $A$, and the follow-up time $F$ as
+\begin{align}
+p_{EVi} = \frac{1}{A}\int\limits^A_0(1-S(A+F-x))dx = 1-\frac{1}{A}\int\limits_F^{A+F}S(u)du.
+\end{align}
+Assuming an exponential survival function, replacing $S(t)$ with $\exp{(-\lambda t)}$ leads to
+\begin{align}
+p_{EVi} = 1-\frac{1}{\lambda_i A}\left[ \exp{(-\lambda_i F)}-\exp{(-\lambda_i(A+F))}\right],
+\end{align}
+which may be substituted into equation \ref{general_sample_size}.
+The considerations above have so far taken administrative censoring into account, but not loss to follow-up. \textcite{kleinbaum2012survival} propose to allow for loss to follow-up by estimating the expected proportion lost to follow-up $p_{lof}$ from the literature and determining an adjusted sample size $N_{LOFadj}=N/(1-p_{lof})$
+A longer follow-up time has a greater impact on sample size than longer accrual \parencite{kleinbaum2012survival}.
+
+Another method for determining the number of events needed has been proposed by \textcite{schoenfeld1981asymptotic}:
+\begin{align} \label{Schoenfeld}
+N_{EV} = \frac{(z_{1-\alpha /2}+z_{1-\beta})^2}{R [\log(\lambda_1 / \lambda_0)]^2}.
+\end{align}
+\textcite{hsieh1992comparing} points out, that sample size calculation by equation (\ref{Freedman}) optimizes for a sample size ratio of $R = \frac{\lambda_0}{\lambda_1}$, while sample size calculation following equation (\ref{Schoenfeld}) is minimized for equal allocation of subjects. Both approaches have given rise to several subsequent modifications \parencite{hsieh1992comparing}.
+
+Both the method suggested by \textcite{schoenfeld1981asymptotic} as well as the one by \textcite{freedman1982tables} rely on the condition of PH, as well on the log-rank test being used for hypothesis testing \parencite{Yung2020-ht}.
+
+Common to all of these approaches is that the required number of events is determined first, and is then used to obtain the presumed number of subjects required by taking survival and censoring into account.
+\subsection{Alternatives to the Cox model}. All of these approaches also share the same limitation of only being applicable when an unweighted log rank test or a Cox regression is performed under the assumption of PH.
+\subsubsection{The problem of non-proportional hazards}
+The conceptualization of treatment effects in terms of hazard ratios is a common paradigm when handling time-to-event data. This approach however becomes fragile when the assumption of PH is in doubt or even clearly violated. The most obvious case of non-PH can be found in crossing survival curves as can typically be seen when a treatment provides a short-term benefit over another one, but yields a long term disadvantage, or vice versa \parencite{li2015statistical}. An example of this might be a surgical intervention compared to a pharmacological one, in which surgery increases mortality short term, but might be superior to pharmacological treatment in the long run \parencite{kleinbaum2012survival}. Another instance of violation of the PH assumption can be found in lymphoma treatment \parencite{giebel2014improving}: While the short term advantage of autologous transplant of stem cells manifests itself in a higher survival probability in the immediate post-treatment phase, survival probability with allogenic treatment way be superior when assessed on a wider time horizon. Potentially this may be the result of tumor cell contamination of the autogeneic graft among other factors. Another example of non-PH may be found in trials involving antibody treatment, which could yield a benefit during administration of the treatment, but a rapidly diminishing advantage over alternative interventions in the post-treatment phase \parencite{royston2014approach}. 
+
+Not only does a Cox-model resting on the PH assumption become inadequate in such a case, but reporting a single HR to patients or the public becomes misleading.
+
+\textcite{Trinquart2016-gb} found evidence for non-PH in 24\% of randomized controlled oncology trials published in leading journals. \textcite{royston2018power} points out, that there is likely an even higher number of unreported non-statistically significant situations of non-PH in published trials, which nonetheless pose a practical challenge for adequate inference statistics, particularly when sample sizes are large. PH violations occur for example in progression free survival curves in immunotherapy, where delayed treatment effects are tyical, or in comparisons between bone marrow transplants and chemotherapies due to a high early and comparatively low later event rate in the transplant group as can be seen in a study by \textcite{zittoun1995autologous}.
+
+Several strategies have been proposed when dealing with non-PH, with each suffering from limitations in some way: Weighted logRank-tests for instance suffer from increased type II errors \parencite{kalbfleisch1981estimation}, and approaches aimed at averaging HRs might be misleading and difficult to interpret \parencite{Brand2013-pf}. Other solutions proposed include the use of time dependent covariates with so-called extended Cox models \parencite{therneau2017using} and piecewise PH models, in which hazard ratios are assumed constant over distinct sections of time \parencite{kleinbaum2012survival}. Also suggested have been the survival probability difference at a certain point in time and the median survival time, but \textcite{Eaton2020-xo} point out, that such measures may loose power due to discarding information contained in the shape of survival curves. Also the median survival is not defined when a survival curve does not fall below $S(t) = .5$.
+
+Despite its advantages, RMST remains underutilized, perhaps due to researchers being more familiar with the log-rank test, a lack of well-known software, and difficulties in choosing the time horizon $\tau$ \parencite{Eaton2020-xo}.
+ \subsubsection{RMST}
+A distinct approach towards survival data characterized by non-PH is the concept of the restricted mean survival time (RMST), first proposed by \textcite{irwin1949standard}. The RMST may be intuitively understood as the life expectancy within a certain time horizon of interest. It thereby provides a framework to handle right-censored time-to-event data regardless of the assumption of PH, to perform statistical inference over such data sets, and potentially to design trials and calculate sample sizes based on assumed effect sizes. It is supposed to be valid under any distribution of time-to-event outcomes \parencite{royston2013restricted}, including severe PH violations as can be found in cases of intersecting survival curves.
+
+Quantifying the RMST requires as a first step to specify a time horizon $\tau$. The RMST may then be interpreted as the $\tau$-life expectancy. The RMST $\mu_{\tau}$ of a random variable $T$ representing and individual's event time is then defined as the mean of $T$ up until the time horizon $\tau$ and equals the area under the curve of the survival function $S(t)$ from $t=0$ up to $t=\tau$ \parencite{andersen2010}:
+\begin{align}\label{RMST}
+\mu_{\tau} = E[\min(T, \tau)] = \int\limits_0^{\tau}S(t)dt,
+\end{align}
+where an unrestricted mean survival time of $\tau = \infty$ is best understood as the general life expectancy. The lower and upper integration limits may be chosen as seen fit, but are typically defined as the time point of randomisation, and as the end of follow-up respectively. The RMST may thus be conceptualized as the $\tau$-life expectancy.
+
+
+As an alternative to more classical quantification of a treatment effect such as the HR, a treatment effect within an RMST framework may be either defined as the the Ratio (RMSTR) or the difference (RMSTD, $\Delta$) between two study arms:
+\begin{align}\label{RMSTD}
+\Delta = \int\limits_0^\tau S_1(t)dt - \int\lim_0^\tau S_0(t)dt = \int\lim_0^\tau [S_1(t)-S_0(t)]dt.
+\end{align}
+The RMST difference $\Delta$ is usually coded in such a way, that a positive value indicates are survival advantage in the treatment group. In order to construct confidence intervals around the RMST, and to perform inference statistics, the variance and the standard deviation (RSDST) of the RMST is required and can be obtained via
+\begin{align}\label{RMSTVar}
+\text{var}(X)= E(X^2)-E^2(X) = 2\int \limits_0^\tau tS(t)dt - \left[ \int\limits_0^\tau S(t)dt\right]^2,
+\end{align}
+and
+\begin{align}\label{labelRMSTequation}
+RSDST(X)= \sqrt{var(X)}.
+\end{align}
+
+\subsubsection{misinterpretations of the hazard ratio}
+One advantage of the RMST lies in its intuitive interpretabiltiy. \textcite{weir2019interpretation} conclude from the results of a randomized experiment regarding the interpretation of outcomes clinical time-to-event trials, that the HR is more prone to misrepresentation and tends to be overestimated compared to RMST. They report that especially frequent is a misunderstanding of HR as a difference in absolute risk between groups. 
+
+\subsubsection{choice of $\tau$}
+The choice of $\tau$ may depend on clinical considerations and should ideally be prespecified in the design stage of a study \parencite{Tian2020-cn}. \textcite{Tian2020-cn} argue that, statistically, the RMST and its confidence interval can be estimated up to the largest follow-up time in typical situations. They argue against choosing a certain time horizon $\tau$ determined by a certain percentage of the original sample size being at risk based on simulation results.
+
+\subsubsection{variance estimators for RMST and RMST confidence intervals}
+
+A variety of variance estimators for the RMST exists, of which the Greenwood plug-in/infinitesimal jackknife has been hailed as the most common one \parencite{Eaton2020-xo}, derived from the Greenwood estimator for the Kaplan-Meier estimator.
+
+\subsubsection{power of RMST and log-rank}
+In case of PH, the log-rank test has higher power that in case of non PH, as expected. It has been reported, that for PH the log-rank test is even slightly more powerful than RMST-based tests \parencite{eaton}. According to the same study, the log-rank test is especcialy more powerful in case of a late separation of survival curves, but loses power compared to RMST-based test in non-PH scenarios with in early separation of survival curves. The same study also reports, that changing the length of accural and of follow up as little effect ont he power of RMST-based tests, but significantly affects power of the log-rank test, by increasing log-rank power in case of late separation and decreasing log rank power in case of early separation of survival curves. The power of the RMST based test is conversely strongly dependent on the choice of $\tau$, as long as the survival curves are not two close together. If they are, increasing $\tau$ may cause large increase in variance which is not offset by a comparable increase in RMST difference, thus diminishing power.
+
+\subsubsection{Issues involving late time horizons}
+
+The Kaplan Meier estimator is $0$ beyond the last observation, if the last observation is an event, and the estimator is undefined beyond the last observation if this observation right-censored.
+Therefore, in trial design and data analysis within an RMST framework, a problem presents itself when the time horizon $\tau$ lies beyond the final observation. Several solutions to this problem have been brought forward, such as extensions of the survival curve following the Gill method and the Efron method \parencite{Eaton2020-xo}. For the choice of $\tau$ in the design stage, \textcite{Eaton2020-xo} propose estimating a probability of $RMST(\tau)$ being estimable and rejecting trial designs which don't satisfy a predefined threshold probability.
+
+\subsubsection{confidence intervals for the RMST}
+RMST confidence intervals are obtained from
+\begin{align}
+\hat{RMST}(\tau) \pm z_{1-\alpha/2}\frac{\hat{\sigma(\tau)}}{\sqrt{n}},
+\end{align}
+where $z_{\alpha}$ is the $\alpha$th percentile of the standard normal distribution.
+
+\subsubsection{Constructing the mean survival time curve}
+\textcite{Zhao2016-nr} suggest defining a $RMSTL$ which is the restricted mean survival time lost and can be obtained by $RMSTL(\tau) = \tau - RMST(\tau)$. They also suggest constructing a $RMST(tau)$. They also present pointwise and simultaneous confidence intervals for such curves and recommend their use for noninferiority and equivalence trials.
+ Hier vielleicht eine Figure mit RMST(t) und dessen CI, evtl. sogar Kurve mit RMST difference und dessen CI.
+
+
+\subsubsection{Zeugs}
+\parencite{Zhao2016-nr} "It follows from the martingale central limit theorem (Fleming and Harrington, 1991, Chapter 5) that $\sqrt{n}\{\hat{S}(t) - S(t)\}$ converges weakly to a Gaussian process".
+In choosing an appropriate time horizon $\tau$, \textcite{Royston2011-bd} propose setting $\tau$ in the trial protocol following clinical considerations, or preset as some time earlier that the longest expected follow-up time. 
+\subsection{RMST based sample size estimation}
+\subsubsection{Outline of the algorithm proposed by \textcite{royston2013restricted}}
+\textcite{royston2013restricted} have suggested a strategy for performing an \textit{assessment of resources for trials} (ART) based on the RMST. This approach is based on the comparison of means using an unpaired t-test \parencite{rosner2015fundamentals} and estimates the sample sizes $n_{0,1}$ in treatment and control group respectively as a function of the acceptable Type I error $\alpha$, test power $\beta$, the RMSTD $\Delta$ as obtained from equation (\ref{RMSTD}), and the variance of both groups $\sigma^2_{0,1}$ based on equation (\ref{RMSTVar}),
+\begin{align}\label{samplesizeNaive}
+n_{0,1}=2\frac{(z_{1-\alpha/2}+z_\beta)^2}{\Delta^2 / \sigma^2}.
+\end{align} % evtl. stattdessen: Auch Formel für unterschiedliche Sigmas und S-Sizes
+which is valid for equal allocation of subjects between both groups and similar variance with $\sigma^2_0 \approx \sigma^2_1 = \sigma^2$. Sample size estimation based on equation (\ref{samplesizeNaive}) seems to merely require assumptions about two integrable survival curves $S_{0,1}(t)$, e.g. based on a review of the existing literature. $z$ required for equation \ref{samplesizeNaive} would then be obtained via
+\begin{align}\label{z}
+z = \frac{\hat{\Delta}}{SE(\hat{\Delta})},
+\end{align}
+where $\hat{\Delta}$ and its standard error are obtained from data and tested against a normal distribution, or against student's $t$.
+
+\textcite{royston2013restricted}, however, note a few critical problem with this approach towards sample size estimation: They point out, that $X = \min(T, \tau)$ in non normal due to $T$ being truncated at $\tau$. They also note that right censoring of $T$ will affect the estimation of $\Delta$ and its standard error.
+
+Using their strategy outlined below, \textcite{royston2013restricted} attempt to take into account the uncertainty induced by censoring by introducing a scaling factor $\phi$, which quantifies the impact of censoring on the standard error. The approach by \textcite{royston2013restricted} applied to two samples of equal size follows these steps:
+\begin{enumerate}
+    \item Define two fully integrable survival curves $S_{0,1}(t)$, which may be constructed from literature research. \textcite{royston2013restricted} propose specifying the survival functions through piecewise exponential functions, which are easily integrated, and define the survival over several sections in time following equation (\ref{exponential}).
+    \item Define a time period of accrual, through which subjects are recruited, and define a follow-up duration of the study, which ends with the conclusion of the study. The total study duration is defined as the sum of the accrual period and the follow-up duration. The entry time of a subject, their length of follow-up, and their event time determines, whether the subject is subject to administrative censoring. 
+    \item Define a time horizon $\tau$, which marks the right-side integration limit of the piecewise exponential survival function. Note that $\tau$ is defined in terms of study time, whereas the time periods of accrual and follow-up are defined in terms of calendar time.
+    \item Define loss functions $L_{0,1}(t)$ for each study group, indicating each subject's probability of surviving up to time point $t$ without experiencing loss to follow-up. Loss functions are commonly assumed to be exponential \parencite{schemper1996note}.
+    \item Choose the desired levels of acceptable Type I error $\alpha$ and test power $\beta$.
+    \item Set the sample size $m$ for subsequent Monte Carlo simulations, and the number of iterations $M$, over which simulations are repeated. Note, that neither $m$ nor $M$ are directly related to the ultimately estimated sample size $n$, and serve their purpose solely within the Monte Carlo simulation.
+    \item Simulate $m$ event times based on $S_{0,1}(t)$, simulate administrative censoring based on the duration of the length of accrual, follow-up, and accrual distribution, and simulate loss to follow-up based on $L_{0,1}(t)$. The result is a simulated data set of of $m$ value pairs $(t, t)$, one for each subject, with $t$ indicating the observed time for each subject, and $d=(0,1)$ indicating whether $t$ marks an event or a censure.
+    \item Estimate $\hat{\mu}_{0,1}$ and its standard errors $SE(\hat{\mu})$ from each simulated trial arm. Note, that these are estimates from the trial data and are distinct from the parameters derived in step 1 from the pre-specified survival curves $S_{0,1}(t)$.
+    \item Estimate the scaling factor $\phi$ as a function of Monte Carlo sample size $m$, the standard deviation of the pre-defined survival curves $RSDST_{0,1}$, and the standard error of the estimated RMST $SE(\hat{\mu}_{0,1})$:
+\begin{align}
+\phi_{0, 1}=\sqrt{m}\frac{SE(\hat{\mu}_{0,1})}{RSDST_{0,1}}.
+\end{align}
+    \item Estimate sample size $n_{0,1}$ for each group using equation (\ref{samplesizeNaive}):
+\begin{align}
+n_{0,1}=\frac{(z_{1-\alpha}+z_\beta)^2}{\Delta^2 / RSDST^2},
+\end{align}
+    where $z$ is determined from equation (\ref{z}).
+\begin{align}
+z=\frac{(z_{1-\alpha}+z_\beta)^2}{\Delta^2 / RSDST^2},
+\end{align}
+    \item Through an $M$-fold repetition of steps 7 to 10, $M$ estimates of the scaling factor $\phi$ and the sample size $n$ are obtained. Also obtained is a Monte Carlo error of the simulation, which is calculated via
+ \begin{align}
+\epsilon_{MC} = \sqrt{(\text{sample variance of estimates of }n)/M},
+\end{align}
+and yields the standard error of the estimates of $n$. Based on exploration, \textcite{royston2013restricted} suggest values of $M = 50$ and $m = 10000$.
+\end{enumerate}
+Several methods have been proposed for the estimation of the RMST and its standard error in trial data, four of which have been implemented within the ART algorithm in the thesis.
+\subsubsection{Direct integration}
+The most straightforward, non-parametric, method is the integration under the MK curve obtained from simulated data. \textcite{royston2011flexible} raise the concern, that the KM estimator might become unstable at its right edge, when the risk set size has shrunk considerably. In addition, a KM survival curve is not well defined beyond its largest observation. Therefore, $\tau$ can only be pre-specified as the minimum of the longest follow-up times for both trial groups, and will thus be constrained by the data. This approach however has the benefit of being independent of assumptions about data distribution. \textcite{Royston2011-bd} raise the concern, that the KM curve becomes unstable at the right edge of the curve, when the number of subjects still under risk has become small.
+\subsubsection{Pseudo-observations}
+A second method employs the use of -observations as described by \textcite{andersen2010} and \textcite{andersen2004regression}. Through this distribution free approach, parameters and their standard error are estimated by constructing $m$ KM curves from a sample of $m-1$ observations, taken from the simulated sample size of $m$. While this approach shares the benefits of direct integration under the KM curve, namely providing distribution -free estimates of parameters, it shares their limitations as well, thereby allowing a choice of $\tau$ only up to the minimum of the longest follow-up times in each group. A value-based RMST regression requires larger computational resources that the other approaches presented. Standard errors of parameters in value based regression are obtained via the \textit{sandwich estimator}. The method as described by \textcite{andersen2004regression} is as follows:
+
+Let $X_i$ be an independent and identically distributed random variable with $i=1, ..., n$, and let $\theta$ be a parameter of the form
+\begin{align}
+\theta = \text{E}f(X_i),
+\end{align}
+with $\hat{\theta}$ being an unbiased estimator for $\theta$, and $\bm{Z}_i$ being independent and identically distributed covariates, and
+\begin{align}
+\theta_i = \text{E}\{f(X_i)|\bm{Z}_i\}.
+\end{align}
+The $i$th -observation is then defined as
+\begin{align}
+\hat{\theta}_i = n \cdot \hat{\theta} - (n-1) \cdot \hat{\theta}^{-i},
+\end{align}
+with $\hat{\theta}^{-i}$ being the \textit{jackknife} estimator for $\theta$ based on $X_j, j\neq i$. If all $X_i$ are observed, then $\theta$ may be estimated as the average of $f(X_i$), where $\hat{\theta}_i = f(X_i)$. The parameter $\theta$ serves as the parameter for a regression model, which specifies how $\theta_i$ depends on $\bm{Z}_i$ via a generalized linear model:
+\begin{align}
+g(\theta_i) = \beta^T\bm{Z}_i.
+\end{align}
+According to \textcite{andersen2003generalised}, the regression parameters $\beta$ are estimated via the \textit{generalizing estimating equation}, and their variance is obtained via the \textit{sandwich estimator}.
+\subsubsection{A flexible parametric model}
+A third method, proposed by \textcite{Royston2002-ud}, is based on modeling the log cumulative baseline hazard function $\ln{H_0(t)}$ as a sequence of $m+1$ restricted natural cubic spline functions $s(\ln{t})$, described by $m+1$ regression parameters $\gamma$:
+\begin{align}
+s(\ln{t}) = \ln{H_0(t)}=\gamma_0 + \gamma_1\ln{t}+\gamma_2\upsilon_1(\ln{t}) + ... + \gamma_{m+1}\upsilon_m (\ln{t}).
+\end{align}
+By definition of \textcite{Royston2002-ud}, natural cubic splines are linear and strictly decreasing before knot $k_{min}$ and beyond $k_{max}$. These knots $k_{min}$ and $k_{max}$ may be placed at the first and the last event time. A number $m$ of additional internal knots with $k_{min} < k_1 < ... < k_m < k_{max}$ are placed in time or log time, where the spline functions transition into each other, with a number of degrees of freedom $d.f. = m+1$. The $j$th basis function with $j = 1, 2, ..., m$ is defined by \textcite{Royston2002-ud} as:
+\begin{align}
+\upsilon_j(\ln{t}) = (\ln{t} - k_j)^3_+ - \lambda_j(\ln{t}-k_{min})^3_+ - (1-\lambda_j)(\ln{t}-k_{max})^3_+,
+\end{align}
+with
+\begin{align}
+\lambda_j = \frac{k_{max} - k_j}{k_{max} - k_{min}},
+\end{align}
+where $(x-a)_+ = \max({0, x-a})$. The resulting spline function is linear beyond the extreme knots $k_{min}$ and $k_{max}$, and connect smoothly at all knots with respect to their first and second derivatives. For a number of internal knots $m=0$, the equation collapses to a Weibull model with baseline cumulative hazard $H(t)=\gamma_0+\gamma_1 \ln{t}$.
+\textcite{lambert2009further} suggest placing the $m$ internal knots at certain centiles of the trial log time. In case of $m=1$, the suggested knot location is the $50th$ centile in log time, for $m=2$, the locations are the $33$rd and $67$nd centile, for $m=3$, the $25$th, $50$th, and $75$th centile, and so on.
+
+The model parameters $gamma$ are obtained by full maximum likelihood estimation. Under an assumption of cumulative PH, the log cumulative hazard function dependent on the cumulative log baseline hazard function $\ln{H_0(t)}$, the covariate vector $\text{x}$ and regression parameters $\bm{\beta}$ can be written as
+\begin{align}\label{fpmPH}
+\ln{H(t)} = \ln{H_0(t)} + \bm{\beta}\bm{x'}
+\end{align}
+ This spline based model can be extended to non-PH situations by combining it with a different set of splines for time dependent effects. The approach proposed by \textcite{royston2011flexible} takes the following form:
+ \begin{align}\label{fpmNonPH}
+\ln{\{H(t|x)\}}=s\{\ln{t}|\bm{\gamma},\bm{k}_0\}+\sum^D_{j=1}s\{\ln{t}|\bm{\delta}_j, \bm{k}_j\}x_j + \bm{x\beta}.
+\end{align} 
+ Equation (\ref{fpmNonPH}) allows to model a time dependent log cumulative hazard function based on the spline function $s\{\ln{t}|\bm{\gamma}$ of the baseline log cumulative hazard with a vector of parameters $\bm{\gamma}$ and a vector of baseline knot locations $\bm{k}_0$. The term $\sum^D_{j=1}s\{\ln{t}|\bm{\delta}_j, \bm{k}_j\}x_j$ allows for an interaction between a number $D$ of covariates $x_j$ with a spline function $s\{\ln{t}|\bm{\delta}_j, \bm{k}_j\}$. This spline function in log time is characterized by the respective vector of parameters $\bm{\delta}_i$ and different knot location times in vector $\bm{k}_i$ for each covariate. Standard errors are then estimated using either bootstrapping or the delta method \parencite{Royston2011-bd}.
+ 
+\textcite{Royston2002-ud} suggest using an internal number of two or three knots plus knots at the left and right edge, respectively. For non-PH, they propose one further degree of freedom. They point out, that a larger number of knots might lead to overfitting and to an unsteady estimated hazard function. The suggest consulting the Akaike Information Criterion (AIC), when the optimal number of internal knots is uncertain with $AIC = 2k - 2\ln{\hat{L}}$ for a model of Likelihood $\hat{L}$ with $k$ parameters.
+
+Since the cumulative hazard function and its corresponding survival curves allow for flexible modeling of simulated data based on fitting their regression parameters, \textcite{Royston2002-ud} named this approach a  \textit{flexible parametric survival model}. The resulting sequence of cubic splines requires a preset number of $K$ knots, at which the $K+1$ polynomial segments smoothly transition into each other. The result is a fully specified and integrable survival funtion, in which the standard error may be estimated via the Delta method \parencite{Royston2002-ud}. Although a theoretical survival function is strictly nonincreasing, a function of cubic splines is not necessarily, especially in regions of sparse data \parencite{Royston2002-ud}. A monotone function is however guaranteed at the linear part of the restricted spline function the the right of the final knot.
+While equation \ref{fpmPH} enabled modeling of a flexible paramtric model under the assumption of a constant HR, \textcite{royston2014approach} propose extending the flexible parametric model to include a time-dependent term:
+\begin{align}\label{fpmTimeDependent}
+\ln{H(t; x} = \ln{H_0(t)} + \theta(t)x = s_0(\ln{t}) + [\theta_0 + \theta_1 f(t)]x,
+\end{align}
+where the time dependent function $f(t)$ allows for a flexible hazard ratio over time. For $\theta_1 = 0$, equation (\ref{fpmTimeDependent}) collapses to a PH Cox model with $HR = \exp{\theta_0}$.
+
+A fourth method suggested by \textcite{Liao2020-gn} is similar to the flexible parametric model by \textcite{Royston2002-ud}, in that a composite function is fitted to a simulated dataset, integrated up to time horizon $\tau$ in order to compute the RMST, and its standard error is obtained via the delta method. Opposed to flexible parametric models, the flexible survival function proposed by \textcite{Liao2020-gn} is based on the combination of three Weibull components:
+\begin{align}
+S(t)=
+p_1\exp{\left[-\left(\frac{t}{\lambda_1}\right)^{k_1}\right]}
++
+p_2\exp{\left[-\left(\frac{t}{\lambda_2}\right)^{k_2}\right]}
++(1-p_1-p_2)
+\exp{\left[-\left(\frac{t}{\lambda_3}\right)^{k_3}\right]}.
+\end{align}
+This mixture Weibull model is supposed to allow for modeling cure fractions and delayed effects, and may be extended by further components in order to consider the characteristics of strata within trial groups.
+
+\subsubsection{closed form solution}
+Opposed to the Monte Carlo-based ART approach favored by \textcite{Royston2013-ad}, another method employed by \textcite{Yung2020-ht} does not rely on simulations. Sample size is calculated following equation (\ref{samplesizeNaive}), where $\Delta$ as the RMSTD between both prespecified curves via equation (\ref{RMSTD}). The variance $\sigma_j^2$ in each group $j$ is determined  by
+\begin{align}\label{L+Y}
+\sigma_i^2=\int\limits_0^\tau \frac{\left\{ \int _t^\tau S_j(u)du \right\}^2 h_j(t)}{\pi_j(t)}dt,
+\end{align}
+where $\pi_j(t)$ gives the probability of a subject being under risk at time point $t$. In order to be part of the set of subjects under risk at $t$, a subject must have experienced neither an event nor a censure until $t$. Therefore, $\pi_j(t)$ is constructed as the product
+\begin{align}
+\pi_j(t) = S_j(t)\bar{G}_j(t)H[\min(\tau_\alpha, \tau - t)],
+\end{align}
+where $G_j=1-\bar{G}_j$ gives the probability of a subject being lost to follow-up before $t$, given survival up to $t$. $H(t)$ represents the probability of a subject having been accrued before $t$. $H(\min[\tau_\alpha, \tau - t)]$ is therefore the probability of a subject not having been censored administratively until $t$, given survival until $t$, with a recruitment during the accrual period $\tau_\alpha$ over total study duration $\tau$.
+
+In the absence of loss-to-FU as well as administrative censoring, $\bar{G}_j = H(t) = 1$, and therefore $\pi_j(t) = S(t)$. Equation (\ref{L+Y}) then simplifies to
+\begin{align}\label{L+Y}\
+\sigma_i^2=\int\limits_0^\tau \frac{\left\{ \int _t^\tau S_j(u)du \right\}^2 h_j(t)}{S_j(t)}dt,
+\end{align}
+and can be transformed to equation (\ref{RMSTVar}) via integration in parts (appendix).
+
+This "closed-form approximation" \textcite[p. 942]{Yung2020-ht} as well as the strategy endorsed by \textcite{Royston2013-ad} thus turns shortcut the approach presented in section \ref{chap:Trial_Design_PH} by directly calculating the required sample size $n$ instead of determining the required number of events $N_{EV}$ first and proceeding only then to calculating $n$.
+
+The closed-form approximation is based on the observation that the estimated $\hat{RMST}(\tau)$ is distributed symmetrically around the true $RMST(\tau)$ with $\sqrt{n_j}(\hat{RMST}_j(\tau) - RMST_j(\tau)) \xrightarrow{d} N(0, \sigma^2_j)$
+
+\subsection{Liu Yung analytical sample size}
+
+
+\subsection{Existing packages}
+"The R package ssrmst provides calculations for the KM
+RMST"
+
+npsurvSS \parencite{Yung2020-ht}
+
+PWEALL
+%prüfen, andere Bezeichnungen für Tau und Tau_alpha überlegen
+
+%solutiopt n when non ph: exteneded cox, cox abschnittsweise, time dependent variable
+
+\todo[inline]{\textcite{dehbi2017life}point out, that median survival " Median survival can be reported for any shape of curve but occurs at only one time point—it ignores the rest of the curve and can be affected by chance variability.".}
+\todo[inline]{fpm have the advantage of providing a hazard function which might be of medical interest, whereas in the Cox model, the baseline hazard is not assumed and, if estimated nonetheless after the method of \textcite{kalbfleisch1981estimation}, is highly erratic and potentially overfitted. However, also some methods exist to estimate a smooth baseline hazard function for Cox \parencite{Royston2002-ud}}
+\todo[inline]{\textcite{Royston2011-bd}} point out that the variance of pseudovalues "increases with the proportion of censored observations"
+\todo[inline]{according to \textcite{royston2014approach}, optimal for fpm is a df for the baseline of three, which means 2 internal knots at 33rd and 67nd failure time, and a df for the time dependent term of one, was auch immer das heißen soll}
+\todo[inline]{in \textcite{royston17b}, steht noch was zu Ubnerschieden bei  und fpm regarding regression with covariate adjustment}
+\todo[inline]{ \parencite{Yung2020-ht} chposing an early time horizon throws away power since info is omitted}
+\todo[inline]{was zu Loss function L(t)}
+\todo[inline]{in case of non PH is not only the Cox model doomed, but also the estimated HR not readily interpretable}
+\todo[inline]{solutions for nonPH: Uno et al. 2014 mit milestone survival probability, RMST, survival percentile, weighted lrt}
+\todo[inline]{problem:(unrestricted) mean surival time can often not be estimated due to right censoring, and survival probability at time t omits info before and beyond t}
+\todo[inline]{z_alpha is the alphath quantile of the standard normal dis}
+\todo[inline]{according tp \textcite{Tian2020-cn}, For
+example, if the largest censoring time, is far away from
+other censoring times, then it is plausible that Condition (2)
+may not be satisfied and we should be cautious in making
+inference for the RMST up to the largest censoring time. Vielleicht kann man daraus ein scenario basteln, in dem Liu und YUng nicht gehen. Z.B. mit may be violated if the enrollment is very slow at the beginning of the study and greatly accelerates later. Empirically,
+this would be reflected by a flat tail in the Kaplan-Meier curve
+over a long time interval, wobei die censures immer sparser bis latest cens time werden}
+\todo[inline]{\textcite{Tian2020-cn} note that in their simulation study, for small sizes sigma hat (tau) tended to underestimate the standard error, "which led to mild under-coverage of the CI"}
+\todo[inline]{In case of small sample size or a skewed estimator, \parencite{zhou2021restricted} suppose constructing maximum likelihood CIs by the Wilks method}
+\todo[inline]{rmstDesign;}
+
+%\printbibliography
+
+\end{document}
