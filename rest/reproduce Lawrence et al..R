@@ -1,5 +1,5 @@
 # reproduce Lawrence, J., Qiu, J., Bai, S., & Hung, H. J. (2019). Difference in restricted mean survival time: small sample distribution and asymptotic relative efficiency. Statistics in Biopharmaceutical Research, 11(1), 61-66.
-# acc. to paper: alpha ~ 0.025 for both COX and RMST-D
+# acc. to paper: alpha = 0.025 for both COX and RMST-D
 
 if (!require('npsurvSS')) install.packages('npsurvSS'); library('npsurvSS')
 if (!require('survival')) install.packages('survival'); library('survival')
