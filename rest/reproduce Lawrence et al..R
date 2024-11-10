@@ -234,8 +234,7 @@ power_simul_noninf_rmst(scale_ctrl = scale_ctrl, scale_trt = scale_trt,
                                     margin_rmst = 0, n = total_sample_size, M = 1000,
                                     parameterization = 3, handling_large_tau = "adjust tau")
 
-# result: false error rate = 0.025 in both tests. But false error rate is independent of sample size... is this correct???
-
+# result: same as paper. false error rate = 0.025 in both tests.
 
 # scenario 2 --------------------------------------------------------------
 
@@ -293,7 +292,7 @@ power_simul_noninf_cox(scale_ctrl = scale_ctrl, scale_trt = scale_trt, shape_ctr
                        scale_loss = scale_loss, accrual_time = accrual_time, follow_up_time = follow_up_time,
                        tau = 1, one_sided_alpha = 0.025, sides = 1, power = 0.8,
                        margin_hr = 1, n = total_sample_size, M = 10000,
-                       parameterization = 3, censor_beyond_tau = T, test = T) # estimates power similar to closed form, but very different from paper, at 0.207 vs. 0.867. WHY??
+                       parameterization = 3, censor_beyond_tau = T) # estimates power similar to closed form, but very different from paper, at 0.207 vs. 0.867. WHY??
 
 power_simul_noninf_rmst(scale_ctrl = scale_ctrl, scale_trt = scale_trt, shape_ctrl = shape_ctrl, shape_trt = shape_trt, # comes to expected result of power ~0.874
                         scale_loss = scale_loss, accrual_time = accrual_time, follow_up_time = follow_up_time,
