@@ -13,7 +13,7 @@ power_simul_noninf_cox <- function(scale_ctrl = NULL, shape_ctrl = 1, scale_trt 
                                    tau = NULL, one_sided_alpha = 0.025, sides = 1, power = 0.8,
                                    margin_hr = 1, n = NULL, M = 100,
                                    parameterization = 1, censor_beyond_tau = FALSE){
-  positive <- rep(NA, M)
+    positive <- rep(NA, M)
 
   if(parameterization == 2){
     scale_trt <- 1/(scale_trt^(1/shape_trt))
@@ -49,15 +49,15 @@ power_simul_noninf_cox <- function(scale_ctrl = NULL, shape_ctrl = 1, scale_trt 
     data <- data.frame(time, status, arm)
 
     result <-  coxph(Surv(time, status) ~ arm, data = data)
-    #browser()
     upper <-  summary(result)$conf.int[, "upper .95"]
 
     if(upper < margin_hr){positive[i] <- 1}
     else positive[i] <- 0
   }
 
-  print(sum(is.na(positive)))
   power <-  sum(positive, na.rm = TRUE)/sum(!is.na(positive))
+  print(power)
+  print("das war power")
   return(power)
 
 }
@@ -272,7 +272,7 @@ arm_trt <- create_arm(
   follow_time = follow_up_time,
 )
 
-power_two_arm( # estimates power at 0.187 instead of 0.867. WHY???
+power_two_arm( # estimates power at 0.187. Not surprising since no censoring at tau
   arm0 = arm_ctrl,
   arm1 = arm_trt,
   test = list(test = "weighted logrank"),
@@ -291,7 +291,7 @@ power_two_arm( # comes to expected result of power ~0.874
 power_simul_noninf_cox(scale_ctrl = scale_ctrl, scale_trt = scale_trt, shape_ctrl = shape_ctrl, shape_trt = shape_trt,
                        scale_loss = scale_loss, accrual_time = accrual_time, follow_up_time = follow_up_time,
                        tau = 1, one_sided_alpha = 0.025, sides = 1, power = 0.8,
-                       margin_hr = 1, n = total_sample_size, M = 10000,
+                       margin_hr = 1, n = total_sample_size, M = 1000,
                        parameterization = 3, censor_beyond_tau = T) # estimates power similar to closed form, but very different from paper, at 0.207 vs. 0.867. WHY??
 
 power_simul_noninf_rmst(scale_ctrl = scale_ctrl, scale_trt = scale_trt, shape_ctrl = shape_ctrl, shape_trt = shape_trt, # comes to expected result of power ~0.874
