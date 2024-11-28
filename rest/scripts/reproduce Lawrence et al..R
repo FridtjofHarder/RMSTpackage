@@ -234,7 +234,7 @@ power_simul_noninf_rmst(scale_ctrl = scale_ctrl, scale_trt = scale_trt,
                                     margin_rmst = 0, n = total_sample_size, M = 1000,
                                     parameterization = 3, handling_large_tau = "adjust tau")
 
-# result: false error rate = 0.025 in both tests. But false error rate is independent of sample size... is this correct???
+# result: false error rate = 0.025 in both tests.
 
 
 # scenario 2 --------------------------------------------------------------
@@ -601,11 +601,13 @@ legend("topright", legend= c(bquote(trt: S(t) == exp( - .(scale_trt) *t )), bquo
        , col=c("red", "green"), lty=1, cex=0.8)
 title("sc10: survival curves for treatment and control group")
 
+print("tau = 1 censored F")
+
 power_simul_noninf_cox(scale_ctrl = scale_ctrl, scale_trt = scale_trt,
                        scale_loss = 1/scale_loss, accrual_time = accrual_time, follow_up_time = follow_up_time,
-                       tau = tau, one_sided_alpha = 0.025, sides = 1, power = 0.8,
-                       margin_hr = 8500/3686.91, n = total_sample_size, M = 10000,
-                       parameterization = 1, censor_beyond_tau = TRUE)
+                       tau = 1*tau, one_sided_alpha = 0.025, sides = 1, power = 0.8,
+                       margin_hr = 8500/3686.91, n = total_sample_size, M = 1000,
+                       parameterization = 1, censor_beyond_tau = FALSE)
 
 power_simul_noninf_rmst(scale_ctrl = scale_ctrl, scale_trt = scale_trt,
                         scale_loss = 1/scale_loss, accrual_time = accrual_time, follow_up_time = follow_up_time,
@@ -624,8 +626,6 @@ ss_closed_form_noninf_rmst(scale_trt = scale_trt, shape_trt = 1, scale_ctrl = sc
                                        scale_loss = 1/scale_loss, shape_loss = 1)
 
 # result: power for RMST and Cox almost identical to paper (0.8547 vs 0.856 in paper, resp. ~0.6112 vs. 0.615 for Cox).
-
-
 
 
 # scenario 12 -------------------------------------------------------------
