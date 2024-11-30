@@ -7,11 +7,11 @@ if (!require('ggplot2')) install.packages('ggplot2'); library('ggplot2')
 
 # define parameters
 size_ctrl <- size_trmt <- 55
-iterations <- 1000 # iterations for simulation
-scale_ctrl <- 1
+iterations <- 10000 # iterations for simulation
+scale_ctrl <- 3
 scale_trmt <- 1
 shape_ctrl <- 1
-shape_trmt <- 3
+shape_trmt <- 1
 tau <- 1 # acc. to lawrence, all obervations beyond tau are censored
 
 # define arms without restriction to tau in npsurvSS
