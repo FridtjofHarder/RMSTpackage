@@ -185,7 +185,7 @@ convert_contrast <- function(scale_trt = NULL,
       lower.tail = F
     )$value
   }
-  browser()
+
   # calculate RMST in unspecified group when RMSTR or RMSTD are given as input
   if (xor(!is.null(RMSTD), !is.null(RMSTR))) {
     # when either RMSTR or RMSTD defined
