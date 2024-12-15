@@ -2,7 +2,7 @@
 % Please edit documentation in R/convert_contrast.R
 \name{convert_contrast}
 \alias{convert_contrast}
-\title{Converts contrast to RMSTD or RMSTR}
+\title{Converts contrast to RMSTD, RMSTR, or HR}
 \usage{
 convert_contrast(
   scale_trt = NULL,
@@ -35,7 +35,7 @@ convert_contrast(
 \item{parameterization}{One of: \itemize{
 \item \code{parameterization = 1}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
 \item \code{parameterization = 2}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parametrization = 3}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item \code{parameterization = 3}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 
 \item{HR}{A scalar specifying a hazard ratio. \code{HR} \eqn{< 1} suggests a lower hazard in the treatment group than in the control group.}
 
@@ -53,29 +53,31 @@ convert_contrast(
 
 \item{RMSTR}{A scalar specifying the RMSTR between control group and treatment group. Allows for converting RMSTD to HR.}
 
-\item{output}{A string specifying whether to calculate the difference in RMSTs (\code{"RMSTD"}) or the ratio between RMSTs (\code{"RMSTR"}).}
+\item{output}{A string specifying whether to calculate the difference in RMSTs (\code{"RMSTD"}), the ratio between RMSTs (\code{"RMSTR"}), or the HR (\code{"HR"}).}
 
-\item{tau}{A scalar speifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
+\item{tau}{A scalar specifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
 
-\item{plot_curves}{specifying whether to create a plot. Boolean.}
+\item{plot_curves}{Boolean. Creates a plot if \code{TRUE}}
 }
 \value{
-Returns either the difference (RMSTD) or ratio (RMSTR) between RMSTs of treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.
+Returns either the difference (RMSTD), or ratio (RMSTR), or HR between RMSTs of treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.
 }
 \description{
-This function converts different contrasts into either the difference or the ratio of restricted mean surival times (RMSTs).
+Function for converting different contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), or the hazard ratio (HR).
+}
+\details{
 Convertible contrasts are: \itemize{
 \item hazard ratio (HR).
 \item median difference: the difference in times \eqn{t} at which each survival curve passes \eqn{S(t) = 0.5}.
 \item percentile difference: the difference in times \eqn{t} at which each survival curve passes a certain \eqn{S(t)}. Simplifies to the median difference when the percentile \eqn{0.5} is chosen. TODO: discuss the term "percentile"! Should multiply by 100?]
 \item survival difference: difference between two survival curves \eqn{S(t)} at a specified time \eqn{t}.}
-Survival is assumed to follow Weibull distributions in both control and treatment group with a constant HR, implying the same shape parameter in treatment and control group.
-}
-\details{
+Survival is assumed to follow Weibull distributions in both control and treatment group with a constant HR,
+implying the same shape parameter in treatment and control group.
+
 ToDo:
 Output als df - besprechen mit DH
+FUnction details
 #'
-Function details (missing)
 }
 \examples{
 RMSTD <- convert_contrast(scale_trt = 1, shape_trt = 1, HR = 0.9,
