@@ -56,7 +56,6 @@ simulate_data <- function(scale,
     scale_trt <- 1/scale_trt
     scale_ctrl <- 1/scale_ctrl
   }
-  browser()
   total_time <- accrual_time + follow_up_time
 
   # draw event times vom weibull distribution
@@ -96,12 +95,28 @@ simulate_data <- function(scale,
     surv_obj <- survival::Surv(time = observations, event = status)
     plot(survival::survfit(surv_obj~1), mark.time=T, conf.int = F, xlab = "t", ylab = "S(t)")
   }
+  browser()
 
   # produce recruitment plot if requested
   if(plot_recruitment){
+    if (100 < sample_size){
 
+    }
+    recruitment <- total_time - admin_loss # recruitment time in study time
+    stop <- recruitment + observations # last observation in study time
+    df <- data.frame(recruitment, stop)
+    df_sorted <- df[order(recruitment),]
+    plot(x = df_sorted$recruitment, y = 1:sample_size,
+         xlim = c(0, total_time), ylim = c(0, sample_size),
+         xlab = "study time", ylab = "participants ordered by entry into study")
+    title("individual observation trails in study time")
+    segments(x0 = df_sorted$recruitment, y0 = 1:length(recruitment),
+             x1 = df_sorted$stop)
   }
   return(data_df)
 
 
 }
+
+#### just for testing
+
