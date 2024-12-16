@@ -95,7 +95,6 @@ simulate_data <- function(scale,
     surv_obj <- survival::Surv(time = observations, event = status)
     plot(survival::survfit(surv_obj~1), mark.time=T, conf.int = F, xlab = "t", ylab = "S(t)")
   }
-  browser()
 
   # produce recruitment plot if requested
   if(plot_recruitment){
@@ -114,8 +113,6 @@ simulate_data <- function(scale,
              x1 = df_sorted$stop)
   }
   return(data_df)
-
-
 }
 
 #### just for testing

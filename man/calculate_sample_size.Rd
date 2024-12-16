@@ -85,7 +85,20 @@ Anmeldung!!!
 RFrage: Unterschied Makuch-Simon vs LRank test sample size
 }
 \examples{
-result <- compare_sample_size(scale_trt = 1.4, shape_trt = 1, scale_ctrl = 1, shape_ctrl = 1, parameterization = 1, accrual_time = 1, follow_up_time = 10, tau = 1, sides = 1, alpha = 0.025, power = 0.8, margin = 0.1, simulation = TRUE, M = 100)
+calculate_sample_size(scale_trt = 1.4,
+shape_trt = 1,
+scale_ctrl = 1,
+shape_ctrl = 1,
+parameterization = 1,
+accrual_time = 1,
+follow_up_time = 10,
+tau = 1,
+sides = 1,
+alpha = 0.025,
+power = 0.8,
+margin = 0.1,
+simulation = TRUE,
+M = 100)
 
 }
 \references{

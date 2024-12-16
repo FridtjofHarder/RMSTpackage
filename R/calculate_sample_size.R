@@ -18,8 +18,8 @@
 #'        # Unterschied Zensur nach Zeithorizont, Zensur nach Studienzeit, oder Zensur zum Median
 #'        RFrage: Unterschied Makuch-Simon vs LRank test sample size
 #'
-#' @param scale_trt A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
-#' @param shape_trt A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trt} \eqn{=1}, simplifying to exponential survival.
+#' @param scale_trmt A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
+#' @param shape_trmt A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.
 #' @param scale_ctrl A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
 #' @param shape_ctrl A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.
 #' @param parameterization One of: \itemize{
@@ -46,12 +46,26 @@
 #' nonproportional hazards. \emph{Biometrics}, \strong{76(3)}, 939-950.
 #'
 #' @examples
-#' result <- compare_sample_size(scale_trt = 1.4, shape_trt = 1, scale_ctrl = 1, shape_ctrl = 1, parameterization = 1, accrual_time = 1, follow_up_time = 10, tau = 1, sides = 1, alpha = 0.025, power = 0.8, margin = 0.1, simulation = TRUE, M = 100)
+#' calculate_sample_size(scale_trmt = 1.4,
+#' shape_trmt = 1,
+#' scale_ctrl = 1,
+#' shape_ctrl = 1,
+#' parameterization = 1,
+#' accrual_time = 1,
+#' follow_up_time = 10,
+#' tau = 1,
+#' sides = 1,
+#' alpha = 0.025,
+#' power = 0.8,
+#' margin = 0.1,
+#' simulation = TRUE,
+#' M = 100)
 #'
-calculate_sample_size <- function(scale_trt,
-                                  shape_trt = 1,
+calculate_sample_size <- function(scale_trmt,
+                                  shape_trmt = 1,
                                   scale_ctrl,
-                                  shape_ctrl = 1, parameterization = 1,
+                                  shape_ctrl = 1,
+                                  parameterization = 1,
                                   accrual_time = 0,
                                   follow_up_time = NULL,
                                   tau = NULL,
@@ -59,11 +73,15 @@ calculate_sample_size <- function(scale_trt,
                                   alpha = 0.025,
                                   power = 0.8,
                                   margin = 0,
-                                  simulation = TRUE,
-                                  M = 1000,
+                                  RMSTD_closed_form = FALSE,
+                                  RMSTR_closed_form = FALSE,
+                                  RMSTD_simulation = FALSE,
+                                  RMSTR_simulation = FALSE,
+                                  cox_pH_simulation = FALSE,
+                                  M = 100,
                                   plot_design_curves = TRUE,
                                   plot_example_data = TRUE,
-                                  loss_scale, loss_shape){
+                                  loss_scale, loss_shape = 1){
 
   # error management --------------------------------------------------------
 
@@ -73,7 +91,7 @@ calculate_sample_size <- function(scale_trt,
   )
 
   # throw error when functions misspecified
-  if(is.null(scale_trt)||is.null(scale_ctrl)){
+  if(is.null(scale_trmt)||is.null(scale_ctrl)){
     stop("please specify scale parameters for both treatment and survival group")
   }
 
@@ -92,56 +110,76 @@ calculate_sample_size <- function(scale_trt,
 
   # convert to standard parameterization if needed
   if(parameterization == 2){
-    scale_trt <- 1/(scale_trt^(1/shape_trt))
+    scale_trmt <- 1/(scale_trmt^(1/shape_trmt))
     scale_ctrl <- 1/(scale_ctrl^(1/shape_ctrl))
   }
 
   if(parameterization == 3){
-    scale_trt <- 1/scale_trt
+    scale_trmt <- 1/scale_trmt
     scale_ctrl <- 1/scale_ctrl
   }
 
-  #plot example data
-  if(plot_example_data){
+  # sample size RMSTD by closed form
+  # sample size RMSTD by simulation
+  # sample size RMSTR by closed form
 
+
+
+  # simulate trial if simulations requested
+  if(RMSTD_simulation || RMSTR_simulation || cox_pH_simulation){
+    if(RMSTD_simulation) {RMSTD_simul_results <- rep(NA, M)}
+    if(RMSTR_simulation) {RMSTD_simul_results <- rep(NA, M)}
+    if(cox_pH_simulation){RMSTD_simul_results <- rep(NA, M)}
+    for (i in 1:M){
+    data_trmt <- simulate_data()
+    data_ctrl <-
+    }
   }
-  if(simulation)
-  # create arm objects via package npsurvSS
-  arm_trt  <- npsurvSS::create_arm(size = 1, accr_time = accrual_time, surv_shape = shape_trt, surv_scale = 1/scale_trt, loss_scale = 0.00001, follow_time = follow_up_time)
-  arm_ctrl <- npsurvSS::create_arm(size = 1, accr_time = accrual_time, surv_shape = shape_ctrl,surv_scale = 1/scale_ctrl,loss_scale = 0.00001, follow_time = follow_up_time)
-  # calculate design parameters, including variance, via package npsurvSS
-  design  <- npsurvSS:::calc_design(arm_trt, arm_ctrl, test = list(test = "rmst difference", milestone = tau))
-  # calculate closed form sample size as a function of variance, alpha, power, no. of sides, design RMSTD, and RMSTD margin
-  total_sample_size_npsurvSS <- sum((sqrt(design$sigma2) * stats::qnorm(1 - alpha / sides) + sqrt(design$tsigma2) * stats::qnorm(power) )^2 /
-                                      (design$delta + margin)^2 *c(0.5, 0.5))
-  # calculate sample size from simulation via package SSRMST
-  if(simulation){
-    power_SSRMST <- SSRMST::ssrmst(ac_number = total_sample_size_npsurvSS, ac_period = accrual_time, tot_time = accrual_time + follow_up_time, tau = tau, scale0 = scale_ctrl, shape0 = shape_ctrl,
-                                   scale1 = scale_trt, shape1 = shape_trt, margin = margin, ntest = M)
+
+  # sample size RMSTD by simulation
+
+  # sample size RMSTR by simulation
+
+  # sample size Cox by simulation
+
+  # plot example data if requested
+  if(plot_example_data){
+    data_frame_ctrl <- simulate_data(scale = scale_ctrl, shape = shape_ctrl
+                                     accrual_time = accrual_time,
+                                     follow_up_time = follow_up_time,
+                                     loss_scale = loss_scale,
+                                     loss_shape = loss_shape,
+                                     sample_size = 100,  # change sample size!
+                                     label = "ctrl")
+    data_frame_trmt <- simulate_data(scale = scale_ctrl, shape = shape_ctrl
+                                     accrual_time = accrual_time,
+                                     follow_up_time = follow_up_time,
+                                     loss_scale = loss_scale,
+                                     loss_shape = loss_shape,
+                                     sample_size = 100, # change sample size!
+                                     label = "trmt")
   }
-  if(make_plot){ # plot survival curves if requested
-    curve(pweibull(x, scale = scale_trt, shape = shape_trt, lower.tail = FALSE),
+
+  # plot design curves if requested
+  if(plot_design_curves){
+    curve(pweibull(x, scale = scale_trmt, shape = shape_trmt, lower.tail = FALSE),
           col = "green", xlab = "t", ylab = "S(t)", ylim = c(0, 1), xlim = c(0, 1.5*tau))
     curve(pweibull(x, scale = scale_ctrl, shape = shape_ctrl, lower.tail = FALSE),
           col = "red", add = TRUE)
     abline(v = tau, col = "blue")
     text(x = tau, y = 0.1, pos = 4, labels = paste("time horizon τ  =", tau))
     legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
-                                         round(scale_trt, 2), " and shape =",
-                                         round(shape_trt, 2)),
+                                         round(scale_trmt, 2), " and shape =",
+                                         round(shape_trmt, 2)),
                                   paste0("control group with \n", "scale =",
                                          round(scale_ctrl, 2), " and shape =",
                                          round(shape_ctrl, 2))),
            col=c("green", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 0.8)
 
   }
-
   result <- list("n calculated via closed form" = total_sample_size_npsurvSS, "simulated test power" = power_SSRMST)
   return(result)
 
-}
+  }
 
-simulate_example_data <- function(scale, shape, n, scale_loss, shape_loss, accrual_time, follow_up_time){
-  ### this function will later simulate data
-}
 
