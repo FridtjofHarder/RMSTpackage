@@ -46,20 +46,18 @@
 #' nonproportional hazards. \emph{Biometrics}, \strong{76(3)}, 939-950.
 #'
 #' @examples
-#' calculate_sample_size(scale_trmt = 1.4,
-#' shape_trmt = 1,
+#' calculate_sample_size(
+#' scale_trmt = 1.4,
 #' scale_ctrl = 1,
-#' shape_ctrl = 1,
-#' parameterization = 1,
 #' accrual_time = 1,
 #' follow_up_time = 10,
 #' tau = 1,
-#' sides = 1,
-#' alpha = 0.025,
-#' power = 0.8,
-#' margin = 0.1,
-#' simulation = TRUE,
-#' M = 100)
+#' RMSTD_simulation = TRUE,
+#' RMSTR_simulation = TRUE,
+#' cox_ph_simulation = TRUE,
+#' loss_scale = 1,
+#' M = 100,
+#' simulation_sample_size = 100)
 #'
 calculate_sample_size <- function(scale_trmt,
                                   shape_trmt = 1,
@@ -77,8 +75,10 @@ calculate_sample_size <- function(scale_trmt,
                                   RMSTR_closed_form = FALSE,
                                   RMSTD_simulation = FALSE,
                                   RMSTR_simulation = FALSE,
-                                  cox_pH_simulation = FALSE,
+                                  cox_ph_simulation = FALSE,
+                                  censor_beyond_tau = FALSE,
                                   M = 100,
+                                  simulation_sample_size,
                                   plot_design_curves = TRUE,
                                   plot_example_data = TRUE,
                                   loss_scale, loss_shape = 1){
@@ -107,7 +107,7 @@ calculate_sample_size <- function(scale_trmt,
   total_time <- accrual_time + follow_up_time
 
   # main function --------------------------------------------------------
-
+  browser()
   # convert to standard parameterization if needed
   if(parameterization == 2){
     scale_trmt <- 1/(scale_trmt^(1/shape_trmt))
@@ -119,20 +119,56 @@ calculate_sample_size <- function(scale_trmt,
     scale_ctrl <- 1/scale_ctrl
   }
 
-  # sample size RMSTD by closed form
-  # sample size RMSTD by simulation
-  # sample size RMSTR by closed form
-
-
-
   # simulate trial if simulations requested
-  if(RMSTD_simulation || RMSTR_simulation || cox_pH_simulation){
-    if(RMSTD_simulation) {RMSTD_simul_results <- rep(NA, M)}
-    if(RMSTR_simulation) {RMSTD_simul_results <- rep(NA, M)}
-    if(cox_pH_simulation){RMSTD_simul_results <- rep(NA, M)}
+  if(RMSTD_simulation || RMSTR_simulation || cox_ph_simulation){
+    if(RMSTD_simulation) {RMSTD_simul_results <- rep(0, M)}
+    if(RMSTR_simulation) {RMSTR_simul_results <- rep(0, M)}
+    if(cox_ph_simulation){cox_ph_simul_results <- rep(0, M)}
     for (i in 1:M){
-    data_trmt <- simulate_data()
-    data_ctrl <-
+      simulated_data <- simulate_data(scale = scale_trmt,
+                                      shape = shape_trmt,
+                                      accrual_time = accrual_time,
+                                      follow_up_time = follow_up_time,
+                                      loss_scale = loss_scale, # loss is assumed to follow Weibull
+                                      loss_shape = loss_shape,
+                                      sample_size = round(100/2),
+                                      label = 1) # arm 1 = trmt
+      simulated_data <- rbind(simulated_data,
+                               simulate_data(scale = scale_trmt,
+                               shape = scale_ctrl,
+                               accrual_time = accrual_time,
+                               follow_up_time = follow_up_time,
+                               loss_scale = loss_scale, # loss is assumed to follow Weibull
+                               loss_shape = loss_shape,
+                               sample_size = round(100/2),
+                               label = 0)) # arm 0 = ctrl
+      # determine whether testing for RMSTD turns out positive
+      if(RMSTD_simulation){
+      # handle large tau by limiting tau to minmax observation
+        if(min(max(simulated_data$observations[simulated_data$arm == 0]),
+               max(simulated_data$observations[simulated_data$arm == 1])) < tau){
+          tau <- min(max(simulated_data$observations[simulated_data$arm == 0]),
+                     max(simulated_data$observations[simulated_data$arm == 1]))
+        }
+        result <-  rmst2(data$time, data$status, data$arm, tau = tau,
+                         alpha = one_sided_alpha * 2)$unadjusted.result
+        lower <-  result[1, 2]
+        RMSTD_simul_results[i] <- as.numeric(lower > -margin_rmst)
+      }
+      # determine whether testing for cox_ph turns out positive
+      if(cox_ph_simulation){
+        if(censor_beyond_tau){ # censor all observations beyond tau if requested
+          simulated_data$status[simulated_data$observations > tau] <- 0
+        }
+        result <-  coxph(Surv(time, status) ~ arm, data = data)
+
+
+      }
+
+
+
+
+
     }
   }
 
@@ -144,19 +180,19 @@ calculate_sample_size <- function(scale_trmt,
 
   # plot example data if requested
   if(plot_example_data){
-    data_frame_ctrl <- simulate_data(scale = scale_ctrl, shape = shape_ctrl
+    data_frame_ctrl <- simulate_data(scale = scale_ctrl, shape = shape_ctrl,
                                      accrual_time = accrual_time,
                                      follow_up_time = follow_up_time,
                                      loss_scale = loss_scale,
                                      loss_shape = loss_shape,
-                                     sample_size = 100,  # change sample size!
+                                     sample_size = simulation_sample_size,
                                      label = "ctrl")
-    data_frame_trmt <- simulate_data(scale = scale_ctrl, shape = shape_ctrl
+    data_frame_trmt <- simulate_data(scale = scale_ctrl, shape = shape_ctrl,
                                      accrual_time = accrual_time,
                                      follow_up_time = follow_up_time,
                                      loss_scale = loss_scale,
                                      loss_shape = loss_shape,
-                                     sample_size = 100, # change sample size!
+                                     sample_size = simulation_sample_size,
                                      label = "trmt")
   }
 

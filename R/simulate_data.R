@@ -99,7 +99,7 @@ simulate_data <- function(scale,
   # produce recruitment plot if requested
   if(plot_recruitment){
     if (100 < sample_size){
-
+      sample_size <- round(seq(from = 1, to = sample_size, length.out = 100))
     }
     recruitment <- total_time - admin_loss # recruitment time in study time
     stop <- recruitment + observations # last observation in study time

@@ -5,8 +5,8 @@
 \title{Calculate sample size}
 \usage{
 calculate_sample_size(
-  scale_trt,
-  shape_trt = 1,
+  scale_trmt,
+  shape_trmt = 1,
   scale_ctrl,
   shape_ctrl = 1,
   parameterization = 1,
@@ -17,18 +17,23 @@ calculate_sample_size(
   alpha = 0.025,
   power = 0.8,
   margin = 0,
-  simulation = TRUE,
-  M = 1000,
+  RMSTD_closed_form = FALSE,
+  RMSTR_closed_form = FALSE,
+  RMSTD_simulation = FALSE,
+  RMSTR_simulation = FALSE,
+  cox_ph_simulation = FALSE,
+  M = 100,
+  simulation_sample_size,
   plot_design_curves = TRUE,
   plot_example_data = TRUE,
   loss_scale,
-  loss_shape
+  loss_shape = 1
 )
 }
 \arguments{
-\item{scale_trt}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
+\item{scale_trmt}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
 
-\item{shape_trt}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trt} \eqn{=1}, simplifying to exponential survival.}
+\item{shape_trmt}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
 
 \item{scale_ctrl}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
 
@@ -53,9 +58,9 @@ calculate_sample_size(
 
 \item{margin}{noninferiority margin. \code{margin} \eqn{>0} specifies a margin below the RMST of the control group.}
 
-\item{simulation}{indicates whether to run a simulation based in the package \pkg{SSRMST}. Boolean.}
-
 \item{M}{number of iterations when running simulation.}
+
+\item{simulation}{indicates whether to run a simulation based in the package \pkg{SSRMST}. Boolean.}
 
 \item{make_plot}{specifies whether to plot survival curves. Boolean.}
 }
@@ -85,20 +90,17 @@ Anmeldung!!!
 RFrage: Unterschied Makuch-Simon vs LRank test sample size
 }
 \examples{
-calculate_sample_size(scale_trt = 1.4,
-shape_trt = 1,
+calculate_sample_size(
+scale_trmt = 1.4,
 scale_ctrl = 1,
-shape_ctrl = 1,
-parameterization = 1,
 accrual_time = 1,
 follow_up_time = 10,
 tau = 1,
-sides = 1,
-alpha = 0.025,
-power = 0.8,
-margin = 0.1,
-simulation = TRUE,
-M = 100)
+RMSTD_simulation = TRUE,
+RMSTR_simulation = TRUE,
+cox_ph_simulation = TRUE,
+M = 100,
+simulation_sample_size)
 
 }
 \references{
