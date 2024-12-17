@@ -32,8 +32,8 @@
 #' sample_size = 100,
 #' label = 0,
 #' plot_curve = TRUE,
-#' plot_data = FALSE,
-#' plot_recruitment = FALSE)
+#' plot_data = TRUE,
+#' plot_recruitment = TRUE)
 simulate_data <- function(scale,
                           shape = 1,
                           parameterization = 1,

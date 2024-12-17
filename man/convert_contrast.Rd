@@ -2,7 +2,7 @@
 % Please edit documentation in R/convert_contrast.R
 \name{convert_contrast}
 \alias{convert_contrast}
-\title{Converts contrast to RMSTD, RMSTR, or HR}
+\title{Converts contrast between RMSTD, RMSTR, and HR}
 \usage{
 convert_contrast(
   scale_trt = NULL,
@@ -60,10 +60,12 @@ convert_contrast(
 \item{plot_curves}{Boolean. Creates a plot if \code{TRUE}}
 }
 \value{
-Returns either the difference (RMSTD), or ratio (RMSTR), or HR between RMSTs of treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.
+Returns either the difference (RMSTD), or ratio (RMSTR), or HR between treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group,
+a HR \eqn{< 1} indicates lower hazard in the treatment group.
 }
 \description{
-Function for converting different contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), or the hazard ratio (HR).
+Function for converting different contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), the hazard ratio (HR),
+and other contrasts.
 }
 \details{
 Convertible contrasts are: \itemize{
@@ -73,17 +75,12 @@ Convertible contrasts are: \itemize{
 \item survival difference: difference between two survival curves \eqn{S(t)} at a specified time \eqn{t}.}
 Survival is assumed to follow Weibull distributions in both control and treatment group with a constant HR,
 implying the same shape parameter in treatment and control group.
-
-ToDo:
-Output als df - besprechen mit DH
-FUnction details
-#'
 }
 \examples{
 RMSTD <- convert_contrast(scale_trt = 1, shape_trt = 1, HR = 0.9,
 output = "RMSTD", tau = 1)
 RMSTR <- convert_contrast(scale_trt = 1, shape_trt = 1, survival_diff = 0.01,
 t = 1, output = "RMSTR", tau = 1)
-RMSTR <- convert_contrast(scale_trt = 1, shape_trt = 1, survival_diff = 0.01,
-t = 1, output = "RMSTR", tau = 1)
+HR <- convert_contrast(scale_trt = 1, shape_trt = 1, RMSTD = 0.028,
+t = 1, output = "HR", tau = 1) # inserting RMSTD from first example
 }

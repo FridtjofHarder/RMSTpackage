@@ -65,6 +65,6 @@ loss_scale = 1,
 sample_size = 100,
 label = 0,
 plot_curve = TRUE,
-plot_data = FALSE,
-plot_recruitment = FALSE)
+plot_data = TRUE,
+plot_recruitment = TRUE)
 }

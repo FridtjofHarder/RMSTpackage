@@ -1,22 +1,16 @@
-#' Calculate sample size
+#' Calculates sample size or test power
 #'
-#' Two approaches have been proposed for sample size calculation in the context of survival study design when choosing the difference or ratio between restricted mean survival times (RMSTs) as a contrast.
-#' One approach is based on simulating trials according to prespecified parameters, the second approach is based on a closed form approximation as proposed by Yung and Liu (2020).
-#' This function allows for comparing both approaches. The functions from the package \pkg{npsurvSS} have been extended to allow for sample size calculations when designing not only superiority, but also noninferioity trials.
-#' Simulations for sample size calculations are based in the package \pkg{SSRMST} which natively allows for sample size calculation in superiority and noninferiority study design (Horiguchi and Uno, 2017).
+#' Currently only determination of test power via simulation! Function for calculating the sample size given a desired test power, or the test power given a sample size.
+#' Sample size and test power can be determined either analytically or by simulation.
 #'
-#' ToDo:  cure fraction
-#'        admin censoring
-#'        loss to FU
-#'        plot example data as KM curve and as recruitment plot
-#'        Cox regression univariate
-#'        Replace SSRMST with own package
-#'        allow for censoring of all at patient time for logRank (vergleich, ob dadurch das Resultat von RMST-Test sich verändert)
-#'        zwei Fragen: 1. Ist RMST so gut wie Cox?
-#'                    2. ist clsoed form so gut wie simul?
-#'        Anmeldung!!!
-#'        # Unterschied Zensur nach Zeithorizont, Zensur nach Studienzeit, oder Zensur zum Median
-#'        RFrage: Unterschied Makuch-Simon vs LRank test sample size
+#'
+#' Sample size and power determination for both superiory and non-inferiority analysis are supported.
+#' Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterization
+#' defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. Sample size and power
+#' can be determined for either Cox regression or RMST-based methods (test for RMST difference and RMST ratio).
+#' For comparing Cox regression with RMST based methods, all observations past time horizon \eqn{\tau}
+#' may be censored if desired.
+#'
 #'
 #' @param scale_trmt A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
 #' @param shape_trmt A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.
@@ -26,20 +20,21 @@
 #' \item \code{parameterization = 1}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
 #' \item \code{parameterization = 2}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
 #' \item \code{parametrization = 3}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
-#' @param accrual_time length of accrual period
-#' @param follow_up_time length of follow-up period
+#' @param accrual_time length of accrual period.
+#' @param follow_up_time length of follow-up period.
 #' @param tau A scalar speifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
-#' @param sides sidedness of inference test
-#' @param alpha level of \eqn{\alpha}-error
-#' @param power test power with \code{power} \eqn{=1-\beta}
-#' @param margin noninferiority margin. \code{margin} \eqn{>0} specifies a margin below the RMST of the control group.
-#' @param simulation indicates whether to run a simulation based in the package \pkg{SSRMST}. Boolean.
-#' @param M number of iterations when running simulation.
-#' @param make_plot specifies whether to plot survival curves. Boolean.
+#' @param sides sidedness of inference test, either \code{1} or \code{2}.
+#' @param alpha level of \eqn{\alpha}-error.
+#' @param power test power with \code{power} \eqn{=1-\beta}.
+#' @param margin_cox non-inferiority margin for Cox regression. \code{margin_cox} \eqn{=1} simplifies to superiority test.
+#' @param margin_rmst non-inferiority margin for RMST difference. \code{margin_rmst} \eqn{=0} simplifies to superiority test.
+#' @param simulation Boolean. Indicates whether to determine test power by simulation.
+#' @param M Positive Integer. Number of iterations when running simulation.
+#' @param plot_design_curves Boolean. Specifies whether to plot survival curves.
+#' @param plot_example_data Boolean. Specifies whether to create a plot with example data .
 #'
-#' @return Returns a dataframe with a sample size and a test power. The sample size is calculated using the closed form function provided by the package
-#' \pkg{npsurvSS}, the test power is obtained by running a simulation based on the package \pkg{SSRMST}. Both methods (closed form and simulation) come
-#' to simiular results when the test power calculated is similar to the test power provided in the function call (default \code{power} \eqn{=0.8}).
+#' @return Returns a list with sample size and a test power.
+#'
 #' @export
 #' @references
 #' Yung, G., & Liu, Y. (2020). Sample size and power for the weighted log-rank test and Kaplan-Meier based tests with allowance for
@@ -180,15 +175,28 @@ calculate_sample_size <- function(scale_trmt,
                                      follow_up_time = follow_up_time,
                                      loss_scale = loss_scale,
                                      loss_shape = loss_shape,
-                                     sample_size = simulation_sample_size,
-                                     label = "ctrl")
-    data_frame_trmt <- simulate_data(scale = scale_ctrl, shape = shape_ctrl,
+                                     sample_size = round(simulation_sample_size/2),
+                                     label = 0)
+    simulated_data <- rbind(data_frame_ctrl, simulate_data(scale = scale_trmt, shape = shape_trmt,
                                      accrual_time = accrual_time,
                                      follow_up_time = follow_up_time,
                                      loss_scale = loss_scale,
                                      loss_shape = loss_shape,
-                                     sample_size = simulation_sample_size,
-                                     label = "trmt")
+                                     sample_size = round(simulation_sample_size/2),
+                                     label = 1))
+    surv_obj <- survival::Surv(time = simulated_data$observations,
+                               event = simulated_data$status)
+
+    plot(survival::survfit(surv_obj~simulated_data$label), mark.time=T, conf.int = F, xlab = "t", ylab = "S(t)",
+         col = c("red", "green"))
+    legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
+                                         round(scale_trmt, 2), " and shape =",
+                                         round(shape_trmt, 2)),
+                                  paste0("control group with \n", "scale =",
+                                         round(scale_ctrl, 2), " and shape =",
+                                         round(shape_ctrl, 2))),
+           col=c("green", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 0.8)
+
   }
 
   # plot design curves if requested

@@ -5,8 +5,8 @@
 \title{Calculates contrasts between fully specified survival functions}
 \usage{
 calculate_contrast(
-  scale_trt = NULL,
-  shape_trt = 1,
+  scale_trmt = NULL,
+  shape_trmt = 1,
   scale_ctrl = NULL,
   shape_ctrl = 1,
   parameterization = 1,
@@ -18,9 +18,9 @@ calculate_contrast(
 )
 }
 \arguments{
-\item{scale_trt}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
+\item{scale_trmt}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
 
-\item{shape_trt}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trt} \eqn{=1}, simplifying to exponential survival.}
+\item{shape_trmt}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
 
 \item{scale_ctrl}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
 
@@ -36,22 +36,29 @@ RMSTs (\code{"RMSTD"}), the ratio between RMSTs (\code{"RMSTR"}), the HR
 (\code{"HR"}), the median difference (\code{"median_diff"}), the difference
 in time (\code{"percentile_diff"}) for reaching a survival percentile as
 specified in (\code{percentile}), and the survival difference (\code{"survival_diff"})
-at time specified in (\code{t}).
+at time specified in \code{t}.
 (\code{"HR"}).}
 
 \item{percentile}{A scalar specifying the percentile at which to evaluate the
 percentile difference.}
 
-\item{t}{A scalar specifying the time at which to evaluate the survival difference}
+\item{t}{A scalar specifying the time at which to evaluate the survival difference.}
 
-\item{tau}{A scalar specifying the time horizon for evaluating RMSTs}
+\item{tau}{A scalar specifying the time horizon for evaluating RMSTs.}
 
-\item{plot_curves}{Boolean. Creates a plot if \code{TRUE}}
+\item{plot_curves}{Boolean. Creates a plot if \code{TRUE}.}
 }
 \value{
 Returns the contrast between two fully specified survival curves.
 Defaults to calculating all contrasts.
-Possible contrasts are: \itemize{
+}
+\description{
+Function for calculating contrasts between two fully specified Weibull survival
+functions defined by scale and shape.
+}
+\details{
+Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterization
+defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. Possible contrasts are: \itemize{
 \item Restricted mean survival time difference (RMSTD)
 \item Restricted mean survival time ratio (RMSTR)
 \item Hazard ratio (HR)
@@ -59,22 +66,13 @@ Possible contrasts are: \itemize{
 \item Percentile difference at a certain percentile
 \item Survival difference at time \eqn{t}}
 }
-\description{
-Function for calculating contrasts between two fully specified survival
-functions defined my scale and shape. Possible contrasts are the difference
-and ratio in restricted mean survival times (RMSTD and RMSTR), the hazard
-ratio (HR), the time difference at median survival, the time difference at
-percentile survival, and the difference in survival at a specified time point
-}
 \examples{
-calculate_contrast <- function(scale_trt = NULL,
-shape_trt = 1,
-scale_ctrl = NULL,
-shape_ctrl = 1,
+calculate_contrast(scale_trmt = 2,
+scale_ctrl = 1,
 parameterization = 1,
 output = "RMSTD",
 percentile = NULL,
 t = NULL,
-tau = NULL,
+tau = 1,
 plot_curves = TRUE)
 }

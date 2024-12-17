@@ -1,6 +1,7 @@
-#' Converts contrast to RMSTD, RMSTR, or HR
+#' Converts contrast between RMSTD, RMSTR, and HR
 #'
-#' Function for converting different contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), or the hazard ratio (HR).
+#' Function for converting different contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), the hazard ratio (HR),
+#' and other contrasts.
 #'
 #' Convertible contrasts are: \itemize{
 #' \item hazard ratio (HR).
@@ -9,11 +10,6 @@
 #' \item survival difference: difference between two survival curves \eqn{S(t)} at a specified time \eqn{t}.}
 #' Survival is assumed to follow Weibull distributions in both control and treatment group with a constant HR,
 #' implying the same shape parameter in treatment and control group.
-#'
-#'ToDo:
-#'Output als df - besprechen mit DH
-#'FUnction details
-#'#'
 #'
 #' @param scale_trt A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
 #' @param shape_trt A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trt} \eqn{=1}, simplifying to exponential survival.
@@ -35,7 +31,8 @@
 #' @param RMSTR A scalar specifying the RMSTR between control group and treatment group. Allows for converting RMSTD to HR.
 #' @param plot_curves Boolean. Creates a plot if \code{TRUE}
 #'
-#' @return Returns either the difference (RMSTD), or ratio (RMSTR), or HR between RMSTs of treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group.
+#' @return Returns either the difference (RMSTD), or ratio (RMSTR), or HR between treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group,
+#' a HR \eqn{< 1} indicates lower hazard in the treatment group.
 #' @import stats
 #' @export
 #'
@@ -44,8 +41,8 @@
 #' output = "RMSTD", tau = 1)
 #' RMSTR <- convert_contrast(scale_trt = 1, shape_trt = 1, survival_diff = 0.01,
 #' t = 1, output = "RMSTR", tau = 1)
-#' RMSTR <- convert_contrast(scale_trt = 1, shape_trt = 1, survival_diff = 0.01,
-#' t = 1, output = "RMSTR", tau = 1)
+#' HR <- convert_contrast(scale_trt = 1, shape_trt = 1, RMSTD = 0.028,
+#' t = 1, output = "HR", tau = 1) # inserting RMSTD from first example
 convert_contrast <- function(scale_trt = NULL,
                              shape_trt = 1,
                              scale_ctrl = NULL,
@@ -265,8 +262,6 @@ convert_contrast <- function(scale_trt = NULL,
   }
   # results_df <- data.fame(scale_trt, shape_trt, scale_ctrl, shape_ctrl, tau)
 }
-
-
 
 find_root_weibull <- function(unknown_scale, shape, tau, RMST){
   integrate(pweibull, shape = shape,  scale = unknown_scale,  lower = 0,  upper = tau,  lower.tail = F)$value-RMST
