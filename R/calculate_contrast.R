@@ -35,6 +35,9 @@
 #'
 #' @return Returns the contrast between two fully specified survival curves.
 #' Defaults to calculating all contrasts.
+#'
+#' @export
+#'
 #' @examples
 #' calculate_contrast(scale_trmt = 2,
 #' scale_ctrl = 1,
