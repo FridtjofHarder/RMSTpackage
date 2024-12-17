@@ -68,9 +68,10 @@ calculate_sample_size <- function(scale_trmt,
                                   follow_up_time = NULL,
                                   tau = NULL,
                                   sides = 1,
-                                  alpha = 0.025,
+                                  one_sided_alpha = 0.025,
                                   power = 0.8,
-                                  margin = 0,
+                                  margin_cox = 1,
+                                  margin_rmst = 0,
                                   RMSTD_closed_form = FALSE,
                                   RMSTR_closed_form = FALSE,
                                   RMSTD_simulation = FALSE,
@@ -107,7 +108,7 @@ calculate_sample_size <- function(scale_trmt,
   total_time <- accrual_time + follow_up_time
 
   # main function --------------------------------------------------------
-  browser()
+  # browser()
   # convert to standard parameterization if needed
   if(parameterization == 2){
     scale_trmt <- 1/(scale_trmt^(1/shape_trmt))
@@ -131,26 +132,26 @@ calculate_sample_size <- function(scale_trmt,
                                       follow_up_time = follow_up_time,
                                       loss_scale = loss_scale, # loss is assumed to follow Weibull
                                       loss_shape = loss_shape,
-                                      sample_size = round(100/2),
+                                      sample_size = round(simulation_sample_size/2),
                                       label = 1) # arm 1 = trmt
       simulated_data <- rbind(simulated_data,
-                               simulate_data(scale = scale_trmt,
+                               simulate_data(scale = scale_ctrl,
                                shape = scale_ctrl,
                                accrual_time = accrual_time,
                                follow_up_time = follow_up_time,
                                loss_scale = loss_scale, # loss is assumed to follow Weibull
                                loss_shape = loss_shape,
-                               sample_size = round(100/2),
+                               sample_size = round(simulation_sample_size/2),
                                label = 0)) # arm 0 = ctrl
       # determine whether testing for RMSTD turns out positive
       if(RMSTD_simulation){
       # handle large tau by limiting tau to minmax observation
-        if(min(max(simulated_data$observations[simulated_data$arm == 0]),
-               max(simulated_data$observations[simulated_data$arm == 1])) < tau){
-          tau <- min(max(simulated_data$observations[simulated_data$arm == 0]),
-                     max(simulated_data$observations[simulated_data$arm == 1]))
+        if(min(max(simulated_data$observations[simulated_data$label == 0]),
+               max(simulated_data$observations[simulated_data$label == 1])) < tau){
+          tau <- min(max(simulated_data$observations[simulated_data$label == 0]),
+                     max(simulated_data$observations[simulated_data$label == 1]))
         }
-        result <-  rmst2(data$time, data$status, data$arm, tau = tau,
+        result <-  rmst2(simulated_data$observations, simulated_data$status, simulated_data$label, tau = tau,
                          alpha = one_sided_alpha * 2)$unadjusted.result
         lower <-  result[1, 2]
         RMSTD_simul_results[i] <- as.numeric(lower > -margin_rmst)
@@ -165,19 +166,12 @@ calculate_sample_size <- function(scale_trmt,
           as.numeric(summary(fit)$conf.int[, 'upper .95'] < 1)
       }
 
-
-
-
-
-
     }
+    power_RMSTD_simulated <- sum(RMSTD_simul_results)/M
+    power_cox_ph_simulated <- sum(cox_ph_simul_results)/M
   }
 
-  # sample size RMSTD by simulation
-
-  # sample size RMSTR by simulation
-
-  # sample size Cox by simulation
+  # sample size RMSTD by closed form
 
   # plot example data if requested
   if(plot_example_data){
@@ -214,7 +208,8 @@ calculate_sample_size <- function(scale_trmt,
            col=c("green", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 0.8)
 
   }
-  result <- list("n calculated via closed form" = total_sample_size_npsurvSS, "simulated test power" = power_SSRMST)
+  result <- list("RMSTD power determined by simulation" = power_RMSTD_simulated,
+                 "Cox PH power determined by simulation" = power_cox_ph_simulated)
   return(result)
 
   }

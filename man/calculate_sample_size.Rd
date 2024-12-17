@@ -22,6 +22,7 @@ calculate_sample_size(
   RMSTD_simulation = FALSE,
   RMSTR_simulation = FALSE,
   cox_ph_simulation = FALSE,
+  censor_beyond_tau = FALSE,
   M = 100,
   simulation_sample_size,
   plot_design_curves = TRUE,
@@ -99,8 +100,9 @@ tau = 1,
 RMSTD_simulation = TRUE,
 RMSTR_simulation = TRUE,
 cox_ph_simulation = TRUE,
+loss_scale = 1,
 M = 100,
-simulation_sample_size)
+simulation_sample_size = 100)
 
 }
 \references{
