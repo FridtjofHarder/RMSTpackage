@@ -160,10 +160,11 @@ calculate_sample_size <- function(scale_trmt,
         if(censor_beyond_tau){ # censor all observations beyond tau if requested
           simulated_data$status[simulated_data$observations > tau] <- 0
         }
-        result <-  coxph(Surv(time, status) ~ arm, data = data)
-
-
+        fit <- coxph(Surv(observations, status) ~ label, data = simulated_data)
+        cox_ph_simul_results[i] <-
+          as.numeric(summary(fit)$conf.int[, 'upper .95'] < 1)
       }
+
 
 
 
