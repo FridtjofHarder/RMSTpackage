@@ -1,10 +1,10 @@
 Package: RMSTpackage
-Title: What the Package Does (One Line, Title Case)
+Title: Sample Size and Power Calculation for Superiority and Non-inferiority Analysis in Restricted Mean Survival Time and Cox Regression
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
+    person("Fridtjof", "Harder", , "harder.fridtjof@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+Description: Provides tools usefun in RMST trial design (put some more info here).
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Encoding: UTF-8
