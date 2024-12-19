@@ -16,7 +16,8 @@ simulate_data(
   label = 0,
   plot_curve = FALSE,
   plot_data = FALSE,
-  plot_recruitment = FALSE
+  plot_recruitment = FALSE,
+  plot_inverse_KM = FALSE
 )
 }
 \arguments{
@@ -52,7 +53,8 @@ data frame containing observations times, status (event = 1, censored
 = 1), and group label
 }
 \description{
-Description
+Simulates survival of one arm, including administrative censoring and loss to follow-up. Survival function needs to be fully defined
+as a Weibull or exponential distribution.
 }
 \details{
 Details

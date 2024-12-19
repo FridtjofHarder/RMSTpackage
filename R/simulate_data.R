@@ -1,6 +1,8 @@
 #' Simulates a trial arm
 #'
-#' Description
+#' Simulates survival of one arm, including administrative censoring and loss to follow-up. Survival function needs to be fully defined
+#' as a Weibull or exponential distribution.
+#'
 #'
 #' Details
 #'
@@ -45,7 +47,8 @@ simulate_data <- function(scale,
                           label = 0,
                           plot_curve = FALSE,
                           plot_data = FALSE,
-                          plot_recruitment = FALSE){
+                          plot_recruitment = FALSE,
+                          plot_inverse_KM = FALSE){
 
   # convert to standard parameterization if needed
   if(parameterization == 2){
@@ -59,12 +62,12 @@ simulate_data <- function(scale,
   total_time <- accrual_time + follow_up_time
 
   # draw event times vom weibull distribution
-  observations <- rweibull(n = sample_size, shape = shape, scale = scale)
+  observations <- stats::rweibull(n = sample_size, shape = shape, scale = scale)
   status <- rep(1, sample_size)
 
   # censor observations if loss to follow up is defined
   if(!is.null(loss_scale)){
-    loss_to_follow_up <- rweibull(n = sample_size, shape = loss_shape, scale = loss_scale)
+    loss_to_follow_up <- stats::rweibull(n = sample_size, shape = loss_shape, scale = loss_scale)
     status[loss_to_follow_up < observations] <- 0
     observations <- pmin(observations, loss_to_follow_up)
   }
