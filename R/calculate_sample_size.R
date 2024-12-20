@@ -146,7 +146,7 @@ calculate_sample_size <- function(scale_trmt,
           tau <- min(max(simulated_data$observations[simulated_data$label == 0]),
                      max(simulated_data$observations[simulated_data$label == 1]))
         }
-        result <-  rmst2(simulated_data$observations, simulated_data$status, simulated_data$label, tau = tau,
+        result <-  survRM2::rmst2(simulated_data$observations, simulated_data$status, simulated_data$label, tau = tau,
                          alpha = one_sided_alpha * 2)$unadjusted.result
         lower <-  result[1, 2]
         RMSTD_simul_results[i] <- as.numeric(lower > -margin_rmst)
@@ -206,7 +206,7 @@ calculate_sample_size <- function(scale_trmt,
     curve(pweibull(x, scale = scale_ctrl, shape = shape_ctrl, lower.tail = FALSE),
           col = "red", add = TRUE)
     abline(v = tau, col = "blue")
-    text(x = tau, y = 0.1, pos = 4, labels = paste("time horizon τ  =", tau))
+    text(x = tau, y = 0.1, pos = 4, labels = paste("time horizon \U1D70F  =", tau))
     legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
                                          round(scale_trmt, 2), " and shape =",
                                          round(shape_trmt, 2)),

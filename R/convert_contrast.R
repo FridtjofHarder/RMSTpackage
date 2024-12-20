@@ -243,7 +243,7 @@ convert_contrast <- function(scale_trt = NULL,
     curve(pweibull(x, scale = scale_ctrl, shape = shape_ctrl, lower.tail = FALSE),
           col = "red", add = TRUE)
     abline(v = tau, col = "blue")
-    text(x = tau, y = 0.1, pos = 4, labels = paste("time horizon τ  =", tau))
+    text(x = tau, y = 0.1, pos = 4, labels = paste("time horizon \U1D70F  =", tau))
     legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
                                          round(scale_trt, 2), " and shape =",
                                          round(shape_trt, 2)),
