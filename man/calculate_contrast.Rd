@@ -10,7 +10,6 @@ calculate_contrast(
   scale_ctrl = NULL,
   shape_ctrl = 1,
   parameterization = 1,
-  output = "RMSTD",
   percentile = NULL,
   t = NULL,
   tau = NULL,
@@ -20,24 +19,21 @@ calculate_contrast(
 \arguments{
 \item{scale_trmt}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
 
-\item{shape_trmt}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
+\item{shape_trmt}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group.
+Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
 
 \item{scale_ctrl}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
 
-\item{shape_ctrl}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.}
+\item{shape_ctrl}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group.
+Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.}
 
 \item{parameterization}{One of: \itemize{
-\item \code{parameterization = 1}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
-\item \code{parameterization = 2}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parameterization = 3}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
-
-\item{output}{A string specifying whether to calculate the difference in
-RMSTs (\code{"RMSTD"}), the ratio between RMSTs (\code{"RMSTR"}), the HR
-(\code{"HR"}), the median difference (\code{"median_diff"}), the difference
-in time (\code{"percentile_diff"}) for reaching a survival percentile as
-specified in (\code{percentile}), and the survival difference (\code{"survival_diff"})
-at time specified in \code{t}.
-(\code{"HR"}).}
+\item \code{parameterization = 1}: specifies Weibull distributed survival as
+\eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
+\item \code{parameterization = 2}: specifies Weibull distributed survival as
+\eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parameterization = 3}: specifies Weibull distributed survival as
+\eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 
 \item{percentile}{A scalar specifying the percentile at which to evaluate the
 percentile difference.}
@@ -58,7 +54,8 @@ functions defined by scale and shape.
 }
 \details{
 Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterization
-defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. Possible contrasts are: \itemize{
+defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}.
+Possible contrasts are: \itemize{
 \item Restricted mean survival time difference (RMSTD)
 \item Restricted mean survival time ratio (RMSTR)
 \item Hazard ratio (HR)
@@ -70,7 +67,6 @@ defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. P
 calculate_contrast(scale_trmt = 2,
 scale_ctrl = 1,
 parameterization = 1,
-output = "RMSTD",
 percentile = NULL,
 t = NULL,
 tau = 1,
