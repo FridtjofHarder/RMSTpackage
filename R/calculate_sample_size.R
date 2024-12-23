@@ -24,14 +24,22 @@
 #' @param follow_up_time length of follow-up period.
 #' @param tau A scalar speifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
 #' @param sides sidedness of inference test, either \code{1} or \code{2}.
-#' @param alpha level of \eqn{\alpha}-error.
 #' @param power test power with \code{power} \eqn{=1-\beta}.
 #' @param margin_cox non-inferiority margin for Cox regression. \code{margin_cox} \eqn{=1} simplifies to superiority test.
 #' @param margin_rmst non-inferiority margin for RMST difference. \code{margin_rmst} \eqn{=0} simplifies to superiority test.
-#' @param simulation Boolean. Indicates whether to determine test power by simulation.
 #' @param M Positive Integer. Number of iterations when running simulation.
 #' @param plot_design_curves Boolean. Specifies whether to plot survival curves.
 #' @param plot_example_data Boolean. Specifies whether to create a plot with example data .
+#' @param one_sided_alpha MISSING
+#' @param RMSTD_closed_form MISSING
+#' @param RMSTR_closed_form MISSING
+#' @param RMSTD_simulation MISSING
+#' @param RMSTR_simulation MISSING
+#' @param cox_ph_simulation MISSING
+#' @param censor_beyond_tau MISSING
+#' @param simulation_sample_size MISSING
+#' @param loss_scale MISSING
+#' @param loss_shape MISSING
 #'
 #' @return Returns a list with sample size and a test power.
 #'
@@ -156,7 +164,7 @@ calculate_sample_size <- function(scale_trmt,
         if(censor_beyond_tau){ # censor all observations beyond tau if requested
           simulated_data$status[simulated_data$observations > tau] <- 0
         }
-        fit <- coxph(Surv(observations, status) ~ label, data = simulated_data)
+        fit <- survival::coxph(survival::Surv(observations, status) ~ label, data = simulated_data)
         cox_ph_simul_results[i] <-
           as.numeric(summary(fit)$conf.int[, 'upper .95'] < 1)
       }
@@ -189,7 +197,7 @@ calculate_sample_size <- function(scale_trmt,
 
     plot(survival::survfit(surv_obj~simulated_data$label), mark.time=T, conf.int = F, xlab = "t", ylab = "S(t)",
          col = c("red", "green"))
-    legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
+    graphics::legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
                                          round(scale_trmt, 2), " and shape =",
                                          round(shape_trmt, 2)),
                                   paste0("control group with \n", "scale =",
@@ -201,13 +209,14 @@ calculate_sample_size <- function(scale_trmt,
 
   # plot design curves if requested
   if(plot_design_curves){
-    curve(pweibull(x, scale = scale_trmt, shape = shape_trmt, lower.tail = FALSE),
+    x <- NULL
+    graphics::curve(stats::pweibull(x, scale = scale_trmt, shape = shape_trmt, lower.tail = FALSE),
           col = "green", xlab = "t", ylab = "S(t)", ylim = c(0, 1), xlim = c(0, 1.5*tau))
-    curve(pweibull(x, scale = scale_ctrl, shape = shape_ctrl, lower.tail = FALSE),
+    graphics::curve(stats::pweibull(x, scale = scale_ctrl, shape = shape_ctrl, lower.tail = FALSE),
           col = "red", add = TRUE)
-    abline(v = tau, col = "blue")
-    text(x = tau, y = 0.1, pos = 4, labels = paste("time horizon \U1D70F  =", tau))
-    legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
+    graphics::abline(v = tau, col = "blue")
+    graphics::text(x = tau, y = 0.1, pos = 4, labels = bquote("time horizon " * tau * " = " * .(tau)))
+    graphics::legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
                                          round(scale_trmt, 2), " and shape =",
                                          round(shape_trmt, 2)),
                                   paste0("control group with \n", "scale =",

@@ -33,7 +33,7 @@
 #'
 #' @return Returns either the difference (RMSTD), or ratio (RMSTR), or HR between treatment group and control group. An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group,
 #' a HR \eqn{< 1} indicates lower hazard in the treatment group.
-#' @import stats
+#'
 #' @export
 #'
 #' @examples
@@ -154,7 +154,7 @@ convert_contrast <- function(scale_trt = NULL,
   # procedure similar to median difference
   if (!is.null(survival_diff)) {
     if (!is.null(scale_trt)) {
-      survival_trt <- pweibull(t, scale_trt, shape_trt, lower.tail = F)
+      survival_trt <- stats::pweibull(t, scale_trt, shape_trt, lower.tail = F)
       survival_ctrl <- survival_trt - survival_diff
       if (survival_ctrl <= 0) {
         stop(
@@ -163,7 +163,7 @@ convert_contrast <- function(scale_trt = NULL,
       }
       scale_ctrl <- t * (-log(survival_ctrl)) ^ (-1 / shape_ctrl)
     } else{
-      survival_ctrl <- pweibull(t, scale_ctrl, shape_ctrl, lower.tail = F)
+      survival_ctrl <- stats::pweibull(t, scale_ctrl, shape_ctrl, lower.tail = F)
       survival_trt <- survival_ctrl + survival_diff
       if (survival_trt <= 0) {
         stop("survival in control group minus survival difference is equal to or less than zero")
@@ -173,16 +173,16 @@ convert_contrast <- function(scale_trt = NULL,
   }
   # calculate RMSTR or RMSTD.
   if (output == "RMSTD" || output == "RMSTR"){
-    RMST_trt <- integrate(
-      pweibull,
+    RMST_trt <- stats::integrate(
+      stats::pweibull,
       shape = shape_trt,
       scale = scale_trt,
       lower = 0,
       upper = tau,
       lower.tail = F
     )$value
-    RMST_ctrl <- integrate(
-      pweibull,
+    RMST_ctrl <- stats::integrate(
+      stats::pweibull,
       shape = shape_ctrl,
       scale = scale_ctrl,
       lower = 0,
@@ -195,8 +195,8 @@ convert_contrast <- function(scale_trt = NULL,
   if (xor(!is.null(RMSTD), !is.null(RMSTR))) {
     # when either RMSTR or RMSTD defined
     if (!is.null(scale_trt)) { #if scale_ctrl is undefined, calculate it from RMST of trt and RMSTD/RMSTR
-      RMST_trt <- integrate(
-        pweibull,
+      RMST_trt <- stats::integrate(
+        stats::pweibull,
         shape = shape_trt,
         scale = scale_trt,
         lower = 0,
@@ -209,13 +209,13 @@ convert_contrast <- function(scale_trt = NULL,
       if (!is.null(RMSTR)) {
         RMST_ctrl <- RMST_trt / RMSTR
       }
-      scale_ctrl_temp <- uniroot(find_root_weibull, shape = shape_ctrl, tau = tau, RMST = RMST_ctrl,
+      scale_ctrl_temp <- stats::uniroot(find_root_weibull, shape = shape_ctrl, tau = tau, RMST = RMST_ctrl,
                                  lower = 0.000001,
                                  upper = 100000, tol = 0.0001)$root
     }
     if (!is.null(scale_ctrl)) {
-      RMST_ctrl <- integrate(
-        pweibull,
+      RMST_ctrl <- stats::integrate(
+        stats::pweibull,
         shape = shape_ctrl,
         scale = scale_ctrl,
         lower = 0,
@@ -229,7 +229,7 @@ convert_contrast <- function(scale_trt = NULL,
         RMST_trt <- RMST_ctrl * RMSTR
       }
 
-      scale_trt <- uniroot(find_root_weibull, shape = shape_trt, tau = tau,
+      scale_trt <- stats::uniroot(find_root_weibull, shape = shape_trt, tau = tau,
                            RMST = RMST_trt, lower = 0.000001,
                            upper = 100000, tol = 0.0001)$root
     }
@@ -238,13 +238,14 @@ convert_contrast <- function(scale_trt = NULL,
   if(output == "HR") {return((scale_ctrl/scale_trt)^shape_trt)}
 
   if(plot_curves){
-    curve(pweibull(x, scale = scale_trt, shape = shape_trt, lower.tail = FALSE),
+    x <- NULL
+    graphics::curve(stats::pweibull(x, scale = scale_trt, shape = shape_trt, lower.tail = FALSE),
           col = "green", xlab = "t", ylab = "S(t)", ylim = c(0, 1), xlim = c(0, 1.5*tau))
-    curve(pweibull(x, scale = scale_ctrl, shape = shape_ctrl, lower.tail = FALSE),
+    graphics::curve(stats::pweibull(x, scale = scale_ctrl, shape = shape_ctrl, lower.tail = FALSE),
           col = "red", add = TRUE)
-    abline(v = tau, col = "blue")
-    text(x = tau, y = 0.1, pos = 4, labels = paste("time horizon \U1D70F  =", tau))
-    legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
+    graphics::abline(v = tau, col = "blue")
+    graphics::text(x = tau, y = 0.1, pos = 4, labels = bquote("time horizon " * tau * " = " * .(tau)))
+    graphics::legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
                                          round(scale_trt, 2), " and shape =",
                                          round(shape_trt, 2)),
                                   paste0("control group with \n", "scale =",
@@ -264,5 +265,5 @@ convert_contrast <- function(scale_trt = NULL,
 }
 
 find_root_weibull <- function(unknown_scale, shape, tau, RMST){
-  integrate(pweibull, shape = shape,  scale = unknown_scale,  lower = 0,  upper = tau,  lower.tail = F)$value-RMST
+  stats::integrate(stats::pweibull, shape = shape,  scale = unknown_scale,  lower = 0,  upper = tau,  lower.tail = F)$value-RMST
 }

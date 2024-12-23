@@ -1,17 +1,19 @@
 Package: RMSTpackage
-Title: Sample Size and Power Calculation for Superiority and Non-inferiority Analysis in Restricted Mean Survival Time and Cox Regression
+Title: Sample Size and Power Calculation and Other Tools for Restricted
+    Mean Survival Time-Based Analysis of Survival Data
 Version: 0.0.0.9000
 Authors@R: 
     person("Fridtjof", "Harder", , "harder.fridtjof@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: Provides tools usefun in RMST trial design (put some more info here).
-License: `use_gpl3_license()`
-Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+Description: Provides tools useful in Restricted Mean Survival Time (RMST)
+    trial design (put some more info here).
+License: MIT + file LICENSE
 URL: https://github.com/FridtjofHarder/RMSTpackage
 BugReports: https://github.com/FridtjofHarder/RMSTpackage/issues
 Imports: 
     stats,
     survival,
     survRM2
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2

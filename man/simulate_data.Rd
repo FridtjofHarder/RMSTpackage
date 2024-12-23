@@ -42,11 +42,13 @@ simulate_data(
 
 \item{label}{group label}
 
+\item{plot_curve}{MISSING}
+
 \item{plot_data}{Boolean. Plots Kaplan Meier curve of simulated data.}
 
 \item{plot_recruitment}{Boolean. Plots recruitment plot.}
 
-\item{plot_curves}{Boolean. Plots design curves.}
+\item{plot_inverse_KM}{MISSING}
 }
 \value{
 data frame containing observations times, status (event = 1, censored
@@ -60,13 +62,15 @@ as a Weibull or exponential distribution.
 Details
 }
 \examples{
-simulate_data(scale = 1,
-accrual_time = 1,
-follow_up_time = 1,
-loss_scale = 1,
-sample_size = 100,
-label = 0,
-plot_curve = TRUE,
-plot_data = TRUE,
-plot_recruitment = TRUE)
+simulate_data(
+  scale = 1,
+  accrual_time = 1,
+  follow_up_time = 1,
+  loss_scale = 1,
+  sample_size = 100,
+  label = 0,
+  plot_curve = TRUE,
+  plot_data = TRUE,
+  plot_recruitment = TRUE
+)
 }

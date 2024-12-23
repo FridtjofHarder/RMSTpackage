@@ -54,21 +54,37 @@ calculate_sample_size(
 
 \item{sides}{sidedness of inference test, either \code{1} or \code{2}.}
 
+\item{one_sided_alpha}{MISSING}
+
 \item{power}{test power with \code{power} \eqn{=1-\beta}.}
 
 \item{margin_cox}{non-inferiority margin for Cox regression. \code{margin_cox} \eqn{=1} simplifies to superiority test.}
 
 \item{margin_rmst}{non-inferiority margin for RMST difference. \code{margin_rmst} \eqn{=0} simplifies to superiority test.}
 
+\item{RMSTD_closed_form}{MISSING}
+
+\item{RMSTR_closed_form}{MISSING}
+
+\item{RMSTD_simulation}{MISSING}
+
+\item{RMSTR_simulation}{MISSING}
+
+\item{cox_ph_simulation}{MISSING}
+
+\item{censor_beyond_tau}{MISSING}
+
 \item{M}{Positive Integer. Number of iterations when running simulation.}
+
+\item{simulation_sample_size}{MISSING}
 
 \item{plot_design_curves}{Boolean. Specifies whether to plot survival curves.}
 
 \item{plot_example_data}{Boolean. Specifies whether to create a plot with example data .}
 
-\item{alpha}{level of \eqn{\alpha}-error.}
+\item{loss_scale}{MISSING}
 
-\item{simulation}{Boolean. Indicates whether to determine test power by simulation.}
+\item{loss_shape}{MISSING}
 }
 \value{
 Returns a list with sample size and a test power.

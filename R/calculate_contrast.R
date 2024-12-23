@@ -102,16 +102,16 @@ calculate_contrast <- function(scale_trmt = NULL,
   }
 
   if(output == "all" || output == "RMSTD" || output == "RMSTR"){
-    RMST_trmt <- integrate( # calculate RMST for treatment curve
-      pweibull,
+    RMST_trmt <- stats::integrate( # calculate RMST for treatment curve
+      stats::pweibull,
       shape = shape_trmt,
       scale = scale_trmt,
       lower = 0,
       upper = tau,
       lower.tail = F
     )$value
-    RMST_ctrl <- integrate( # calculate RMST for control curve
-      pweibull,
+    RMST_ctrl <- stats::integrate( # calculate RMST for control curve
+      stats::pweibull,
       shape = shape_ctrl,
       scale = scale_ctrl,
       lower = 0,
@@ -125,13 +125,15 @@ calculate_contrast <- function(scale_trmt = NULL,
   if(output == "all" || output == "RMSTD" || output == "RMSTR")
 
   if(plot_curves){
-    curve(pweibull(x, scale = scale_trmt, shape = shape_trmt, lower.tail = FALSE),
+    x = NULL # to silence check() notes
+    graphics::curve(stats::pweibull(x, scale = scale_trmt, shape = shape_trmt, lower.tail = FALSE),
           col = "green", xlab = "t", ylab = "S(t)", ylim = c(0, 1), xlim = c(0, 1.5*tau))
-    curve(pweibull(x, scale = scale_ctrl, shape = shape_ctrl, lower.tail = FALSE),
+    graphics::curve(stats::pweibull(x, scale = scale_ctrl, shape = shape_ctrl, lower.tail = FALSE),
           col = "red", add = TRUE)
-    abline(v = tau, col = "blue")
-    text(x = tau, y = 0.1, pos = 4, labels = paste("time horizon \U1D70F  =", tau))
-    legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
+    graphics::abline(v = tau, col = "blue")
+    #graphics::text(x = tau, y = 0.1, pos = 4, labels = paste("time horizon \u03C4  =", tau))
+    graphics::text(x = tau, y = 0.1, pos = 4, labels = bquote("time horizon " * tau * " = " * .(tau)))
+    graphics::legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
                                          round(scale_trmt, 2), " and shape =",
                                          round(shape_trmt, 2)),
                                   paste0("control group with \n", "scale =",
