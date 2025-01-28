@@ -48,12 +48,8 @@
 #' @export
 #'
 #' @examples
-#' RMSTD <- convert_contrast(scale_trmt = 1, shape = 1, HR = 0.9,
-#' output = "RMSTD", tau = 1)
-#' RMSTR <- convert_contrast(scale_trmt = 1, shape = 1, survival_diff = 0.01,
-#' t = 1, output = "RMSTR", tau = 1)
-#' HR <- convert_contrast(scale_trmt = 1, shape = 1, RMSTD = 0.028,
-#' t = 1, output = "HR", tau = 1) # inserting RMSTD from first example
+#' results <- convert_contrast(scale_trmt = 1, scale_ctrl = 0.9, tau = 1)
+#' results <- convert_contrast(scale_trmt = 1, shape = 1, tau = 1, HR = 0.9)
 convert_contrast <- function(scale_trmt = NULL,
                              scale_ctrl = NULL,
                              shape = 1,
@@ -129,18 +125,20 @@ convert_contrast <- function(scale_trmt = NULL,
       scale_trmt <- median_time_trmt * (-log(0.5)) ^ (-1 / shape)
     }
   }
-  # percentile diff. procedure similar to median difference
+
+  # percentile diff. procedure, similar to median difference
   if (!is.null(percentile_diff)) {
     if (!is.null(scale_trmt)) {
-      percentile_time_trmt <- (-log(percentile)) ^ (1 / shape) * scale_trmt
+      percentile_time_trmt <- (-log(percentile/100)) ^ (1 / shape) * scale_trmt
       percentile_time_ctrl <- percentile_time_trmt - percentile_diff
-      scale_ctrl <- percentile_time_ctrl * (-log(percentile)) ^ (-1 / shape)
+      scale_ctrl <- percentile_time_ctrl * (-log(percentile/100)) ^ (-1 / shape)
     } else{
-      percentile_time_ctrl <- (-log(percentile)) ^ (1 / shape) * scale_ctrl
+      percentile_time_ctrl <- (-log(percentile/100)) ^ (1 / shape) * scale_ctrl
       percentile_time_trmt <- percentile_time_ctrl + percentile_diff
-      scale_trmt <- percentile_time_trmt * (-log(percentile)) ^ (-1 / shape)
+      scale_trmt <- percentile_time_trmt * (-log(percentile/100)) ^ (-1 / shape)
     }
   }
+
   # survival diff. procedure similar to median difference
   if (!is.null(survival_diff)) {
     if (!is.null(scale_trmt)) {
@@ -161,6 +159,7 @@ convert_contrast <- function(scale_trmt = NULL,
       scale_trmt <- tau * (-log(survival_trmt)) ^ (-1 / shape)
     }
   }
+
   # calculate RMST in unspecified group when RMSTR or RMSTD are given as input
   if (xor(!is.null(RMSTD), !is.null(RMSTR))) {
     # when either RMSTR or RMSTD defined
@@ -220,7 +219,19 @@ convert_contrast <- function(scale_trmt = NULL,
     median_diff <- median_time_trmt - median_time_ctrl
   }
 
+  # calculate percentile_diff
+  if (is.null(percentile_diff)){
+    percentile_time_trmt <- (-log(percentile/100)) ^ (1 / shape) * scale_trmt
+    percentile_time_ctrl <- (-log(percentile/100)) ^ (1 / shape) * scale_ctrl
+    percentile_diff <- percentile_time_trmt - percentile_time_ctrl
+  }
 
+  # calculate survival_diff
+  if (is.null(survival_diff)){
+    survival_trmt <- stats::pweibull(tau, scale_trmt, shape, lower.tail = F)
+    survival_ctrl <- stats::pweibull(tau, scale_ctrl, shape, lower.tail = F)
+    survival_diff <- survival_trmt - survival_ctrl
+  }
 
   # calculate RMSTs, and RMSTR or RMSTD, if not defined already.
   if (!exists("RMST_trmt")){
@@ -248,7 +259,6 @@ convert_contrast <- function(scale_trmt = NULL,
     RMSTR <- RMST_trmt / RMST_ctrl
   }
 
-
   if(plot_curves){
     x <- NULL
     graphics::curve(stats::pweibull(x, scale = scale_trmt, shape = shape, lower.tail = FALSE),
@@ -257,21 +267,37 @@ convert_contrast <- function(scale_trmt = NULL,
           col = "red", add = TRUE)
     graphics::abline(v = tau, col = "blue")
     graphics::text(x = tau, y = 0.1, pos = 4, labels = bquote("time horizon " * tau * " = " * .(tau)))
-    graphics::legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
-                                         round(scale_trmt, 2), " and shape =",
+    graphics::legend("bottomleft", legend=c(paste0("treatment group with \n", "scale = ",
+                                         round(scale_trmt, 2), " and shape = ",
                                          round(shape, 2)),
-                                  paste0("control group with \n", "scale =",
-                                         round(scale_ctrl, 2), " and shape =",
+                                  paste0("control group with \n", "scale = ",
+                                         round(scale_ctrl, 2), " and shape = ",
                                          round(shape, 2))),
            col=c("green", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 0.8)
-
-
-  results_df <- data.fame(scale_trmt, shape, scale_ctrl, shape, tau)
-  return(results_df)
   }
+
+  # prepare df of all results and return
+  results_df <- data.frame(
+    "scale trmt" = scale_trmt,
+    "scale ctrl" = scale_ctrl,
+    "shape" = shape,
+    "hazard ratio" = HR,
+    "median difference" = median_diff,
+    "percentile difference" = percentile_diff,
+    "percentile" = percentile,
+    "survival difference at tau" = survival_diff,
+    "RMST trmt" = RMST_trmt,
+    "RMST ctrl" = RMST_ctrl,
+    "RMSTD" = RMSTD,
+    "RMSTR" = RMSTR)
+  return(results_df)
 }
 
 find_root_weibull <- function(unknown_scale, shape, tau, RMST){
   stats::integrate(stats::pweibull, shape = shape,  scale = unknown_scale,
                    lower = 0,  upper = tau,  lower.tail = F)$value-RMST
 }
+
+
+
+

@@ -2,16 +2,17 @@
 % Please edit documentation in R/convert_contrast.R
 \name{convert_contrast}
 \alias{convert_contrast}
-\title{Converts contrast between RMSTD, RMSTR, and HR}
+\title{Calculates or converts contrast between RMSTD, RMSTR, and HR, and others}
 \usage{
 convert_contrast(
   scale_trmt = NULL,
   scale_ctrl = NULL,
+  shape = 1,
   parameterization = 1,
   HR = NULL,
   median_diff = NULL,
   percentile_diff = NULL,
-  percentile = NULL,
+  percentile = 50,
   survival_diff = NULL,
   RMSTD = NULL,
   RMSTR = NULL,
@@ -23,6 +24,9 @@ convert_contrast(
 \item{scale_trmt}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
 
 \item{scale_ctrl}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
+
+\item{shape}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in both groups. Shape
+parameters in both groups are assumed to be equal.}
 
 \item{parameterization}{One of: \itemize{
 \item \code{parameterization = 1}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
@@ -38,7 +42,7 @@ convert_contrast(
 \item{percentile}{A scalar specifying at which percentile of survival to evaluate \code{percentile_diff}.
 \code{percentile_diff} is equal to \code{median_diff} when \code{percentile}  \eqn{=50}.}
 
-\item{survival_diff}{A scalar specifying the survival difference in survival \eqn{\Delta S(t)} between treatment and control group.}
+\item{survival_diff}{A scalar specifying the survival difference in survival \eqn{\Delta S(\tau)} between treatment and control group.}
 
 \item{RMSTD}{A scalar specifying the RMSTD between control group and treatment group. Allows for converting RMSTD to HR.}
 
@@ -46,37 +50,37 @@ convert_contrast(
 
 \item{tau}{A scalar specifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
 
-\item{plot_curves}{Boolean. Creates a plot if \code{TRUE}}
-
-\item{shape}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in both groups. Shape
-parameters in both groups are assumed to be equal.}
-
-\item{t}{A scalar specifying the time \eqn{t} at which to evaluate \code{survival_diff}.}
+\item{plot_curves}{Boolean. Creates a plot if \code{TRUE}.}
 }
 \value{
-Returns a dataframe containing the inputs, the difference (RMSTD) and ratio (RMSTR) in RMST,
+Returns a dataframe containing the inputs, scale and shape parameters,
+the difference (RMSTD) and ratio (RMSTR) in RMST,
 the HR between treatment group and control group, the median survival time difference
 An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group,
-a HR \eqn{< 1} indicates lower hazard in the treatment group.
+a HR \eqn{< 1} indicates lower hazard in the treatment group. Input scales are converted
+to first paratmeterization.
 }
 \description{
-Function for converting different contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), the hazard ratio (HR),
+Function for calculating or converting different contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), the hazard ratio (HR),
 and other contrasts.
 }
 \details{
-Convertible contrasts are: \itemize{
+This function will calculate a range of different contrasts between two survival curves
+given their scale parameters and shape parameter. Alternatively only one scale parameter can be given together with one contrast (e.g. hazard
+ratio) in order to calculate the missing scale parameter and the remaining contrasts.
+Survival curves are assumed to be Weibull functions with the same shape parameter.
+Specify either one scale parameter and one contrast, or specify both scale parameters. The shape
+parameter always needs to be specified.
+
+contrasts are: \itemize{
 \item hazard ratio (HR).
-\item median difference: the difference in times \eqn{t} at which each survival curve passes \eqn{S(t) = 0.5 = 50 \%}.
-\item percentile difference: the difference in times \eqn{t} at which each survival curve passes a certain \eqn{S(t)}. Simplifies to the median difference when the percentile \eqn{50} is chosen.
-\item survival difference: difference between two survival curves \eqn{S(t)} at a specified time \eqn{t}.}
+\item median difference: the difference in times \eqn{\Delta t} at which each survival curve passes \eqn{S(t) = 0.5 = 50 \%}.
+\item percentile difference: the difference in times \eqn{\Delta t} at which each survival curve passes a certain \eqn{S(t)}. Simplifies to the median difference when the percentile \eqn{50} is chosen.
+\item survival difference: difference between two survival curves \eqn{S(t)} at a specified time \eqn{\tau}.}
 Survival is assumed to follow Weibull distributions in both control and treatment group with a constant HR,
 implying the same shape parameter in treatment and control group.
 }
 \examples{
-RMSTD <- convert_contrast(scale_trmt = 1, shape = 1, HR = 0.9,
-output = "RMSTD", tau = 1)
-RMSTR <- convert_contrast(scale_trmt = 1, shape = 1, survival_diff = 0.01,
-t = 1, output = "RMSTR", tau = 1)
-HR <- convert_contrast(scale_trmt = 1, shape = 1, RMSTD = 0.028,
-t = 1, output = "HR", tau = 1) # inserting RMSTD from first example
+results <- convert_contrast(scale_trmt = 1, scale_ctrl = 0.9, tau = 1)
+results <- convert_contrast(scale_trmt = 1, shape = 1, tau = 1, HR = 0.9)
 }
