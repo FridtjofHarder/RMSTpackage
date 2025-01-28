@@ -7,7 +7,7 @@
 #' Details
 #'
 #' @param scale A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
-#' @param shape A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trt} \eqn{=1}, simplifying to exponential survival.
+#' @param shape A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.
 #' @param parameterization One of: \itemize{
 #' \item \code{parameterization = 1}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
 #' \item \code{parameterization = 2}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
@@ -15,7 +15,7 @@
 #' @param accrual_time specifies the accrual time during which participants are recruited
 #' @param follow_up_time specified the follow-up time after accrual
 #' @param loss_scale A scalar \eqn{>0} specifying the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.
-#' @param loss_shape A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trt} \eqn{=1}, simplifying to exponential loss.
+#' @param loss_shape A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.
 #' @param sample_size sample size
 #' @param label group label
 #' @param plot_data Boolean. Plots Kaplan Meier curve of simulated data.
