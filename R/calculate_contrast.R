@@ -5,7 +5,7 @@
 #'
 #' Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterization
 #' defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}.
-#' Possible contrasts are: \itemize{
+#' Possible contrasts are the following: \itemize{
 #' \item Restricted mean survival time difference (RMSTD)
 #' \item Restricted mean survival time ratio (RMSTR)
 #' \item Hazard ratio (HR)
