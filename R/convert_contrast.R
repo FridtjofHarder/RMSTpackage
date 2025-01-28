@@ -1,13 +1,21 @@
-#' Converts contrast between RMSTD, RMSTR, and HR
+#' Calculates or converts contrast between RMSTD, RMSTR, and HR, and others
 #'
-#' Function for converting different contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), the hazard ratio (HR),
+#' Function for calculating or converting different contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), the hazard ratio (HR),
 #' and other contrasts.
 #'
-#' Convertible contrasts are: \itemize{
+#' This function will calculate a range of different contrasts between two survival curves
+#' given their scale parameters and shape parameter. Alternatively only one scale parameter can be given together with one contrast (e.g. hazard
+#' ratio) in order to calculate the missing scale parameter and the remaining contrasts.
+#' Survival curves are assumed to be Weibull functions with the same shape parameter.
+#' Specify either one scale parameter and one contrast, or specify both scale parameters. The shape
+#' parameter always needs to be specified.
+#'
+#'
+#' contrasts are: \itemize{
 #' \item hazard ratio (HR).
-#' \item median difference: the difference in times \eqn{t} at which each survival curve passes \eqn{S(t) = 0.5 = 50 \%}.
-#' \item percentile difference: the difference in times \eqn{t} at which each survival curve passes a certain \eqn{S(t)}. Simplifies to the median difference when the percentile \eqn{50} is chosen.
-#' \item survival difference: difference between two survival curves \eqn{S(t)} at a specified time \eqn{t}.}
+#' \item median difference: the difference in times \eqn{\Delta t} at which each survival curve passes \eqn{S(t) = 0.5 = 50 \%}.
+#' \item percentile difference: the difference in times \eqn{\Delta t} at which each survival curve passes a certain \eqn{S(t)}. Simplifies to the median difference when the percentile \eqn{50} is chosen.
+#' \item survival difference: difference between two survival curves \eqn{S(t)} at a specified time \eqn{\tau}.}
 #' Survival is assumed to follow Weibull distributions in both control and treatment group with a constant HR,
 #' implying the same shape parameter in treatment and control group.
 #'
@@ -23,18 +31,19 @@
 #' @param percentile_diff A scalar specifying the difference in time \eqn{\Delta t} at which each group has the survival \eqn{S(t) =} \code{percentile}.
 #' @param percentile A scalar specifying at which percentile of survival to evaluate \code{percentile_diff}.
 #' \code{percentile_diff} is equal to \code{median_diff} when \code{percentile}  \eqn{=50}.
-#' @param survival_diff A scalar specifying the survival difference in survival \eqn{\Delta S(t)} between treatment and control group.
+#' @param survival_diff A scalar specifying the survival difference in survival \eqn{\Delta S(\tau)} between treatment and control group.
 #' @param HR A scalar specifying a hazard ratio. \code{HR} \eqn{< 1} suggests a lower hazard in the treatment group than in the control group.
 #' @param tau A scalar specifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
-#' @param t A scalar specifying the time \eqn{t} at which to evaluate \code{survival_diff}.
 #' @param RMSTD A scalar specifying the RMSTD between control group and treatment group. Allows for converting RMSTD to HR.
 #' @param RMSTR A scalar specifying the RMSTR between control group and treatment group. Allows for converting RMSTD to HR.
-#' @param plot_curves Boolean. Creates a plot if \code{TRUE}
+#' @param plot_curves Boolean. Creates a plot if \code{TRUE}.
 #'
-#' @return Returns a dataframe containing the inputs, the difference (RMSTD) and ratio (RMSTR) in RMST,
+#' @return Returns a dataframe containing the inputs, scale and shape parameters,
+#' the difference (RMSTD) and ratio (RMSTR) in RMST,
 #' the HR between treatment group and control group, the median survival time difference
 #' An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group,
-#' a HR \eqn{< 1} indicates lower hazard in the treatment group.
+#' a HR \eqn{< 1} indicates lower hazard in the treatment group. Input scales are converted
+#' to first paratmeterization.
 #'
 #' @export
 #'
@@ -47,11 +56,12 @@
 #' t = 1, output = "HR", tau = 1) # inserting RMSTD from first example
 convert_contrast <- function(scale_trmt = NULL,
                              scale_ctrl = NULL,
+                             shape = 1,
                              parameterization = 1,
                              HR = NULL,
                              median_diff = NULL,
                              percentile_diff = NULL,
-                             percentile = NULL,
+                             percentile = 50,
                              survival_diff = NULL,
                              RMSTD = NULL,
                              RMSTR = NULL,
@@ -59,42 +69,28 @@ convert_contrast <- function(scale_trmt = NULL,
                              plot_curves = TRUE) {
 
 
-# error management --------------------------------------------------------
+# error management -------------------------------------------------------------
 
-   stopifnot( # throw error when contrast misspecified
-    "error: more than one contrast, or no contrast were specified, or contrast specified is of inappropriate data type. Please specify exactly one contrast as a scalar"
-    = 1 == sum(
-      !is.null(HR),
-      !is.null(median_diff),
-      !is.null(percentile_diff),
-      !is.null(survival_diff),
-      !is.null(RMSTR),
-      !is.null(RMSTD)
-    )
-  )
+  number_of_defined_scales <- sum(!is.null(scale_trmt), !is.null(scale_ctrl))
+  number_of_defined_contrasts <- sum(!is.null(HR),
+                                     !is.null(median_diff),
+                                     !is.null(percentile_diff),
+                                     !is.null(survival_diff),
+                                     !is.null(RMSTR),
+                                     !is.null(RMSTD))
 
-  stopifnot( # throw error when output misspecified
-    "output needs to be specified as either 'RMSTD' or 'RMSTR' or 'HR'" = output == "RMSTD" ||
-      output == "RMSTR" || output == "HR"
-  )
+  stopifnot("error: please specify either both scale parameters, or one scale
+            parameter and one contrast" = xor(number_of_defined_scales == 2 &&
+                                                number_of_defined_contrasts == 0,
+                                              number_of_defined_scales == 1 &&
+                                                number_of_defined_contrasts == 1))
+
   stopifnot( # throw error when parameterization misspecified
     "parameterization must be defined as either 1, 2, or 3" = parameterization == 1 ||
       parameterization == 2 || parameterization == 3
   )
-  # throw error when not exactly one scale
-  stopifnot("please specify exactly one scale parameter. Use calculate_contrast() to determine the RMSTD, RMSTR, or HR for fully specified survival functions"
-            = xor(is.null(scale_trmt), is.null(scale_ctrl)))
 
-  # throws error if shape parameter is specified for the group, for which scale is unspecified
-  if (!is.null(scale_trmt) &&
-      shape != 1 ||
-      !is.null(scale_ctrl) &&
-      shape != 1) {
-    stop("please specify shape parameter only for the group for which scale has been specified")
-  }
-
-
-# main function --------------------------------------------------------------------
+# convert parameters -----------------------------------------------------------
 
   # converts scale parameter wrt parameterization
   if (parameterization == 2) {
@@ -106,6 +102,9 @@ convert_contrast <- function(scale_trmt = NULL,
     if (!is.null(scale_trmt)) scale_trmt <- 1 / scale_trmt
     if (!is.null(scale_ctrl)) scale_ctrl <- 1 / scale_ctrl
   }
+
+# obtain missing scale parameter -----------------------------------------------
+
   # specifies previously undefined scale parameter if HR is chosen as input contrast
   if (!is.null(HR)) {
     if (!is.null(scale_trmt)) {
@@ -114,6 +113,7 @@ convert_contrast <- function(scale_trmt = NULL,
       scale_trmt <- scale_ctrl / HR
     }
   }
+
   # if median difference is chosen as input parameter, median in one group is
   # calculated from scale and shape parameters, and input from other group is
   # calculated from median of first group minus median difference. Undefined
@@ -129,58 +129,38 @@ convert_contrast <- function(scale_trmt = NULL,
       scale_trmt <- median_time_trmt * (-log(0.5)) ^ (-1 / shape)
     }
   }
-  # procedure similar to median difference
+  # percentile diff. procedure similar to median difference
   if (!is.null(percentile_diff)) {
     if (!is.null(scale_trmt)) {
-      median_time_trmt <- (-log(percentile)) ^ (1 / shape) * scale_trmt
-      median_time_ctrl <- median_time_trmt - median_diff
-      scale_ctrl <- median_time_ctrl * (-log(percentile)) ^ (-1 / shape)
+      percentile_time_trmt <- (-log(percentile)) ^ (1 / shape) * scale_trmt
+      percentile_time_ctrl <- percentile_time_trmt - percentile_diff
+      scale_ctrl <- percentile_time_ctrl * (-log(percentile)) ^ (-1 / shape)
     } else{
-      median_time_ctrl <- (-log(percentile)) ^ (1 / shape) * scale_ctrl
-      median_time_trmt <- median_time_ctrl + median_diff
-      scale_trmt <- median_time_trmt * (-log(percentile)) ^ (-1 / shape)
+      percentile_time_ctrl <- (-log(percentile)) ^ (1 / shape) * scale_ctrl
+      percentile_time_trmt <- percentile_time_ctrl + percentile_diff
+      scale_trmt <- percentile_time_trmt * (-log(percentile)) ^ (-1 / shape)
     }
   }
-  # procedure similar to median difference
+  # survival diff. procedure similar to median difference
   if (!is.null(survival_diff)) {
     if (!is.null(scale_trmt)) {
-      survival_trmt <- stats::pweibull(t, scale_trmt, shape, lower.tail = F)
+      survival_trmt <- stats::pweibull(tau, scale_trmt, shape, lower.tail = F)
       survival_ctrl <- survival_trmt - survival_diff
       if (survival_ctrl <= 0) {
         stop(
           "survival in treatment group minus survival difference is equal to or less than zero"
         )
       }
-      scale_ctrl <- t * (-log(survival_ctrl)) ^ (-1 / shape)
+      scale_ctrl <- tau * (-log(survival_ctrl)) ^ (-1 / shape)
     } else{
-      survival_ctrl <- stats::pweibull(t, scale_ctrl, shape, lower.tail = F)
+      survival_ctrl <- stats::pweibull(tau, scale_ctrl, shape, lower.tail = F)
       survival_trmt <- survival_ctrl + survival_diff
       if (survival_trmt <= 0) {
         stop("survival in control group minus survival difference is equal to or less than zero")
       }
-      scale_trmt <- t * (-log(survival_trmt)) ^ (-1 / shape)
+      scale_trmt <- tau * (-log(survival_trmt)) ^ (-1 / shape)
     }
   }
-  # calculate RMSTR or RMSTD.
-  if (output == "RMSTD" || output == "RMSTR"){
-    RMST_trmt <- stats::integrate(
-      stats::pweibull,
-      shape = shape,
-      scale = scale_trmt,
-      lower = 0,
-      upper = tau,
-      lower.tail = F
-    )$value
-    RMST_ctrl <- stats::integrate(
-      stats::pweibull,
-      shape = shape,
-      scale = scale_ctrl,
-      lower = 0,
-      upper = tau,
-      lower.tail = F
-    )$value
-  }
-
   # calculate RMST in unspecified group when RMSTR or RMSTD are given as input
   if (xor(!is.null(RMSTD), !is.null(RMSTR))) {
     # when either RMSTR or RMSTD defined
@@ -225,7 +205,49 @@ convert_contrast <- function(scale_trmt = NULL,
     }
     if (is.null(scale_ctrl)) scale_ctrl <- scale_ctrl_temp
   }
-  if(output == "HR") {return((scale_ctrl/scale_trmt)^shape)}
+
+# calculate missing contrasts --------------------------------------------------
+
+  # calculate HR
+  if(is.null(HR)){
+    HR <- scale_ctrl / scale_trmt
+  }
+
+  # calculate median_diff
+  if (is.null(median_diff)) {
+    median_time_trmt <- (-log(0.5)) ^ (1 / shape) * scale_trmt
+    median_time_ctrl <- (-log(0.5)) ^ (1 / shape) * scale_ctrl
+    median_diff <- median_time_trmt - median_time_ctrl
+  }
+
+
+
+  # calculate RMSTs, and RMSTR or RMSTD, if not defined already.
+  if (!exists("RMST_trmt")){
+    RMST_trmt <- stats::integrate(
+      stats::pweibull,
+      shape = shape,
+      scale = scale_trmt,
+      lower = 0,
+      upper = tau,
+      lower.tail = F
+    )$value}
+  if (!exists("RMST_ctrl")){
+    RMST_ctrl <- stats::integrate(
+      stats::pweibull,
+      shape = shape,
+      scale = scale_ctrl,
+      lower = 0,
+      upper = tau,
+      lower.tail = F
+    )$value}
+  if (is.null(RMSTD)){
+    RMSTD <- RMST_trmt - RMST_ctrl
+  }
+  if (is.null(RMSTR)){
+    RMSTR <- RMST_trmt / RMST_ctrl
+  }
+
 
   if(plot_curves){
     x <- NULL
@@ -250,5 +272,6 @@ convert_contrast <- function(scale_trmt = NULL,
 }
 
 find_root_weibull <- function(unknown_scale, shape, tau, RMST){
-  stats::integrate(stats::pweibull, shape = shape,  scale = unknown_scale,  lower = 0,  upper = tau,  lower.tail = F)$value-RMST
+  stats::integrate(stats::pweibull, shape = shape,  scale = unknown_scale,
+                   lower = 0,  upper = tau,  lower.tail = F)$value-RMST
 }
