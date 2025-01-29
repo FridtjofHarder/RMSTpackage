@@ -48,9 +48,9 @@
 #' @export
 #'
 #' @examples
-#' results <- convert_contrast(scale_trmt = 1, scale_ctrl = 0.9, tau = 1)
-#' results <- convert_contrast(scale_trmt = 1, shape = 1, tau = 1, HR = 0.9)
-convert_contrast <- function(scale_trmt = NULL,
+#' results <- convert_contrast_ph(scale_trmt = 1, scale_ctrl = 0.9, tau = 1)
+#' results <- convert_contrast_ph(scale_trmt = 1, shape = 1, tau = 1, HR = 0.9)
+convert_contrast_ph <- function(scale_trmt = NULL,
                              scale_ctrl = NULL,
                              shape = 1,
                              parameterization = 1,
