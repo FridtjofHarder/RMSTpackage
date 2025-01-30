@@ -17,16 +17,16 @@
 #' @param scale_ctrl A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
 #' @param shape_ctrl A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.
 #' @param parameterization One of: \itemize{
-#' \item \code{parameterization = 1}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
-#' \item \code{parameterization = 2}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-#' \item \code{parametrization = 3}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
-#' @param accrual_time length of accrual period.
-#' @param follow_up_time length of follow-up period.
-#' @param tau A scalar speifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
-#' @param sides sidedness of inference test, either \code{1} or \code{2}.
-#' @param power test power with \code{power} \eqn{=1-\beta}.
-#' @param margin_cox non-inferiority margin for Cox regression. \code{margin_cox} \eqn{=1} simplifies to superiority test.
-#' @param margin_rmst non-inferiority margin for RMST difference. \code{margin_rmst} \eqn{=0} simplifies to superiority test.
+#' \item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
+#' \item \code{parameterization = 2}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+#' \item \code{parametrization = 3}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
+#' @param accrual_time Length of accrual period.
+#' @param follow_up_time Length of follow-up period.
+#' @param tau A scalar \eqn{>0} specifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
+#' @param sides Sidedness of inference test, either \code{1} or \code{2}.
+#' @param power Test power with \code{power} \eqn{=1-\beta}.
+#' @param margin_cox Non-inferiority margin for Cox regression. \code{margin_cox} \eqn{=1} simplifies to superiority test.
+#' @param margin_rmst Non-inferiority margin for RMST difference. \code{margin_rmst} \eqn{=0} simplifies to superiority test.
 #' @param M Positive Integer. Number of iterations when running simulation.
 #' @param plot_design_curves Boolean. Specifies whether to plot survival curves.
 #' @param plot_example_data Boolean. Specifies whether to create a plot with example data .
@@ -85,7 +85,8 @@ calculate_sample_size <- function(scale_trmt,
                                   simulation_sample_size,
                                   plot_design_curves = TRUE,
                                   plot_example_data = TRUE,
-                                  loss_scale, loss_shape = 1){
+                                  loss_scale = NULL,
+                                  loss_shape = 1){
 
   # error management --------------------------------------------------------
 

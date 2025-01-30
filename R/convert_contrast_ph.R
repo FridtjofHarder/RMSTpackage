@@ -12,10 +12,10 @@
 #'
 #'
 #' contrasts are: \itemize{
-#' \item hazard ratio (HR).
-#' \item median difference: the difference in times \eqn{\Delta t} at which each survival curve passes \eqn{S(t) = 0.5 = 50 \%}.
-#' \item percentile difference: the difference in times \eqn{\Delta t} at which each survival curve passes a certain \eqn{S(t)}. Simplifies to the median difference when the percentile \eqn{50} is chosen.
-#' \item survival difference: difference between two survival curves \eqn{S(t)} at a specified time \eqn{\tau}.}
+#' \item Hazard ratio (HR).
+#' \item Median difference: the difference in times \eqn{\Delta t} at which each survival curve passes \eqn{S(t) = 0.5 = 50 \%}.
+#' \item Percentile difference: the difference in times \eqn{\Delta t} at which each survival curve passes a certain \eqn{S(t)}. Simplifies to the median difference when the percentile \eqn{50} is chosen.
+#' \item Survival difference: difference between two survival curves \eqn{S(t)} at a specified time \eqn{\tau}.}
 #' Survival is assumed to follow Weibull distributions in both control and treatment group with a constant HR,
 #' implying the same shape parameter in treatment and control group.
 #'
@@ -24,9 +24,9 @@
 #' @param shape A scalar \eqn{>0} specifying the \dfn{shape parameter} in both groups. Shape
 #' parameters in both groups are assumed to be equal.
 #' @param parameterization One of: \itemize{
-#' \item \code{parameterization = 1}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
-#' \item \code{parameterization = 2}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-#' \item \code{parameterization = 3}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
+#' \item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
+#' \item \code{parameterization = 2}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+#' \item \code{parameterization = 3}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
 #' @param median_diff A scalar specifying the difference in time \eqn{\Delta t} at which each group has survival \eqn{S(t) = 0.5}. \code{median_diff} \eqn{> 0} suggests superior survival in the treatment group.
 #' @param percentile_diff A scalar specifying the difference in time \eqn{\Delta t} at which each group has the survival \eqn{S(t) =} \code{percentile}.
 #' @param percentile A scalar specifying at which percentile of survival to evaluate \code{percentile_diff}.

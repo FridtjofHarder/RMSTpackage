@@ -42,25 +42,25 @@ calculate_sample_size(
 \item{shape_ctrl}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.}
 
 \item{parameterization}{One of: \itemize{
-\item \code{parameterization = 1}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
-\item \code{parameterization = 2}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parametrization = 3}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
+\item \code{parameterization = 2}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parametrization = 3}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 
-\item{accrual_time}{length of accrual period.}
+\item{accrual_time}{Length of accrual period.}
 
-\item{follow_up_time}{length of follow-up period.}
+\item{follow_up_time}{Length of follow-up period.}
 
-\item{tau}{A scalar speifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
+\item{tau}{A scalar \eqn{>0} specifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
 
-\item{sides}{sidedness of inference test, either \code{1} or \code{2}.}
+\item{sides}{Sidedness of inference test, either \code{1} or \code{2}.}
 
 \item{one_sided_alpha}{MISSING}
 
-\item{power}{test power with \code{power} \eqn{=1-\beta}.}
+\item{power}{Test power with \code{power} \eqn{=1-\beta}.}
 
-\item{margin_cox}{non-inferiority margin for Cox regression. \code{margin_cox} \eqn{=1} simplifies to superiority test.}
+\item{margin_cox}{Non-inferiority margin for Cox regression. \code{margin_cox} \eqn{=1} simplifies to superiority test.}
 
-\item{margin_rmst}{non-inferiority margin for RMST difference. \code{margin_rmst} \eqn{=0} simplifies to superiority test.}
+\item{margin_rmst}{Non-inferiority margin for RMST difference. \code{margin_rmst} \eqn{=0} simplifies to superiority test.}
 
 \item{RMSTD_closed_form}{MISSING}
 

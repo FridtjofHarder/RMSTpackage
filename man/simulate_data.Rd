@@ -26,21 +26,21 @@ simulate_data(
 \item{shape}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
 
 \item{parameterization}{One of: \itemize{
-\item \code{parameterization = 1}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
-\item \code{parameterization = 2}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parametrization = 3}: specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
+\item \code{parameterization = 2}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parametrization = 3}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 
-\item{accrual_time}{specifies the accrual time during which participants are recruited}
+\item{accrual_time}{Specifies the accrual time during which participants are recruited.}
 
-\item{follow_up_time}{specified the follow-up time after accrual}
+\item{follow_up_time}{Specifies the follow-up time after accrual.}
 
 \item{loss_scale}{A scalar \eqn{>0} specifying the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
 
 \item{loss_shape}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.}
 
-\item{sample_size}{sample size}
+\item{sample_size}{Sample size.}
 
-\item{label}{group label}
+\item{label}{Group label.}
 
 \item{plot_curve}{MISSING}
 
