@@ -3,7 +3,6 @@
 #' Simulates survival of one arm, including administrative censoring and loss to follow-up. Survival function needs to be fully defined
 #' as a Weibull or exponential distribution.
 #'
-#'
 #' Details
 #'
 #' @param scale A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
@@ -20,8 +19,9 @@
 #' @param label Group label.
 #' @param plot_data Boolean. Plots Kaplan Meier curve of simulated data.
 #' @param plot_recruitment Boolean. Plots recruitment plot.
-#' @param plot_curve MISSING
-#' @param plot_inverse_KM MISSING
+#' @param tau A scalar \eqn{>0} specifying the time horizon \eqn{\tau}.
+#' @param plot_curves Boolean. Plots design curves if \code{TRUE}.
+#' @param censor_beyond_tau Boolean. All observations past tau \eqn{\tau} censored if \code{c(TRUE)}.
 #'
 #' @return data frame containing observations times, status (event = 1, censored
 #'  = 1), and group label
@@ -36,7 +36,7 @@
 #'   loss_scale = 1,
 #'   sample_size = 100,
 #'   label = 0,
-#'   plot_curve = TRUE,
+#'   plot_curves = TRUE,
 #'   plot_data = TRUE,
 #'   plot_recruitment = TRUE
 #' )
@@ -49,10 +49,9 @@ simulate_data <- function(scale,
                           loss_shape = 1,
                           sample_size,
                           label = 0,
-                          plot_curve = FALSE,
+                          plot_curves = FALSE,
                           plot_data = FALSE,
                           plot_recruitment = FALSE,
-                          plot_inverse_KM = FALSE,
                           tau = NULL,
                           censor_beyond_tau = FALSE) {
   # convert to standard parameterization if needed
@@ -86,7 +85,7 @@ simulate_data <- function(scale,
   data_df <- data.frame(observations, status, label)
 
   # plot design curves if requested
-  if (plot_curve) {
+  if (plot_curves) {
     x <- NULL
     graphics::curve(stats::pweibull(x, scale = scale, shape = shape, lower.tail = FALSE),
       col = "green", xlab = "t", ylab = "S(t)", ylim = c(0, 1)
@@ -121,12 +120,13 @@ simulate_data <- function(scale,
       xlim = c(0, total_time), ylim = c(0, sample_size),
       xlab = "study time", ylab = "participants ordered by entry into study"
     )
-    graphics::title("individual observation trails in study time")
+    graphics::title("Individual observation trails in study time")
     graphics::segments(
       x0 = df_sorted$recruitment, y0 = 1:length(recruitment),
       x1 = df_sorted$stop
     )
   }
+
   return(data_df)
 }
 

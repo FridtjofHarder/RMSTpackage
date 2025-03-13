@@ -11,7 +11,6 @@
 #' For comparing Cox regression with RMST based methods, all observations past time horizon \eqn{\tau}
 #' may be censored if desired.
 #'
-#'
 #' @param scale_trmt A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
 #' @param shape_trmt A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.
 #' @param scale_ctrl A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
@@ -36,10 +35,10 @@
 #' @param RMSTD_simulation MISSING
 #' @param RMSTR_simulation MISSING
 #' @param cox_ph_simulation MISSING
-#' @param censor_beyond_tau MISSING
+#' @param censor_beyond_tau Boolean. All observations past tau \eqn{\tau} censored if  \code{c(TRUE)}.
 #' @param simulation_sample_size MISSING
-#' @param loss_scale MISSING
-#' @param loss_shape MISSING
+#' @param loss_scale Scale of Weibull distributed loss to follow-up.
+#' @param loss_shape Shape of Weibull distributed loss to follow-up.
 #'
 #' @return Returns a list with sample size and a test power.
 #'

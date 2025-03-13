@@ -14,10 +14,11 @@ simulate_data(
   loss_shape = 1,
   sample_size,
   label = 0,
-  plot_curve = FALSE,
+  plot_curves = FALSE,
   plot_data = FALSE,
   plot_recruitment = FALSE,
-  plot_inverse_KM = FALSE
+  tau = NULL,
+  censor_beyond_tau = FALSE
 )
 }
 \arguments{
@@ -42,13 +43,15 @@ simulate_data(
 
 \item{label}{Group label.}
 
-\item{plot_curve}{MISSING}
+\item{plot_curves}{Boolean. Plots design curves if \code{TRUE}.}
 
 \item{plot_data}{Boolean. Plots Kaplan Meier curve of simulated data.}
 
 \item{plot_recruitment}{Boolean. Plots recruitment plot.}
 
-\item{plot_inverse_KM}{MISSING}
+\item{tau}{A scalar \eqn{>0} specifying the time horizon \eqn{\tau}.}
+
+\item{censor_beyond_tau}{Boolean. All observations past tau \eqn{\tau} censored if \code{c(TRUE)}.}
 }
 \value{
 data frame containing observations times, status (event = 1, censored
@@ -69,7 +72,7 @@ simulate_data(
   loss_scale = 1,
   sample_size = 100,
   label = 0,
-  plot_curve = TRUE,
+  plot_curves = TRUE,
   plot_data = TRUE,
   plot_recruitment = TRUE
 )

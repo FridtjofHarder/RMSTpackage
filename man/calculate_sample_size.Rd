@@ -28,7 +28,7 @@ calculate_sample_size(
   simulation_sample_size,
   plot_design_curves = TRUE,
   plot_example_data = TRUE,
-  loss_scale,
+  loss_scale = NULL,
   loss_shape = 1
 )
 }
@@ -72,7 +72,7 @@ calculate_sample_size(
 
 \item{cox_ph_simulation}{MISSING}
 
-\item{censor_beyond_tau}{MISSING}
+\item{censor_beyond_tau}{Boolean. All observations past tau \eqn{\tau} censored if  \code{c(TRUE)}.}
 
 \item{M}{Positive Integer. Number of iterations when running simulation.}
 
@@ -82,9 +82,9 @@ calculate_sample_size(
 
 \item{plot_example_data}{Boolean. Specifies whether to create a plot with example data .}
 
-\item{loss_scale}{MISSING}
+\item{loss_scale}{Scale of Weibull distributed loss to follow-up.}
 
-\item{loss_shape}{MISSING}
+\item{loss_shape}{Shape of Weibull distributed loss to follow-up.}
 }
 \value{
 Returns a list with sample size and a test power.
