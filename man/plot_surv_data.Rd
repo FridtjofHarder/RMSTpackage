@@ -67,5 +67,6 @@ accrual_time = 1,
 follow_up_time = 10,
 tau = 1,
 loss_scale = 1,
-n = 100)
+n = 100,
+plot_reverse_KM = TRUE)
 }

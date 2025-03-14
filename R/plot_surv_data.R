@@ -20,6 +20,7 @@
 #' @param loss_scale Scale of Weibull distributed loss to follow-up.
 #' @param loss_shape Shape of Weibull distributed loss to follow-up.
 #' @param plot_reverse_KM Boolean. Will plot a reverse KM curve if  \code{c(TRUE)}.
+#' @param plot_log_log Boolean. Will plot a log-log plot for assessing proportionality of hazards if \code{c(TRUE)}.
 #'
 #' @export
 #'
@@ -31,13 +32,18 @@
 #' follow_up_time = 10,
 #' tau = 1,
 #' loss_scale = 1,
-#' n = 100)
+#' n = 100,
+#' plot_reverse_KM = TRUE,
+#' plot_log_log = FALSE)
 plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
                            shape_ctrl = 1, parameterization = 1, tau = NULL,
                            xlim = NULL, ylim = c(0, 100), n = NULL,
                            accrual_time = 0, follow_up_time = NULL,
                            censor_beyond_tau = FALSE, loss_scale = NULL,
-                           loss_shape = 1, plot_reverse_KM = FALSE){
+                           loss_shape = 1, plot_reverse_KM = FALSE,
+                           plot_log_log = FALSE){
+
+  # create data_frame_ctrl
   data_frame_ctrl <- simulate_data(scale = scale_ctrl, shape = shape_ctrl,
                                    accrual_time = accrual_time,
                                    follow_up_time = follow_up_time,
@@ -55,19 +61,76 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
   surv_obj <- survival::Surv(time = simulated_data$observations,
                              event = simulated_data$status)
 
-  plot(survival::survfit(surv_obj~simulated_data$label), mark.time=T, conf.int = F, xlab = "t", ylab = "S(t)",
-       col = c("red", "green"))
-  graphics::legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
-                                                 round(scale_trmt, 2), " and shape =",
+  if (!is.null(tau) && is.null(xlim)) {xlim <- c(0, 1.5*tau)} # set xlim if undefined
+
+  # plot KM estimator^
+  par(mar=c(5,6,4,1)+.1)
+  plot(survival::survfit(surv_obj~simulated_data$label), mark.time=T,
+       conf.int = F, xlab = "t", ylab = expression(hat(S)(t) ~ "in %"),
+       col = c("red", "darkblue"),
+       xlim = xlim, ylim = c(0, 1), lwd = 2,
+       main = "Kaplan Meier estimators for treatment and control group",
+       yaxt = "n")
+
+  axis(2, at = seq(1, 0, by = -0.2), labels = paste0(seq(100, 0, by = -20), "%"), las = 1)
+
+  # mark tau if defined
+  if (!is.null(tau)){ # mark tau if defined
+    graphics::abline(v = tau, col = "black", lwd = 2)
+    graphics::text(x = tau, y = 0.1, pos = 4,
+                   labels = bquote("Time horizon " * tau * " = " * .(tau)))
+  }
+
+  # create legend
+  graphics::legend("topright", legend=c(paste0("Treatment group with \n", "scale = ",
+                                                 round(scale_trmt, 2), " and shape = ",
                                                  round(shape_trmt, 2)),
-                                          paste0("control group with \n", "scale =",
-                                                 round(scale_ctrl, 2), " and shape =",
+                                          paste0("Control group with \n", "scale = ",
+                                                 round(scale_ctrl, 2), " and shape = ",
                                                  round(shape_ctrl, 2))),
-                   col=c("green", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 0.8)
+                   col=c("darkblue", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 1)
 
   # reverse KM
   if (plot_reverse_KM){
-    print("hello world")
+    # reverse indicator for event and censure
+    simulated_data_reverse <- simulated_data
+    simulated_data_reverse$status <- as.numeric(simulated_data$status == 0)
+
+    surv_obj_reverse <- survival::Surv(time = simulated_data_reverse$observations,
+                               event = simulated_data_reverse$status)
+
+    # create plot
+    plot(survival::survfit(surv_obj_reverse~simulated_data_reverse$label), mark.time=T,
+         conf.int = F, xlab = "t", ylab = "Censure-free observation in %", col = c("red", "darkblue"),
+         xlim = xlim, ylim = c(0, 1), lwd = 2, yaxt = "n",
+         main = "Reverse Kaplan Meier estimators for treatment and control group")
+    axis(2, at = seq(0, 1, by = 0.2), labels = paste0(seq(0, 100, by = 20), "%"))
+
+    # mark tau if defined
+    if (!is.null(tau)){ # mark tau if defined
+      graphics::abline(v = tau, col = "black", lwd = 2)
+      graphics::text(x = tau, y = 0.1, pos = 4,
+                     labels = bquote("Time horizon " * tau * " = " * .(tau)))
+    }
+
+    # create legend
+    graphics::legend("bottomleft", legend=c("Treatment group",
+                                            "Control group"),
+                     col=c("darkblue", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 1)
+  }
+  #browser()
+  if (plot_log_log){
+    plot(survival::survfit(surv_obj~simulated_data$label), fun = "cloglog",
+         xlab = "t",
+         ylab = "log-log survival", main = "Log-log curves for assessing proportionality of hazards",
+         col = c("red", "darkblue"), lwd = 2)
+    graphics::legend("topleft", legend=c(paste0("Treatment group with \n", "scale = ",
+                                                 round(scale_trmt, 2), " and shape = ",
+                                                 round(shape_trmt, 2)),
+                                          paste0("Control group with \n", "scale = ",
+                                                 round(scale_ctrl, 2), " and shape = ",
+                                                 round(shape_ctrl, 2))),
+                     col=c("darkblue", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 1)
   }
 
 }

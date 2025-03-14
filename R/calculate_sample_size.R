@@ -175,6 +175,68 @@ calculate_sample_size <- function(scale_trmt,
   }
 
   # sample size RMSTD by closed form
+  scale_trmt_npsurvSS <- 1 / scale_trmt
+  scale_ctrl_npsurvSS <- 1 / scale_ctrl
+
+  # # get RMST_ctrl and RMST_trmt
+  # RMST_trmt <- stats::integrate(
+  #   stats::pweibull,
+  #   shape = shape_trmt,
+  #   scale = scale_trmt,
+  #   lower = 0,
+  #   upper = tau,
+  #   lower.tail = F
+  # )$value}
+  #
+  # RMST_ctrl <- stats::integrate(
+  #   stats::pweibull,
+  #   shape = shape_trmt,
+  #   scale = scale_ctrl,
+  #   lower = 0,
+  #   upper = tau,
+  #   lower.tail = F
+  # )$value
+  #
+  # RMSTD <- RMST_trmt - RMST_ctrl
+  #
+  # # get variance
+  # sigma2  <- sigma2j_rmst(arm0, milestone) / 0.5 + sigma2j_rmst(arm1, milestone) / 0.5
+  #
+  # sample_size_closed_form <- ( sqrt(sigma2) * stats::qnorm(1 - alpha / sides) +
+  #                                sqrt(design$tsigma2) * stats::qnorm(power) )^2 /
+  #   design$delta^2 *
+  #   c(p0, p1)
+
+  # preliminary: sample size via npsurvSS
+  arm_trmt_npsurvSS <- npsurvSS::create_arm(
+    size = 1,
+    accr_time = accrual_time,
+    surv_shape = shape_trmt,
+    surv_scale = scale_trmt,
+    loss_shape = loss_shape,
+    loss_scale = loss_scale,
+    follow_time = follow_up_time
+  )
+
+  arm_ctrl_npsurvSS <- npsurvSS::create_arm(
+    size = 1,
+    accr_time = accrual_time,
+    surv_shape = shape_ctrl,
+    surv_scale = scale_ctrl,
+    loss_shape = loss_shape,
+    loss_scale = loss_scale,
+    follow_time = follow_up_time
+  )
+
+  #browser()
+  sample_size_closed_form <-
+    npsurvSS::size_two_arm(
+    arm0 = arm_trmt_npsurvSS,
+    arm1 = arm_ctrl_npsurvSS,
+    list(test = "rmst difference", milestone = tau),
+    power = power,
+    alpha = sides * one_sided_alpha,
+    sides = 1)
 
   # plot example data if requested
   if(plot_example_data){
@@ -226,7 +288,8 @@ calculate_sample_size <- function(scale_trmt,
 
   }
   result <- list("RMSTD power determined by simulation" = power_RMSTD_simulated,
-                 "Cox PH power determined by simulation" = power_cox_ph_simulated)
+                 "Cox PH power determined by simulation" = power_cox_ph_simulated,
+                 "sample size determined by closed-form solution" = sample_size_closed_form)
   return(result)
 
   }
