@@ -19,7 +19,8 @@ plot_surv_data(
   censor_beyond_tau = FALSE,
   loss_scale = NULL,
   loss_shape = 1,
-  plot_reverse_KM = FALSE
+  plot_reverse_KM = FALSE,
+  plot_log_log = FALSE
 )
 }
 \arguments{
@@ -55,6 +56,8 @@ plot_surv_data(
 \item{loss_shape}{Shape of Weibull distributed loss to follow-up.}
 
 \item{plot_reverse_KM}{Boolean. Will plot a reverse KM curve if  \code{c(TRUE)}.}
+
+\item{plot_log_log}{Boolean. Will plot a log-log plot for assessing proportionality of hazards if \code{c(TRUE)}.}
 }
 \description{
 Plots example survival data
@@ -68,5 +71,6 @@ follow_up_time = 10,
 tau = 1,
 loss_scale = 1,
 n = 100,
-plot_reverse_KM = TRUE)
+plot_reverse_KM = TRUE,
+plot_log_log = FALSE)
 }

@@ -102,6 +102,7 @@ plot_curves <- function(scale_trmt, scale_ctrl,
                                          expression(RMSTD(tau))),
                      col=c("darkblue", "red", "black"), lty=1:1,
                      y.intersp = 1.5, bty = "n", cex = 1)
+    abline(h = 0, lty = 2, col = "gray")
 
   }
 

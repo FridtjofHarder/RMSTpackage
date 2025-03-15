@@ -16,7 +16,9 @@ plot_curves(
   follow_up_time = NULL,
   tau = NULL,
   plot_data = TRUE,
-  n = 100
+  n = 100,
+  plot_hazard = TRUE,
+  plot_RMSTD_over_tau = FALSE
 )
 }
 \arguments{
@@ -45,7 +47,11 @@ plot_curves(
 
 \item{plot_data}{Boolean. Will plot example data if \code{c(TRUE)}.}
 
-\item{n}{An integer  \eqn{>0} specifying the total sample size when plotting example sata is requested.}
+\item{n}{An integer \eqn{>0} specifying the total sample size when plotting example sata is requested.}
+
+\item{plot_hazard}{Bloolean. Will plot hazard if \code{c(TRUE)}.}
+
+\item{plot_RMSTD_over_tau}{Boolean. Will plot RMST\eqn{\tau}) if \code{c(TRUE)}.}
 }
 \description{
 Draws survival curves and marks time horizon tau
