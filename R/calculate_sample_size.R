@@ -111,7 +111,6 @@ calculate_sample_size <- function(scale_trmt,
   total_time <- accrual_time + follow_up_time
 
   # main function --------------------------------------------------------
-  # browser()
   # convert to standard parameterization if needed
   if(parameterization == 2){
     scale_trmt <- 1/(scale_trmt^(1/shape_trmt))
@@ -228,7 +227,6 @@ calculate_sample_size <- function(scale_trmt,
     follow_time = follow_up_time
   )
 
-  #browser()
   sample_size_closed_form <-
     npsurvSS::size_two_arm(
     arm0 = arm_trmt_npsurvSS,
@@ -240,33 +238,19 @@ calculate_sample_size <- function(scale_trmt,
 
   # plot example data if requested
   if(plot_example_data){
-    data_frame_ctrl <- simulate_data(scale = scale_ctrl, shape = shape_ctrl,
-                                     accrual_time = accrual_time,
-                                     follow_up_time = follow_up_time,
-                                     loss_scale = loss_scale,
-                                     loss_shape = loss_shape,
-                                     sample_size = round(simulation_sample_size/2),
-                                     label = 0)
-    simulated_data <- rbind(data_frame_ctrl, simulate_data(scale = scale_trmt, shape = shape_trmt,
-                                     accrual_time = accrual_time,
-                                     follow_up_time = follow_up_time,
-                                     loss_scale = loss_scale,
-                                     loss_shape = loss_shape,
-                                     sample_size = round(simulation_sample_size/2),
-                                     label = 1))
-    surv_obj <- survival::Surv(time = simulated_data$observations,
-                               event = simulated_data$status)
-
-    plot(survival::survfit(surv_obj~simulated_data$label), mark.time=T, conf.int = F, xlab = "t", ylab = "S(t)",
-         col = c("red", "green"))
-    graphics::legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
-                                         round(scale_trmt, 2), " and shape =",
-                                         round(shape_trmt, 2)),
-                                  paste0("control group with \n", "scale =",
-                                         round(scale_ctrl, 2), " and shape =",
-                                         round(shape_ctrl, 2))),
-           col=c("green", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 0.8)
-
+    plot_surv_data(
+    scale_trmt = scale_trmt,
+    shape_trmt = shape_trmt,
+    scale_ctrl = scale_ctrl,
+    shape_ctrl = shape_ctrl,
+    accrual_time = accrual_time,
+    follow_up_time = follow_up_time,
+    tau = tau,
+    censor_beyond_tau = censor_beyond_tau,
+    loss_scale = loss_scale,
+    loss_shape = loss_shape,
+    n = round(simulation_sample_size/2) # change to analytical sample size
+    )
   }
 
   # plot design curves if requested

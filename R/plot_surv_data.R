@@ -38,7 +38,7 @@
 plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
                            shape_ctrl = 1, parameterization = 1, tau = NULL,
                            xlim = NULL, ylim = c(0, 100), n = NULL,
-                           accrual_time = 0, follow_up_time = NULL,
+                           accrual_time = 0, follow_up_time = Inf,
                            censor_beyond_tau = FALSE, loss_scale = NULL,
                            loss_shape = 1, plot_reverse_KM = FALSE,
                            plot_log_log = FALSE){
@@ -63,7 +63,7 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
 
   if (!is.null(tau) && is.null(xlim)) {xlim <- c(0, 1.5*tau)} # set xlim if undefined
 
-  # plot KM estimator^
+  # plot KM estimator
   par(mar=c(5,6,4,1)+.1)
   plot(survival::survfit(surv_obj~simulated_data$label), mark.time=T,
        conf.int = F, xlab = "t", ylab = expression(hat(S)(t) ~ "in %"),
@@ -81,6 +81,14 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
                    labels = bquote("Time horizon " * tau * " = " * .(tau)))
   }
 
+  # draw design curves
+  curve(pweibull(x, shape = shape_trmt, scale = scale_trmt, lower.tail = FALSE),
+        from = xlim[1], to = xlim[2],
+        add = TRUE, col = "darkblue", lwd = 2, lty = 2)
+  curve(pweibull(x, shape = shape_ctrl, scale = scale_ctrl, lower.tail = FALSE),
+        from = xlim[1], to = xlim[2],
+        add = TRUE, col = "red", lwd = 2, lty = 2)
+
   # create legend
   graphics::legend("topright", legend=c(paste0("Treatment group with \n", "scale = ",
                                                  round(scale_trmt, 2), " and shape = ",
@@ -89,6 +97,7 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
                                                  round(scale_ctrl, 2), " and shape = ",
                                                  round(shape_ctrl, 2))),
                    col=c("darkblue", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 1)
+
 
   # reverse KM
   if (plot_reverse_KM){
@@ -101,10 +110,18 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
 
     # create plot
     plot(survival::survfit(surv_obj_reverse~simulated_data_reverse$label), mark.time=T,
-         conf.int = F, xlab = "t", ylab = "Censure-free observation in %", col = c("red", "darkblue"),
+         conf.int = F, xlab = "t", ylab = "Censure-free observations in %", col = c("red", "darkblue"),
          xlim = xlim, ylim = c(0, 1), lwd = 2, yaxt = "n",
          main = "Reverse Kaplan Meier estimators for treatment and control group")
     axis(2, at = seq(0, 1, by = 0.2), labels = paste0(seq(0, 100, by = 20), "%"))
+
+    # draw reverse design curves
+    # p(uncensored) = p(not lost to FU) X p(not lost to admin)
+    if(!is.null(loss_scale) && !is.null(loss_shape)){
+      p_uncensored <- NULL
+    } else{
+      p_uncensored <- NULL
+    }
 
     # mark tau if defined
     if (!is.null(tau)){ # mark tau if defined
@@ -133,4 +150,16 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
                      col=c("darkblue", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 1)
   }
 
+}
+
+# aux function to calculate probabilty of not being censored by admin censoring
+p_not_censored_admin <- function(x, follow_up_time, accrual){
+  total_time <- follow_up_time + accrual
+  #browser()
+  if(x <= follow_up_time) {
+    return(1)
+  } else if (total_time <= x){
+    return(0)
+  } else
+    return (-x/accrual + (accrual + follow_up_time)/accrual)
 }
