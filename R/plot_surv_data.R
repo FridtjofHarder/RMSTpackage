@@ -152,7 +152,7 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
 
 }
 
-# aux function to calculate probabilty of not being censored by admin censoring
+# aux function to calculate probabilty of not being censored by admin censoring in case of linear accrual
 p_not_censored_admin <- function(x, follow_up_time, accrual){
   total_time <- follow_up_time + accrual
   #browser()
@@ -163,3 +163,13 @@ p_not_censored_admin <- function(x, follow_up_time, accrual){
   } else
     return (-x/accrual + (accrual + follow_up_time)/accrual)
 }
+# same as above, but using npsurvSS functions
+p_not_censored_admin_snpsurvSS <- function(x, follow_up_time, accrual, arm_npsurvSS){
+  return(paccr(arm = arm_npsurvSS, q = x - accrual - follow_up_time))
+}
+
+# aux function to calculate probabilty of not being censored by loss to FU
+p_not_censored_
+# aux function to calculate probabilty of not being censored by either admin or loss to FU
+#
+#

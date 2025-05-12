@@ -15,7 +15,7 @@ plot_surv_data(
   ylim = c(0, 100),
   n = NULL,
   accrual_time = 0,
-  follow_up_time = NULL,
+  follow_up_time = Inf,
   censor_beyond_tau = FALSE,
   loss_scale = NULL,
   loss_shape = 1,
