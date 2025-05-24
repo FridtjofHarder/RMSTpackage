@@ -20,7 +20,8 @@ plot_surv_data(
   loss_scale = NULL,
   loss_shape = 1,
   plot_reverse_KM = FALSE,
-  plot_log_log = FALSE
+  plot_log_log = FALSE,
+  plot_extended
 )
 }
 \arguments{
@@ -58,6 +59,8 @@ plot_surv_data(
 \item{plot_reverse_KM}{Boolean. Will plot a reverse KM curve if  \code{c(TRUE)}.}
 
 \item{plot_log_log}{Boolean. Will plot a log-log plot for assessing proportionality of hazards if \code{c(TRUE)}.}
+
+\item{plot_extended}{Boolean. Will produce extended plots (..)}
 }
 \description{
 Plots example survival data
@@ -69,8 +72,9 @@ scale_ctrl = 1,
 accrual_time = 1,
 follow_up_time = 10,
 tau = 1,
-loss_scale = 1,
+loss_scale = 0.2,
 n = 100,
 plot_reverse_KM = TRUE,
-plot_log_log = FALSE)
+plot_log_log = TRUE,
+plot_extended = TRUE)
 }

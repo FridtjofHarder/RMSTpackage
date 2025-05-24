@@ -21,6 +21,7 @@
 #' @param loss_shape Shape of Weibull distributed loss to follow-up.
 #' @param plot_reverse_KM Boolean. Will plot a reverse KM curve if  \code{c(TRUE)}.
 #' @param plot_log_log Boolean. Will plot a log-log plot for assessing proportionality of hazards if \code{c(TRUE)}.
+#' @param plot_extended Boolean. Will produce extended plots (..)
 #'
 #' @export
 #'
@@ -31,17 +32,19 @@
 #' accrual_time = 1,
 #' follow_up_time = 10,
 #' tau = 1,
-#' loss_scale = 1,
+#' loss_scale = 0.2,
 #' n = 100,
 #' plot_reverse_KM = TRUE,
-#' plot_log_log = FALSE)
+#' plot_log_log = TRUE,
+#' plot_extended = TRUE)
 plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
                            shape_ctrl = 1, parameterization = 1, tau = NULL,
                            xlim = NULL, ylim = c(0, 100), n = NULL,
                            accrual_time = 0, follow_up_time = Inf,
                            censor_beyond_tau = FALSE, loss_scale = NULL,
                            loss_shape = 1, plot_reverse_KM = FALSE,
-                           plot_log_log = FALSE){
+                           plot_log_log = FALSE,
+                           plot_extended){
 
   # create data_frame_ctrl
   data_frame_ctrl <- simulate_data(scale = scale_ctrl, shape = shape_ctrl,
@@ -108,7 +111,7 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
     surv_obj_reverse <- survival::Surv(time = simulated_data_reverse$observations,
                                event = simulated_data_reverse$status)
 
-    # create plot
+    # create plot reverse KM
     plot(survival::survfit(surv_obj_reverse~simulated_data_reverse$label), mark.time=T,
          conf.int = F, xlab = "t", ylab = "Censure-free observations in %", col = c("red", "darkblue"),
          xlim = xlim, ylim = c(0, 1), lwd = 2, yaxt = "n",
@@ -149,27 +152,89 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
                                                  round(shape_ctrl, 2))),
                      col=c("darkblue", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 1)
   }
+  browser()
+  # define arms in npsurvSS
+  arm_npsurvSS_0 <- npsurvSS::create_arm(size = 1,
+                                         accr_time = accrual_time,
+                                         follow_time = follow_up_time,
+                                         surv_scale = 1/scale_ctrl,
+                                         surv_shape = shape_ctrl,
+                                         loss_scale = loss_scale,
+                                         loss_shape = loss_shape)
+  arm_npsurvSS_1 <- npsurvSS::create_arm(size = 1,
+                                         accr_time = accrual_time,
+                                         follow_time = follow_up_time,
+                                         surv_scale = 1/scale_trmt,
+                                         surv_shape = shape_trmt,
+                                         loss_scale = loss_scale,
+                                         loss_shape = loss_shape)
+
+  if(plot_extended){
+    # admin censoring
+    curve(p_not_censored_admin_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_0),
+         xlim = c(0, follow_up_time + accrual_time),
+         ylim = c(0, 1),
+         xlab = "t", ylab = "proportion remaining in %",
+         main = "Extended plot differentiating causes for censoring",
+         lwd = 2, col = "lightgrey"
+         )
+    # pts not lost to lost to FU
+    curve(npsurvSS::ploss(q = x, arm = arm_npsurvSS_0, lower.tail = FALSE),
+          xlim = c(0, follow_up_time + accrual_time),
+          ylim = c(0, 1),
+          xlab = "t", ylab = "proportion remaining in %",
+          lwd = 2, col = "darkgrey",
+          add = TRUE
+          )
+    # pts not lost to censoring
+    curve(p_not_being_censored_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_0),
+          xlim = c(0, follow_up_time + accrual_time),
+          ylim = c(0, 1),
+          xlab = "t", ylab = "proportion remaining in %",
+          lwd = 2, col = "black",
+          add = TRUE)
+
+    # pts not lost to neither censoring nor event ctrl
+    curve(p_neither_censored_nor_event_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_0),
+          xlim = c(0, follow_up_time + accrual_time),
+          ylim = c(0, 1),
+          xlab = "t", ylab = "proportion remaining in %",
+          lwd = 2, col = "#EA95BA",
+          add = TRUE)
+
+    # pts not lost to neither censoring nor event trmt
+    curve(p_neither_censored_nor_event_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_1),
+          xlim = c(0, follow_up_time + accrual_time),
+          ylim = c(0, 1),
+          xlab = "t", ylab = "proportion remaining in %",
+          lwd = 2, col = "steelblue1",
+          add = TRUE)
+
+    curve(pweibull(x, shape = shape_trmt, scale = scale_trmt, lower.tail = FALSE),
+          xlim = c(0, follow_up_time + accrual_time),
+          ylim = c(0, 1),
+          add = TRUE, col = "blue", lwd = 2)
+    curve(pweibull(x, shape = shape_ctrl, scale = scale_ctrl, lower.tail = FALSE),
+          xlim = c(0, follow_up_time + accrual_time),
+          ylim = c(0, 1),
+          add = TRUE, col = "red", lwd = 2)
+  }
 
 }
 
 # aux function to calculate probabilty of not being censored by admin censoring in case of linear accrual
-p_not_censored_admin <- function(x, follow_up_time, accrual){
-  total_time <- follow_up_time + accrual
-  #browser()
-  if(x <= follow_up_time) {
-    return(1)
-  } else if (total_time <= x){
-    return(0)
-  } else
-    return (-x/accrual + (accrual + follow_up_time)/accrual)
-}
-# same as above, but using npsurvSS functions
-p_not_censored_admin_snpsurvSS <- function(x, follow_up_time, accrual, arm_npsurvSS){
-  return(paccr(arm = arm_npsurvSS, q = x - accrual - follow_up_time))
+p_not_censored_admin_npsurvSS <- function(x, arm_npsurvSS){
+  return(paccr(arm = arm_npsurvSS, q = arm_npsurvSS$total_time - x))
 }
 
-# aux function to calculate probabilty of not being censored by loss to FU
-p_not_censored_
+# aux function to calculate probabilty of not being censored
+p_not_being_censored_npsurvSS <- function(x, arm_npsurvSS){
+  return(paccr(arm = arm_npsurvSS, q = arm_npsurvSS$total_time - x) *
+    npsurvSS::ploss(q = x, arm = arm_npsurvSS, lower.tail = FALSE))
+}
 # aux function to calculate probabilty of not being censored by either admin or loss to FU
-#
-#
+p_neither_censored_nor_event_npsurvSS <- function(x, arm_npsurvSS){
+  return(paccr(arm = arm_npsurvSS, q = arm_npsurvSS$total_time - x) *
+           npsurvSS::ploss(q = x, arm = arm_npsurvSS, lower.tail = FALSE) *
+           npsurvSS::psurv(q = x, arm = arm_npsurvSS, lower.tail = FALSE))
+}
