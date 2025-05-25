@@ -171,70 +171,67 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
 
   if(plot_extended){
     # admin censoring
-    curve(p_not_censored_admin_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_0),
+    curve(100 * p_not_censored_admin_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_0),
          xlim = c(0, follow_up_time + accrual_time),
-         ylim = c(0, 1),
-         xlab = "t", ylab = "proportion remaining in %",
+         ylim = c(0, 100),
+         xlab = "t", ylab = "Proportion remaining in %",
          main = "Extended plot differentiating causes for censoring",
          lwd = 2, col = "lightgrey"
          )
     # pts not lost to lost to FU
-    curve(npsurvSS::ploss(q = x, arm = arm_npsurvSS_0, lower.tail = FALSE),
-          xlim = c(0, follow_up_time + accrual_time),
-          ylim = c(0, 1),
-          xlab = "t", ylab = "proportion remaining in %",
+    curve(100 * npsurvSS::ploss(q = x, arm = arm_npsurvSS_0, lower.tail = FALSE),
           lwd = 2, col = "darkgrey",
           add = TRUE
           )
     # pts not lost to censoring
-    curve(p_not_being_censored_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_0),
-          xlim = c(0, follow_up_time + accrual_time),
-          ylim = c(0, 1),
-          xlab = "t", ylab = "proportion remaining in %",
+    curve(100 * p_not_being_censored_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_0),
           lwd = 2, col = "black",
           add = TRUE)
 
     # pts not lost to neither censoring nor event ctrl
-    curve(p_neither_censored_nor_event_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_0),
-          xlim = c(0, follow_up_time + accrual_time),
-          ylim = c(0, 1),
-          xlab = "t", ylab = "proportion remaining in %",
+    curve(100 * p_neither_censored_nor_event_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_0),
           lwd = 2, col = "#EA95BA",
           add = TRUE)
 
     # pts not lost to neither censoring nor event trmt
-    curve(p_neither_censored_nor_event_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_1),
-          xlim = c(0, follow_up_time + accrual_time),
-          ylim = c(0, 1),
-          xlab = "t", ylab = "proportion remaining in %",
+    curve(100 * p_neither_censored_nor_event_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_1),
           lwd = 2, col = "steelblue1",
           add = TRUE)
 
-    curve(pweibull(x, shape = shape_trmt, scale = scale_trmt, lower.tail = FALSE),
-          xlim = c(0, follow_up_time + accrual_time),
-          ylim = c(0, 1),
-          add = TRUE, col = "blue", lwd = 2)
-    curve(pweibull(x, shape = shape_ctrl, scale = scale_ctrl, lower.tail = FALSE),
-          xlim = c(0, follow_up_time + accrual_time),
-          ylim = c(0, 1),
+    curve(100 * pweibull(x, shape = shape_ctrl, scale = scale_ctrl, lower.tail = FALSE),
           add = TRUE, col = "red", lwd = 2)
+
+    curve(100 * pweibull(x, shape = shape_trmt, scale = scale_trmt, lower.tail = FALSE),
+          add = TRUE, col = "darkblue", lwd = 2)
+
+    graphics::legend("topright",
+                     legend=c("Share not lost to admnistrative censoring",
+                              "Share not lost to FU",
+                              "Share lost neither to FU nor to administrative censoring",
+                              "Share in control group lost to neither events nor to censoring",
+                              "Share in treatment group lost to neither events nor to censoring",
+                              "Survival in control group",
+                              "Survival in treatment group"),
+                     col=c("lightgrey", "darkgrey", "black", "#EA95BA",
+                           "steelblue1", "red", "darkblue"),
+                     lty=1:1, y.intersp = 1.5, bty = "n", cex = 1)
   }
 
 }
 
 # aux function to calculate probabilty of not being censored by admin censoring in case of linear accrual
 p_not_censored_admin_npsurvSS <- function(x, arm_npsurvSS){
-  return(paccr(arm = arm_npsurvSS, q = arm_npsurvSS$total_time - x))
+  return(npsurvSS::paccr(arm = arm_npsurvSS, q = arm_npsurvSS$total_time - x))
 }
 
 # aux function to calculate probabilty of not being censored
 p_not_being_censored_npsurvSS <- function(x, arm_npsurvSS){
-  return(paccr(arm = arm_npsurvSS, q = arm_npsurvSS$total_time - x) *
+  return(npsurvSS::paccr(arm = arm_npsurvSS, q = arm_npsurvSS$total_time - x) *
     npsurvSS::ploss(q = x, arm = arm_npsurvSS, lower.tail = FALSE))
 }
 # aux function to calculate probabilty of not being censored by either admin or loss to FU
 p_neither_censored_nor_event_npsurvSS <- function(x, arm_npsurvSS){
-  return(paccr(arm = arm_npsurvSS, q = arm_npsurvSS$total_time - x) *
+  return(npsurvSS::paccr(arm = arm_npsurvSS, q = arm_npsurvSS$total_time - x) *
            npsurvSS::ploss(q = x, arm = arm_npsurvSS, lower.tail = FALSE) *
            npsurvSS::psurv(q = x, arm = arm_npsurvSS, lower.tail = FALSE))
 }
