@@ -17,7 +17,8 @@ calculate_sample_size(
   one_sided_alpha = 0.025,
   power = 0.8,
   margin_cox = 1,
-  margin_rmst = 0,
+  margin_RMSTD = 0,
+  margin_RMSTR = 1,
   RMSTD_closed_form = FALSE,
   RMSTR_closed_form = FALSE,
   RMSTD_simulation = FALSE,
@@ -60,7 +61,9 @@ calculate_sample_size(
 
 \item{margin_cox}{Non-inferiority margin for Cox regression. \code{margin_cox} \eqn{=1} simplifies to superiority test.}
 
-\item{margin_rmst}{Non-inferiority margin for RMST difference. \code{margin_rmst} \eqn{=0} simplifies to superiority test.}
+\item{margin_RMSTD}{Non-inferiority margin for RMST difference. \code{margin_RMSTD} \eqn{=0} simplifies to superiority test.}
+
+\item{margin_RMSTR}{Non-inferiority margin for RMST ratio. \code{margin_RMSTR} \eqn{=1} simplifies to superiority test.}
 
 \item{RMSTD_closed_form}{MISSING}
 

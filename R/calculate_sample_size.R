@@ -24,8 +24,9 @@
 #' @param tau A scalar \eqn{>0} specifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
 #' @param sides Sidedness of inference test, either \code{1} or \code{2}.
 #' @param power Test power with \code{power} \eqn{=1-\beta}.
+#' @param margin_RMSTD Non-inferiority margin for RMST difference. \code{margin_RMSTD} \eqn{=0} simplifies to superiority test.
+#' @param margin_RMSTR Non-inferiority margin for RMST ratio. \code{margin_RMSTR} \eqn{=1} simplifies to superiority test.
 #' @param margin_cox Non-inferiority margin for Cox regression. \code{margin_cox} \eqn{=1} simplifies to superiority test.
-#' @param margin_rmst Non-inferiority margin for RMST difference. \code{margin_rmst} \eqn{=0} simplifies to superiority test.
 #' @param M Positive Integer. Number of iterations when running simulation.
 #' @param plot_design_curves Boolean. Specifies whether to plot survival curves.
 #' @param plot_example_data Boolean. Specifies whether to create a plot with example data .
@@ -73,7 +74,8 @@ calculate_sample_size <- function(scale_trmt,
                                   one_sided_alpha = 0.025,
                                   power = 0.8,
                                   margin_cox = 1,
-                                  margin_rmst = 0,
+                                  margin_RMSTD = 0,
+                                  margin_RMSTR = 1,
                                   RMSTD_closed_form = FALSE,
                                   RMSTR_closed_form = FALSE,
                                   RMSTD_simulation = FALSE,
@@ -137,26 +139,28 @@ calculate_sample_size <- function(scale_trmt,
                                       sample_size = round(simulation_sample_size/2),
                                       label = 1) # arm 1 = trmt
       simulated_data <- rbind(simulated_data,
-                               simulate_data(scale = scale_ctrl,
-                               shape = scale_ctrl,
-                               accrual_time = accrual_time,
-                               follow_up_time = follow_up_time,
-                               loss_scale = loss_scale, # loss is assumed to follow Weibull
-                               loss_shape = loss_shape,
-                               sample_size = round(simulation_sample_size/2),
-                               label = 0)) # arm 0 = ctrl
-      # determine whether testing for RMSTD turns out positive
-      if(RMSTD_simulation){
-      # handle large tau by limiting tau to minmax observation
+                              simulate_data(scale = scale_ctrl,
+                                            shape = scale_ctrl,
+                                            accrual_time = accrual_time,
+                                            follow_up_time = follow_up_time,
+                                            loss_scale = loss_scale, # loss is assumed to follow Weibull
+                                            loss_shape = loss_shape,
+                                            sample_size = round(simulation_sample_size/2),
+                                            label = 0)) # arm 0 = ctrl
+      # determine whether testing for RMSTD and RMSTR turns out positive
+      if(RMSTD_simulation || RMSTR_simulation){
+        # handle large tau by limiting tau to minmax observation
         if(min(max(simulated_data$observations[simulated_data$label == 0]),
                max(simulated_data$observations[simulated_data$label == 1])) < tau){
           tau <- min(max(simulated_data$observations[simulated_data$label == 0]),
                      max(simulated_data$observations[simulated_data$label == 1]))
         }
         result <-  survRM2::rmst2(simulated_data$observations, simulated_data$status, simulated_data$label, tau = tau,
-                         alpha = one_sided_alpha * 2)$unadjusted.result
-        lower <-  result[1, 2]
-        RMSTD_simul_results[i] <- as.numeric(lower > -margin_rmst)
+                                  alpha = one_sided_alpha * 2)$unadjusted.result
+        lower_RMSTD <-  result[1, 2]
+        lower_RMSTR <-  result[2, 2]
+        RMSTD_simul_results[i] <- as.numeric(lower > margin_RMSTD)
+        RMSTR_simul_results[i] <- as.numeric(lower > margin_RMSTR)
       }
       # determine whether testing for cox_ph turns out positive
       if(cox_ph_simulation){
@@ -165,11 +169,12 @@ calculate_sample_size <- function(scale_trmt,
         }
         fit <- survival::coxph(survival::Surv(observations, status) ~ label, data = simulated_data)
         cox_ph_simul_results[i] <-
-          as.numeric(summary(fit)$conf.int[, 'upper .95'] < 1)
+          as.numeric(summary(fit)$conf.int[, 'upper .95'] < margin_cox)
       }
 
     }
     power_RMSTD_simulated <- sum(RMSTD_simul_results)/M
+    power_RMSTR_simulated <- sum(RMSTR_simul_results)/M
     power_cox_ph_simulated <- sum(cox_ph_simul_results)/M
   }
 
@@ -229,27 +234,27 @@ calculate_sample_size <- function(scale_trmt,
 
   sample_size_closed_form <-
     npsurvSS::size_two_arm(
-    arm0 = arm_trmt_npsurvSS,
-    arm1 = arm_ctrl_npsurvSS,
-    list(test = "rmst difference", milestone = tau),
-    power = power,
-    alpha = sides * one_sided_alpha,
-    sides = 1)
+      arm0 = arm_trmt_npsurvSS,
+      arm1 = arm_ctrl_npsurvSS,
+      list(test = "rmst difference", milestone = tau),
+      power = power,
+      alpha = sides * one_sided_alpha,
+      sides = 1)
 
   # plot example data if requested
   if(plot_example_data){
     plot_surv_data(
-    scale_trmt = scale_trmt,
-    shape_trmt = shape_trmt,
-    scale_ctrl = scale_ctrl,
-    shape_ctrl = shape_ctrl,
-    accrual_time = accrual_time,
-    follow_up_time = follow_up_time,
-    tau = tau,
-    censor_beyond_tau = censor_beyond_tau,
-    loss_scale = loss_scale,
-    loss_shape = loss_shape,
-    n = round(simulation_sample_size/2) # change to analytical sample size
+      scale_trmt = scale_trmt,
+      shape_trmt = shape_trmt,
+      scale_ctrl = scale_ctrl,
+      shape_ctrl = shape_ctrl,
+      accrual_time = accrual_time,
+      follow_up_time = follow_up_time,
+      tau = tau,
+      censor_beyond_tau = censor_beyond_tau,
+      loss_scale = loss_scale,
+      loss_shape = loss_shape,
+      n = round(simulation_sample_size/2) # change to analytical sample size
     )
   }
 
@@ -257,25 +262,29 @@ calculate_sample_size <- function(scale_trmt,
   if(plot_design_curves){
     x <- NULL
     graphics::curve(stats::pweibull(x, scale = scale_trmt, shape = shape_trmt, lower.tail = FALSE),
-          col = "green", xlab = "t", ylab = "S(t)", ylim = c(0, 1), xlim = c(0, 1.5*tau))
+                    col = "green", xlab = "t", ylab = "S(t)", ylim = c(0, 1), xlim = c(0, 1.5*tau))
     graphics::curve(stats::pweibull(x, scale = scale_ctrl, shape = shape_ctrl, lower.tail = FALSE),
-          col = "red", add = TRUE)
+                    col = "red", add = TRUE)
     graphics::abline(v = tau, col = "blue")
     graphics::text(x = tau, y = 0.1, pos = 4, labels = bquote("time horizon " * tau * " = " * .(tau)))
     graphics::legend("bottomleft", legend=c(paste0("treatment group with \n", "scale =",
-                                         round(scale_trmt, 2), " and shape =",
-                                         round(shape_trmt, 2)),
-                                  paste0("control group with \n", "scale =",
-                                         round(scale_ctrl, 2), " and shape =",
-                                         round(shape_ctrl, 2))),
-           col=c("green", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 0.8)
+                                                   round(scale_trmt, 2), " and shape =",
+                                                   round(shape_trmt, 2)),
+                                            paste0("control group with \n", "scale =",
+                                                   round(scale_ctrl, 2), " and shape =",
+                                                   round(shape_ctrl, 2))),
+                     col=c("green", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 0.8)
 
   }
   result <- list("RMSTD power determined by simulation" = power_RMSTD_simulated,
+                 "RMSTR power determined by simulation" = power_RMSTR_simulated,
                  "Cox PH power determined by simulation" = power_cox_ph_simulated,
                  "sample size determined by closed-form solution" = sample_size_closed_form)
   return(result)
 
-  }
+}
+
+
+
 
 

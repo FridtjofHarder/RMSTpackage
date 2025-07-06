@@ -44,7 +44,7 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
                            censor_beyond_tau = FALSE, loss_scale = NULL,
                            loss_shape = 1, plot_reverse_KM = FALSE,
                            plot_log_log = FALSE,
-                           plot_extended){
+                           plot_extended = FALSE){
 
   # create data_frame_ctrl
   data_frame_ctrl <- simulate_data(scale = scale_ctrl, shape = shape_ctrl,
@@ -118,6 +118,12 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
          main = "Reverse Kaplan Meier estimators for treatment and control group")
     axis(2, at = seq(0, 1, by = 0.2), labels = paste0(seq(0, 100, by = 20), "%"))
 
+    text(x = par("usr")[2] - 0.01,
+         y = par("usr")[4] - 0.01,
+         labels = "+ indicates event",
+         adj = c(1, 1),
+         cex = 0.9)
+
     # draw reverse design curves
     # p(uncensored) = p(not lost to FU) X p(not lost to admin)
     if(!is.null(loss_scale) && !is.null(loss_shape)){
@@ -152,7 +158,7 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
                                                  round(shape_ctrl, 2))),
                      col=c("darkblue", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 1)
   }
-  browser()
+  #browser()
   # define arms in npsurvSS
   arm_npsurvSS_0 <- npsurvSS::create_arm(size = 1,
                                          accr_time = accrual_time,

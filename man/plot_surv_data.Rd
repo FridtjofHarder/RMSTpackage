@@ -21,7 +21,7 @@ plot_surv_data(
   loss_shape = 1,
   plot_reverse_KM = FALSE,
   plot_log_log = FALSE,
-  plot_extended
+  plot_extended = FALSE
 )
 }
 \arguments{
