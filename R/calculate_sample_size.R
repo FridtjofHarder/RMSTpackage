@@ -178,11 +178,19 @@ calculate_sample_size <- function(scale_trmt,
     power_cox_ph_simulated <- sum(cox_ph_simul_results)/M
   }
 
-  # sample size RMSTD by closed form. CHECK AGAIN!!!!!!!!!!!!
+  # sample size RMSTD by closed form
   scale_trmt_npsurvSS <- 1 / scale_trmt
   scale_ctrl_npsurvSS <- 1 / scale_ctrl
 
-  browser()
+  rmst_ctrl <- s
+  rmst_trmt <-
+
+  theoretical_rmst <- function(x, arm) {
+    stats::integrate(function(y) psurv(y, arm, lower.tail=F),
+                     lower=0,
+                     upper=x)$value
+  }
+
 
   # get RMST_ctrl and RMST_trmt
   RMST_trmt <- stats::integrate(
