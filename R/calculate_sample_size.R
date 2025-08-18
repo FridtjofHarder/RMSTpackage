@@ -62,6 +62,8 @@
 #' M = 100,
 #' simulation_sample_size = 100)
 #'
+#'
+
 calculate_sample_size <- function(scale_trmt,
                                   shape_trmt = 1,
                                   scale_ctrl,
@@ -123,7 +125,7 @@ calculate_sample_size <- function(scale_trmt,
     scale_trmt <- 1/scale_trmt
     scale_ctrl <- 1/scale_ctrl
   }
-
+  # simulations  --------------------------------------------------------
   # simulate trial if simulations requested
   if(RMSTD_simulation || RMSTR_simulation || cox_ph_simulation){
     if(RMSTD_simulation) {RMSTD_simul_results <- rep(0, M)}
@@ -177,87 +179,19 @@ calculate_sample_size <- function(scale_trmt,
     power_RMSTR_simulated <- sum(RMSTR_simul_results)/M
     power_cox_ph_simulated <- sum(cox_ph_simul_results)/M
   }
-
+  # closed form ----------------------------------------------------------------
   # sample size RMSTD by closed form
-  scale_trmt_npsurvSS <- 1 / scale_trmt
-  scale_ctrl_npsurvSS <- 1 / scale_ctrl
 
-  rmst_ctrl <- s
-  rmst_trmt <-
-
-  theoretical_rmst <- function(x, arm) {
-    stats::integrate(function(y) psurv(y, arm, lower.tail=F),
-                     lower=0,
-                     upper=x)$value
+  if (RMSTD_closed_form){
+    ss_closed_form <- get_ss_cf(sides = 2, power = 0.8, alpha = 0.05, scale_ctrl = scale_ctrl,
+                                shape_ctrl = shape_ctrl, scale_trmt = scale_trmt,
+                                shape_trmt = shape_trmt, tau = tau,
+                                loss_scale = loss_scale, loss_shape = loss_shape,
+                                follow_up_time = follow_up_time,
+                                accrual_time = accrual_time)
   }
 
-
-  # get RMST_ctrl and RMST_trmt
-  RMST_trmt <- stats::integrate(
-    stats::pweibull,
-    shape = shape_trmt,
-    scale = scale_trmt,
-    lower = 0,
-    upper = tau,
-    lower.tail = F
-  )$value
-
-  RMST_ctrl <- stats::integrate(
-    stats::pweibull,
-    shape = shape_trmt,
-    scale = scale_ctrl,
-    lower = 0,
-    upper = tau,
-    lower.tail = F
-  )$value
-
-  RMSTD <- RMST_trmt - RMST_ctrl
-
-  # get variance. Surv_shape muss noch angepasst werden...?!!!!!!!!!!!!!!! Erst einmal auf 1 setzen
-  arm_npsurvSS_trmt <- npsurvSS::create_arm(size = 1,
-                                            accr_time = accrual_time,
-                                            surve_shape = 1,
-                                            surve_scale = )
-  arm_npsurvSS_ctrl <- npsurvSS::create_arm()
-  sigma2  <- npsurvSS:::sigma2j_rmst(arm0 = arm_npsurvSS_ctrl, milestone = tau) / 0.5
-  + npsurvSS:::sigma2j_rmst(arm1 = arm_npsurvSS_trmt, milestone = tau) / 0.5
-
-  sample_size_closed_form <- ( sqrt(sigma2) * stats::qnorm(1 - alpha / sides) +
-                                 sqrt(design$tsigma2) * stats::qnorm(power) )^2 /
-    design$delta^2 *
-    c(p0, p1)
-
-  # preliminary: sample size via npsurvSS
-  arm_trmt_npsurvSS <- npsurvSS::create_arm(
-    size = 1,
-    accr_time = accrual_time,
-    surv_shape = shape_trmt,
-    surv_scale = scale_trmt,
-    loss_shape = loss_shape,
-    loss_scale = loss_scale,
-    follow_time = follow_up_time
-  )
-
-  arm_ctrl_npsurvSS <- npsurvSS::create_arm(
-    size = 1,
-    accr_time = accrual_time,
-    surv_shape = shape_ctrl,
-    surv_scale = scale_ctrl,
-    loss_shape = loss_shape,
-    loss_scale = loss_scale,
-    follow_time = follow_up_time
-  )
-
-  sample_size_closed_form <-
-    npsurvSS::size_two_arm(
-      arm0 = arm_trmt_npsurvSS,
-      arm1 = arm_ctrl_npsurvSS,
-      list(test = "rmst difference", milestone = tau),
-      power = power,
-      alpha = sides * one_sided_alpha,
-      sides = 1)
-
-  # plot example data if requested
+  # plot example data if requested ---------------------------------------------
   if(plot_example_data){
     plot_surv_data(
       scale_trmt = scale_trmt,
@@ -290,6 +224,8 @@ calculate_sample_size <- function(scale_trmt,
                                                    round(scale_ctrl, 2), " and shape =",
                                                    round(shape_ctrl, 2))),
                      col=c("green", "red"), lty=1:1, y.intersp = 1.5, bty = "n", cex = 0.8)
+    # plot hazard and hazard ratio
+
 
   }
   result <- list("RMSTD power determined by simulation" = power_RMSTD_simulated,
@@ -299,6 +235,7 @@ calculate_sample_size <- function(scale_trmt,
   return(result)
 
 }
+
 
 
 

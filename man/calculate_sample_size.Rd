@@ -118,6 +118,7 @@ loss_scale = 1,
 M = 100,
 simulation_sample_size = 100)
 
+
 }
 \references{
 Yung, G., & Liu, Y. (2020). Sample size and power for the weighted log-rank test and Kaplan-Meier based tests with allowance for
