@@ -90,13 +90,13 @@ arm_trmt <- npsurvSS::create_arm(size=1,
 )
 
 arm_ctrl <- npsurvSS::create_arm(size=1,
-                      accr_time = accrual_time,
-                      follow_time = follow_up_time,
-                      surv_scale = 1 / scale_ctrl,
-                      surv_shape = shape_ctrl,
-                      loss_scale = 1 / loss_scale,
-                      loss_shape = loss_shape
-                      )
+                                 accr_time = accrual_time,
+                                 follow_time = follow_up_time,
+                                 surv_scale = 1 / scale_ctrl,
+                                 surv_shape = shape_ctrl,
+                                 loss_scale = 1 / loss_scale,
+                                 loss_shape = loss_shape
+)
 
 # get sigma2 -------------------------------------------------------------------
 # compare sigma2
@@ -117,7 +117,7 @@ arm_ctrl <- npsurvSS::create_arm(size=1,
 
 # get n ------------------------------------------------------------------------
 npsurvSS::size_two_arm(arm_ctrl, arm_trmt, list(test="rmst difference", milestone=tau),
-             sides = 2, alpha = .05) # npsurvSS native
+                       sides = 2, alpha = .05) # npsurvSS native
 
 theoretical_delta <- get_theoretical_rmst(tau = tau, scale = scale_trmt, shape = shape_trmt) -
   get_theoretical_rmst(tau = tau, scale = scale_ctrl, shape = shape_ctrl) # get Delta from indivual RMSTs
