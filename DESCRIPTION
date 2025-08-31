@@ -13,7 +13,6 @@ BugReports: https://github.com/FridtjofHarder/RMSTpackage/issues
 Imports: 
     knitr,
     npsurvSS,
-    stats,
     survival,
     survRM2
 Suggests: 

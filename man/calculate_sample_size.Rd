@@ -25,7 +25,7 @@ calculate_sample_size(
   RMSTR_simulation = FALSE,
   cox_ph_simulation = FALSE,
   censor_beyond_tau = FALSE,
-  M = 100,
+  M = 1000,
   simulation_sample_size,
   plot_design_curves = TRUE,
   plot_example_data = TRUE,
@@ -106,19 +106,20 @@ may be censored if desired.
 }
 \examples{
 calculate_sample_size(
-scale_trmt = 1.4,
-scale_ctrl = 1,
-accrual_time = 1,
-follow_up_time = 10,
-tau = 1,
-RMSTD_simulation = TRUE,
-RMSTR_simulation = TRUE,
-cox_ph_simulation = TRUE,
-loss_scale = 1,
-M = 100,
-simulation_sample_size = 100)
-
-
+  scale_trmt = 1.4,
+  scale_ctrl = 1,
+  accrual_time = 1,
+  follow_up_time = 10,
+  tau = 1,
+  RMSTD_simulation = TRUE,
+  RMSTR_simulation = TRUE,
+  cox_ph_simulation = TRUE,
+  RMSTD_closed_form = TRUE,
+  RMSTR_closed_form = TRUE,
+  loss_scale = 1,
+  M = 100,
+  simulation_sample_size = 100
+)
 }
 \references{
 Yung, G., & Liu, Y. (2020). Sample size and power for the weighted log-rank test and Kaplan-Meier based tests with allowance for

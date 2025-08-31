@@ -58,9 +58,10 @@ Draws survival curves and marks time horizon tau
 }
 \examples{
 plot_curves(
-scale_trmt = 1.4,
-scale_ctrl = 1,
-accrual_time = 1,
-follow_up_time = 10,
-tau = 1)
+  scale_trmt = 1.4,
+  scale_ctrl = 1,
+  accrual_time = 1,
+  follow_up_time = 10,
+  tau = 1
+)
 }

@@ -67,14 +67,15 @@ Plots example survival data
 }
 \examples{
 plot_surv_data(
-scale_trmt = 1.4,
-scale_ctrl = 1,
-accrual_time = 1,
-follow_up_time = 10,
-tau = 1,
-loss_scale = 0.2,
-n = 100,
-plot_reverse_KM = TRUE,
-plot_log_log = TRUE,
-plot_extended = TRUE)
+  scale_trmt = 1.4,
+  scale_ctrl = 1,
+  accrual_time = 1,
+  follow_up_time = 10,
+  tau = 1,
+  loss_scale = 0.2,
+  n = 100,
+  plot_reverse_KM = TRUE,
+  plot_log_log = TRUE,
+  plot_extended = TRUE
+)
 }
