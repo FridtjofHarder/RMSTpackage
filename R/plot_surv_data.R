@@ -208,7 +208,7 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
                     lwd = 2, col = "lightgrey"
     )
     # pts not lost to FU
-    if (is.null(loss_scale)) abline(h = 100, col = "darkgrey", lwd = 2) else {
+    if (is.null(loss_scale)) graphics::abline(h = 100, col = "darkgrey", lwd = 2) else {
     graphics::curve(100 *  stats::pweibull(
       q = x,
       shape = loss_shape,

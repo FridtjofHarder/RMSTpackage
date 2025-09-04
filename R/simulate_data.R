@@ -103,7 +103,7 @@ simulate_data <- function(scale,
   # plot KM curve if requested
   if (plot_data) {
     surv_obj <- survival::Surv(time = observations, event = status)
-    plot(survival::survfit(surv_obj ~ 1), mark.time = T, conf.int = F, xlab = "t", ylab = "S(t)")
+    plot(survival::survfit(surv_obj ~ 1), mark.time = T, conf.int = F, xlab = "t", ylab = expression(hat(S)(t)))
   }
 
   # produce recruitment plot if requested
@@ -126,7 +126,7 @@ simulate_data <- function(scale,
     plot(
       x = df_sorted$recruitment, y = 1:sample_size_plot,
       xlim = xlim, ylim = c(0, sample_size_plot),
-      xlab = "study time", ylab = "participants ordered by entry into study"
+      xlab = "Study time", ylab = "Participants ordered by entry into study"
     )
     graphics::title("Individual observation trails in study time")
     graphics::segments(
