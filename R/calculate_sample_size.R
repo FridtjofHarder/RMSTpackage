@@ -4,7 +4,7 @@
 #' Sample size and test power can be determined either analytically or by simulation.
 #'
 #'
-#' Sample size and power determination for both superiory and non-inferiority analysis are supported.
+#' Sample size and power determination for both superiority and non-inferiority analysis are supported.
 #' Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterization
 #' defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. Sample size and power
 #' can be determined for either Cox regression or RMST-based methods (test for RMST difference and RMST ratio).
@@ -41,7 +41,7 @@
 #' @param loss_scale Scale of Weibull distributed loss to follow-up.
 #' @param loss_shape Shape of Weibull distributed loss to follow-up.
 #'
-#' @return Returns a list with sample size and a test power.
+#' @return Returns a list with total sample size in both samples combined and a test power.
 #'
 #' @export
 #' @references
@@ -329,6 +329,28 @@ calculate_sample_size <- function(scale_trmt,
     "Cox PH power determined by simulation" = power_cox_ph_simulated,
     "sample size determined by closed-form solution" = ss_closed_form
   )
+
+  # npsurvSS delete later
+
+  arm_trmt_npsurvSS <- npsurvSS::create_arm(size = 1,
+                                            accr_time = accrual_time,
+                                            follow_time = follow_up_time,
+                                            surv_scale = 1 / scale_trmt,
+                                            surv_shape = shape_trmt,
+                                            loss_scale = 1 / loss_scale,
+                                            loss_shape = loss_shape)
+  arm_ctrl_npsurvSS <- npsurvSS::create_arm(size = 1,
+                                            accr_time = accrual_time,
+                                            follow_time = follow_up_time,
+                                            surv_scale = 1 / scale_ctrl,
+                                            surv_shape = shape_ctrl,
+                                            loss_scale = 1 / loss_scale,
+                                            loss_shape = loss_shape)
+  n_npsurvSS <- npsurvSS::size_two_arm(arm0 = arm_trmt_npsurvSS,
+                             arm1 = arm_ctrl_npsurvSS,
+                             list(test="rmst difference", milestone=tau))[1]
+  print(paste("n as calculated by npsurvSS is", n_npsurvSS))
+
   return(result)
 }
 

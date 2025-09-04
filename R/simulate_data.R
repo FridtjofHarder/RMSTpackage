@@ -115,13 +115,17 @@ simulate_data <- function(scale,
       indices <- round(seq(from = 1, to = sample_size, length.out = 100))
       sample_size_plot <- 100
     }
-    recruitment <- (total_time - admin_loss)[indices] # recruitment time in study time
+    if (total_time == Inf) xlim <- c(0, max(observations)) else {
+      xlim <- c(0, total_time)
+    }
+    if (follow_up_time == Inf) recruitment <- rep(0, sample_size) else {
+    recruitment <- (total_time - admin_loss)[indices]} # recruitment time in study time
     stop <- recruitment + observations[indices] # last observation in study time
     df <- data.frame(recruitment, stop)
     df_sorted <- df[order(recruitment), ]
     plot(
       x = df_sorted$recruitment, y = 1:sample_size_plot,
-      xlim = c(0, total_time), ylim = c(0, sample_size_plot),
+      xlim = xlim, ylim = c(0, sample_size_plot),
       xlab = "study time", ylab = "participants ordered by entry into study"
     )
     graphics::title("Individual observation trails in study time")
@@ -133,5 +137,3 @@ simulate_data <- function(scale,
 
   return(data_df)
 }
-
-#### just for testing

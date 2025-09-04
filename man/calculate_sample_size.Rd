@@ -90,14 +90,14 @@ calculate_sample_size(
 \item{loss_shape}{Shape of Weibull distributed loss to follow-up.}
 }
 \value{
-Returns a list with sample size and a test power.
+Returns a list with total sample size in both samples combined and a test power.
 }
 \description{
 Currently only determination of test power via simulation! Function for calculating the sample size given a desired test power, or the test power given a sample size.
 Sample size and test power can be determined either analytically or by simulation.
 }
 \details{
-Sample size and power determination for both superiory and non-inferiority analysis are supported.
+Sample size and power determination for both superiority and non-inferiority analysis are supported.
 Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterization
 defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. Sample size and power
 can be determined for either Cox regression or RMST-based methods (test for RMST difference and RMST ratio).

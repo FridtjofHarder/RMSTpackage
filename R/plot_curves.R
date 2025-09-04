@@ -91,11 +91,11 @@ plot_curves <- function(scale_trmt, scale_ctrl,
   # plot hazard curves if desired
 
   if (plot_hazard) {
-    graphics::curve(hazard(x, shape = shape_trmt, scale = scale_trmt),
+    graphics::curve(get_h(x, shape = shape_trmt, scale = scale_trmt),
       col = "darkblue", xlab = "t", ylab = "h(t)",
       xlim = xlim, main = "Hazard rates", lwd = 2, ylim = c(0, 2)
     ) ## muss dynamisch angepasst werden!
-    graphics::curve(hazard(x, shape = shape_ctrl, scale = scale_ctrl),
+    graphics::curve(get_h(x, shape = shape_ctrl, scale = scale_ctrl),
       col = "red", lwd = 2, add = TRUE
     )
     graphics::legend("topleft",
@@ -141,28 +141,4 @@ plot_curves <- function(scale_trmt, scale_ctrl,
     )
     graphics::abline(h = 0, lty = 2, col = "gray")
   }
-}
-
-# Weibull hazard function
-hazard <- function(t, shape, scale) { # Funktion noch auslagern?
-  return((shape / scale) * (t / scale)^(shape - 1))
-}
-
-# RMST over tau
-RMST_over_tau <- function(tau, shape = 1, scale) {
-  sapply(tau, function(tau) {
-    stats::integrate(stats::pweibull,
-      shape = shape,
-      scale = scale, lower = 0,
-      upper = tau,
-      lower.tail = F
-    )$value
-  })
-}
-
-RMSTD_over_tau <- function(tau, shape_trmt = 1, scale_trmt, shape_ctrl = 1, scale_ctrl) {
-  sapply(tau, function(tau) {
-    RMST_over_tau(tau = tau, shape = shape_trmt, scale = scale_trmt) -
-      RMST_over_tau(tau = tau, shape = shape_ctrl, scale = scale_ctrl)
-  })
 }

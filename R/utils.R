@@ -25,13 +25,15 @@ get_h <- function(x, scale, shape) {
 
 # calculate probability of not lost to administrative censoring
 get_p_not_lost_admin <- function(x, follow_up_time, accrual_time) {
-  if (x <= follow_up_time) {
+  if (x <= follow_up_time || follow_up_time == Inf) {
     return(1)
   } else {
     return(max(((follow_up_time + accrual_time - x) / accrual_time
     ), 0))
   }
 }
+
+get_p_not_lost_admin_v <- Vectorize(get_p_not_lost_admin)
 
 # calculate p(not being censored) as product of p(not lost to admin. censoring) *
 # p (not lost to FU). Return only p(not being censored) if no loss to FU.
@@ -89,8 +91,6 @@ get_p_at_risk <- function(x,
       )
   )
 }
-
-
 
 # calculate true sigma2 for RMST
 get_sigma2_rmst <- function(tau,
@@ -170,4 +170,24 @@ get_ss_cf <- function(sides = 2,
     sqrt(sigma2) * stats::qnorm(1 - alpha / sides) + sqrt(sigma2) * stats::qnorm(power)
   )^2 /
     (delta - margin)^2)
+}
+
+# RMST over tau
+RMST_over_tau <- function(tau, shape = 1, scale) {
+  sapply(tau, function(tau) {
+    stats::integrate(stats::pweibull,
+                     shape = shape,
+                     scale = scale, lower = 0,
+                     upper = tau,
+                     lower.tail = FALSE
+    )$value
+  })
+}
+
+# RMSTD over tau
+RMSTD_over_tau <- function(tau, shape_trmt = 1, scale_trmt, shape_ctrl = 1, scale_ctrl) {
+  sapply(tau, function(tau) {
+    RMST_over_tau(tau = tau, shape = shape_trmt, scale = scale_trmt) -
+      RMST_over_tau(tau = tau, shape = shape_ctrl, scale = scale_ctrl)
+  })
 }

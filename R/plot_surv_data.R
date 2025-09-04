@@ -48,6 +48,7 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
                            plot_log_log = FALSE,
                            plot_extended = FALSE) {
   # create data_frame_ctrl
+  # browser()
   data_frame_ctrl <- simulate_data(
     scale = scale_ctrl, shape = shape_ctrl,
     accrual_time = accrual_time,
@@ -78,12 +79,12 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
   # plot KM estimator
   graphics::par(mar = c(5, 6, 4, 1) + .1)
   plot(survival::survfit(surv_obj ~ simulated_data$label),
-    mark.time = T,
-    conf.int = F, xlab = "t", ylab = expression(hat(S)(t) ~ "in %"),
-    col = c("red", "darkblue"),
-    xlim = xlim, ylim = c(0, 1), lwd = 2,
-    main = "Kaplan Meier estimators for treatment and control group",
-    yaxt = "n"
+       mark.time = T,
+       conf.int = F, xlab = "t", ylab = expression(hat(S)(t) ~ "in %"),
+       col = c("red", "darkblue"),
+       xlim = xlim, ylim = c(0, 1), lwd = 2,
+       main = "Kaplan Meier estimators for treatment and control group",
+       yaxt = "n"
   )
 
   graphics::axis(2, at = seq(1, 0, by = -0.2), labels = paste0(seq(100, 0, by = -20), "%"), las = 1)
@@ -99,29 +100,29 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
 
   # draw design curves
   graphics::curve(stats::pweibull(x, shape = shape_trmt, scale = scale_trmt, lower.tail = FALSE),
-    from = xlim[1], to = xlim[2],
-    add = TRUE, col = "darkblue", lwd = 2, lty = 2
+                  from = xlim[1], to = xlim[2],
+                  add = TRUE, col = "darkblue", lwd = 2, lty = 2
   )
   graphics::curve(stats::pweibull(x, shape = shape_ctrl, scale = scale_ctrl, lower.tail = FALSE),
-    from = xlim[1], to = xlim[2],
-    add = TRUE, col = "red", lwd = 2, lty = 2
+                  from = xlim[1], to = xlim[2],
+                  add = TRUE, col = "red", lwd = 2, lty = 2
   )
 
   # create legend
   graphics::legend("topright",
-    legend = c(
-      paste0(
-        "Treatment group with \n", "scale = ",
-        round(scale_trmt, 2), " and shape = ",
-        round(shape_trmt, 2)
-      ),
-      paste0(
-        "Control group with \n", "scale = ",
-        round(scale_ctrl, 2), " and shape = ",
-        round(shape_ctrl, 2)
-      )
-    ),
-    col = c("darkblue", "red"), lty = 1:1, y.intersp = 1.5, bty = "n", cex = 1
+                   legend = c(
+                     paste0(
+                       "Treatment group with \n", "scale = ",
+                       round(scale_trmt, 2), " and shape = ",
+                       round(shape_trmt, 2)
+                     ),
+                     paste0(
+                       "Control group with \n", "scale = ",
+                       round(scale_ctrl, 2), " and shape = ",
+                       round(shape_ctrl, 2)
+                     )
+                   ),
+                   col = c("darkblue", "red"), lty = 1:1, y.intersp = 1.5, bty = "n", cex = 1
   )
 
 
@@ -138,10 +139,10 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
 
     # create plot reverse KM
     plot(survival::survfit(surv_obj_reverse ~ simulated_data_reverse$label),
-      mark.time = T,
-      conf.int = F, xlab = "t", ylab = "Censure-free observations in %", col = c("red", "darkblue"),
-      xlim = xlim, ylim = c(0, 1), lwd = 2, yaxt = "n",
-      main = "Reverse Kaplan Meier estimators for treatment and control group"
+         mark.time = T,
+         conf.int = F, xlab = "t", ylab = "Censure-free observations in %", col = c("red", "darkblue"),
+         xlim = xlim, ylim = c(0, 1), lwd = 2, yaxt = "n",
+         main = "Reverse Kaplan Meier estimators for treatment and control group"
     )
     graphics::axis(2, at = seq(0, 1, by = 0.2), labels = paste0(seq(0, 100, by = 20), "%"))
 
@@ -154,12 +155,6 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
     )
 
     # draw reverse design curves
-    # p(uncensored) = p(not lost to FU) X p(not lost to admin)
-    if (!is.null(loss_scale) && !is.null(loss_shape)) {
-      p_uncensored <- NULL
-    } else {
-      p_uncensored <- NULL
-    }
 
     # mark tau if defined
     if (!is.null(tau)) { # mark tau if defined
@@ -172,137 +167,116 @@ plot_surv_data <- function(scale_trmt, scale_ctrl, shape_trmt = 1,
 
     # create legend
     graphics::legend("bottomleft",
-      legend = c(
-        "Treatment group",
-        "Control group"
-      ),
-      col = c("darkblue", "red"), lty = 1:1, y.intersp = 1.5, bty = "n", cex = 1
+                     legend = c(
+                       "Treatment group",
+                       "Control group"
+                     ),
+                     col = c("darkblue", "red"), lty = 1:1, y.intersp = 1.5, bty = "n", cex = 1
     )
   }
   if (plot_log_log) {
     plot(survival::survfit(surv_obj ~ simulated_data$label),
-      fun = "cloglog",
-      xlab = "t",
-      ylab = "log-log survival", main = "Log-log curves for assessing proportionality of hazards",
-      col = c("red", "darkblue"), lwd = 2
+         fun = "cloglog",
+         xlab = "t",
+         ylab = "log-log survival", main = "Log-log curves for assessing proportionality of hazards",
+         col = c("red", "darkblue"), lwd = 2
     )
     graphics::legend("topleft",
-      legend = c(
-        paste0(
-          "Treatment group with \n", "scale = ",
-          round(scale_trmt, 2), " and shape = ",
-          round(shape_trmt, 2)
-        ),
-        paste0(
-          "Control group with \n", "scale = ",
-          round(scale_ctrl, 2), " and shape = ",
-          round(shape_ctrl, 2)
-        )
-      ),
-      col = c("darkblue", "red"), lty = 1:1, y.intersp = 1.5, bty = "n", cex = 1
+                     legend = c(
+                       paste0(
+                         "Treatment group with \n", "scale = ",
+                         round(scale_trmt, 2), " and shape = ",
+                         round(shape_trmt, 2)
+                       ),
+                       paste0(
+                         "Control group with \n", "scale = ",
+                         round(scale_ctrl, 2), " and shape = ",
+                         round(shape_ctrl, 2)
+                       )
+                     ),
+                     col = c("darkblue", "red"), lty = 1:1, y.intersp = 1.5, bty = "n", cex = 1
     )
   }
-  # define arms in npsurvSS
-  arm_npsurvSS_0 <- npsurvSS::create_arm(
-    size = 1,
-    accr_time = accrual_time,
-    follow_time = follow_up_time,
-    surv_scale = 1 / scale_ctrl,
-    surv_shape = shape_ctrl,
-    loss_scale = loss_scale,
-    loss_shape = loss_shape
-  )
-  arm_npsurvSS_1 <- npsurvSS::create_arm(
-    size = 1,
-    accr_time = accrual_time,
-    follow_time = follow_up_time,
-    surv_scale = 1 / scale_trmt,
-    surv_shape = shape_trmt,
-    loss_scale = loss_scale,
-    loss_shape = loss_shape
-  )
-
-  if (plot_extended) {
+    if (plot_extended) {
     # admin censoring
-    graphics::curve(100 * p_not_censored_admin_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_0),
-      xlim = c(0, follow_up_time + accrual_time),
-      ylim = c(0, 100),
-      xlab = "t", ylab = "Proportion remaining in %",
-      main = "Extended plot differentiating causes for censoring",
-      lwd = 2, col = "lightgrey"
+      if (follow_up_time != Inf) xlim <- c(0, follow_up_time + accrual_time)
+    graphics::curve(100 * sapply(x, get_p_not_lost_admin, follow_up_time = follow_up_time, accrual_time = accrual_time),
+                    xlim = xlim,
+                    ylim = c(0, 100),
+                    xlab = "t", ylab = "Proportion remaining in %",
+                    main = "Extended plot differentiating causes for censoring",
+                    lwd = 2, col = "lightgrey"
     )
-    # pts not lost to lost to FU
-    graphics::curve(100 * npsurvSS::ploss(q = x, arm = arm_npsurvSS_0, lower.tail = FALSE),
-      lwd = 2, col = "darkgrey",
-      add = TRUE
-    )
+    # pts not lost to FU
+    if (is.null(loss_scale)) abline(h = 100, col = "darkgrey", lwd = 2) else {
+    graphics::curve(100 *  stats::pweibull(
+      q = x,
+      shape = loss_shape,
+      scale = loss_scale,
+      lower.tail = FALSE
+    ),
+                    lwd = 2, col = "darkgrey",
+                    add = TRUE
+    )}
     # pts not lost to censoring
-    graphics::curve(100 * p_not_being_censored_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_0),
-      lwd = 2, col = "black",
-      add = TRUE
+    graphics::curve(100 * sapply(x, get_p_not_censored,
+                                             follow_up_time = follow_up_time,
+                                             accrual_time = accrual_time,
+                                             loss_scale = loss_scale,
+                                             loss_shape = loss_shape),
+                    lwd = 2, col = "black",
+                    add = TRUE
     )
 
     # pts not lost to neither censoring nor event ctrl
-    graphics::curve(100 * p_neither_censored_nor_event_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_0),
-      lwd = 2, col = "#EA95BA",
-      add = TRUE
+    graphics::curve(100 * sapply(x, get_p_at_risk,
+                                        scale = scale_ctrl,
+                                        shape = shape_ctrl,
+                                        loss_scale = loss_scale,
+                                        loss_shape = loss_shape,
+                                        accrual_time = accrual_time,
+                                        follow_up_time = follow_up_time),
+                    lwd = 2, col = "#EA95BA",
+                    add = TRUE
     )
 
     # pts not lost to neither censoring nor event trmt
-    graphics::curve(100 * p_neither_censored_nor_event_npsurvSS(x, arm_npsurvSS = arm_npsurvSS_1),
-      lwd = 2, col = "steelblue1",
-      add = TRUE
+    graphics::curve(100 * sapply(x, get_p_at_risk,
+                                        scale = scale_trmt,
+                                        shape = shape_trmt,
+                                        loss_scale = loss_scale,
+                                        loss_shape = loss_shape,
+                                        accrual_time = accrual_time,
+                                        follow_up_time = follow_up_time),
+                    lwd = 2, col = "steelblue1",
+                    add = TRUE
     )
 
     graphics::curve(100 * stats::pweibull(x, shape = shape_ctrl, scale = scale_ctrl, lower.tail = FALSE),
-      add = TRUE, col = "red", lwd = 2
+                    add = TRUE, col = "red", lwd = 2
     )
 
     graphics::curve(100 * stats::pweibull(x, shape = shape_trmt, scale = scale_trmt, lower.tail = FALSE),
-      add = TRUE, col = "darkblue", lwd = 2
+                    add = TRUE, col = "darkblue", lwd = 2
     )
 
     graphics::legend("topright",
-      legend = c(
-        "Share not lost to admnistrative censoring",
-        "Share not lost to FU",
-        "Share lost neither to FU nor to administrative censoring",
-        "Share in control group lost to neither events nor to censoring",
-        "Share in treatment group lost to neither events nor to censoring",
-        "Survival in control group",
-        "Survival in treatment group"
-      ),
-      col = c(
-        "lightgrey", "darkgrey", "black", "#EA95BA",
-        "steelblue1", "red", "darkblue"
-      ),
-      lty = 1:1, y.intersp = 1.5, bty = "n", cex = 1
+                     legend = c(
+                       "Share not lost to admnistrative censoring",
+                       "Share not lost to FU",
+                       "Share lost neither to FU nor to administrative censoring",
+                       "Share in control group lost to neither events nor to censoring",
+                       "Share in treatment group lost to neither events nor to censoring",
+                       "Survival in control group",
+                       "Survival in treatment group"
+                     ),
+                     col = c(
+                       "lightgrey", "darkgrey", "black", "#EA95BA",
+                       "steelblue1", "red", "darkblue"
+                     ),
+                     lty = 1:1, y.intersp = 1.5, bty = "n", cex = 1
     )
   }
-}
-
-# aux function to calculate probability of not being censored by admin censoring in case of linear accrual
-p_not_censored_admin_npsurvSS <- function(x, arm_npsurvSS) {
-  return(npsurvSS::paccr(arm = arm_npsurvSS, q = arm_npsurvSS$total_time - x))
-}
-# try instead: get_p_not_lost_admin()
-
-# aux function to calculate probability of not being censored
-p_not_being_censored_npsurvSS <- function(x, arm_npsurvSS) {
-  return(npsurvSS::paccr(arm = arm_npsurvSS, q = arm_npsurvSS$total_time - x) *
-    npsurvSS::ploss(q = x, arm = arm_npsurvSS, lower.tail = FALSE))
-}
-# # try instead: get_p_not_lost_admin() *  stats::pweibull(x,
-# shape = shape,
-# scale = scale,
-# lower.tail = FALSE
-# )
-
-# aux function to calculate probability of not being censored by either admin or loss to FU
-p_neither_censored_nor_event_npsurvSS <- function(x, arm_npsurvSS) {
-  return(npsurvSS::paccr(arm = arm_npsurvSS, q = arm_npsurvSS$total_time - x) *
-    npsurvSS::ploss(q = x, arm = arm_npsurvSS, lower.tail = FALSE) *
-    npsurvSS::psurv(q = x, arm = arm_npsurvSS, lower.tail = FALSE))
 }
 
 utils::globalVariables(c("x")) # prevents warnings on undefined variables when running devtools::check()
