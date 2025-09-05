@@ -50,19 +50,20 @@
 #' @examples
 #' results <- convert_contrast_ph(scale_trmt = 1, scale_ctrl = 0.9, tau = 1)
 #' results <- convert_contrast_ph(scale_trmt = 1, shape = 1, tau = 1, HR = 0.9)
-convert_contrast_ph <- function(scale_trmt = NULL,
-                                scale_ctrl = NULL,
-                                shape = 1,
-                                parameterization = 1,
-                                HR = NULL,
-                                median_diff = NULL,
-                                percentile_diff = NULL,
-                                percentile = 50,
-                                survival_diff = NULL,
-                                RMSTD = NULL,
-                                RMSTR = NULL,
-                                tau = NULL,
-                                plot_curves = TRUE) {
+convert_contrast_ph <- function(
+    scale_trmt = NULL,
+    scale_ctrl = NULL,
+    shape = 1,
+    parameterization = 1,
+    HR = NULL,
+    median_diff = NULL,
+    percentile_diff = NULL,
+    percentile = 50,
+    survival_diff = NULL,
+    RMSTD = NULL,
+    RMSTR = NULL,
+    tau = NULL,
+    plot_curves = TRUE) {
   # error management -------------------------------------------------------------
 
   number_of_defined_scales <- sum(!is.null(scale_trmt), !is.null(scale_ctrl))
@@ -75,29 +76,38 @@ convert_contrast_ph <- function(scale_trmt = NULL,
     !is.null(RMSTD)
   )
 
-  stopifnot("error: please specify either both scale parameters, or one scale
+  stopifnot(
+    "error: please specify either both scale parameters, or one scale
             parameter and one contrast" = xor(
-    number_of_defined_scales == 2 &&
-      number_of_defined_contrasts == 0,
-    number_of_defined_scales == 1 &&
-      number_of_defined_contrasts == 1
-  ))
+      number_of_defined_scales == 2 &&
+        number_of_defined_contrasts == 0,
+      number_of_defined_scales == 1 &&
+        number_of_defined_contrasts == 1
+    )
+  )
 
-  stopifnot( # throw error when parameterization misspecified
-    "parameterization must be defined as either 1, 2, or 3" = parameterization == 1 ||
-      parameterization == 2 || parameterization == 3
+  stopifnot(
+    # throw error when parameterization misspecified
+    "parameterization must be defined as either 1, 2, or 3" = parameterization ==
+      1 ||
+      parameterization == 2 ||
+      parameterization == 3
   )
 
   # convert parameters -----------------------------------------------------------
 
   # converts scale parameter wrt parameterization
   if (parameterization == 2) {
-    if (!is.null(scale_trmt)) scale_trmt <- 1 / (scale_trmt^(1 / shape))
+    if (!is.null(scale_trmt)) {
+      scale_trmt <- 1 / (scale_trmt^(1 / shape))
+    }
     if (!is.null(scale_ctrl)) scale_ctrl <- 1 / (scale_ctrl^(1 / shape))
   }
   # converts scale parameter wrt parameterization
   if (parameterization == 3) {
-    if (!is.null(scale_trmt)) scale_trmt <- 1 / scale_trmt
+    if (!is.null(scale_trmt)) {
+      scale_trmt <- 1 / scale_trmt
+    }
     if (!is.null(scale_ctrl)) scale_ctrl <- 1 / scale_ctrl
   }
 
@@ -156,7 +166,9 @@ convert_contrast_ph <- function(scale_trmt = NULL,
       survival_ctrl <- stats::pweibull(tau, scale_ctrl, shape, lower.tail = F)
       survival_trmt <- survival_ctrl + survival_diff
       if (survival_trmt <= 0) {
-        stop("survival in control group minus survival difference is equal to or less than zero")
+        stop(
+          "survival in control group minus survival difference is equal to or less than zero"
+        )
       }
       scale_trmt <- tau * (-log(survival_trmt))^(-1 / shape)
     }
@@ -165,7 +177,8 @@ convert_contrast_ph <- function(scale_trmt = NULL,
   # calculate RMST in unspecified group when RMSTR or RMSTD are given as input
   if (xor(!is.null(RMSTD), !is.null(RMSTR))) {
     # when either RMSTR or RMSTD defined
-    if (!is.null(scale_trmt)) { # if scale_ctrl is undefined, calculate it from RMST of trmt and RMSTD/RMSTR
+    if (!is.null(scale_trmt)) {
+      # if scale_ctrl is undefined, calculate it from RMST of trmt and RMSTD/RMSTR
       RMST_trmt <- stats::integrate(
         stats::pweibull,
         shape = shape,
@@ -180,10 +193,14 @@ convert_contrast_ph <- function(scale_trmt = NULL,
       if (!is.null(RMSTR)) {
         RMST_ctrl <- RMST_trmt / RMSTR
       }
-      scale_ctrl_temp <- stats::uniroot(find_root_weibull,
-        shape = shape, tau = tau, RMST = RMST_ctrl,
+      scale_ctrl_temp <- stats::uniroot(
+        find_root_weibull,
+        shape = shape,
+        tau = tau,
+        RMST = RMST_ctrl,
         lower = 0.000001,
-        upper = 100000, tol = 0.0001
+        upper = 100000,
+        tol = 0.0001
       )$root
     }
     if (!is.null(scale_ctrl)) {
@@ -202,10 +219,14 @@ convert_contrast_ph <- function(scale_trmt = NULL,
         RMST_trmt <- RMST_ctrl * RMSTR
       }
 
-      scale_trmt <- stats::uniroot(find_root_weibull,
-        shape = shape, tau = tau,
-        RMST = RMST_trmt, lower = 0.000001,
-        upper = 100000, tol = 0.0001
+      scale_trmt <- stats::uniroot(
+        find_root_weibull,
+        shape = shape,
+        tau = tau,
+        RMST = RMST_trmt,
+        lower = 0.000001,
+        upper = 100000,
+        tol = 0.0001
       )$root
     }
     if (is.null(scale_ctrl)) scale_ctrl <- scale_ctrl_temp
@@ -269,28 +290,49 @@ convert_contrast_ph <- function(scale_trmt = NULL,
 
   if (plot_curves) {
     x <- NULL
-    graphics::curve(stats::pweibull(x, scale = scale_trmt, shape = shape, lower.tail = FALSE),
-      col = "green", xlab = "t", ylab = "S(t)", ylim = c(0, 1), xlim = c(0, 1.5 * tau)
+    graphics::curve(
+      stats::pweibull(x, scale = scale_trmt, shape = shape, lower.tail = FALSE),
+      col = "green",
+      xlab = "t",
+      ylab = "S(t)",
+      ylim = c(0, 1),
+      xlim = c(0, 1.5 * tau)
     )
-    graphics::curve(stats::pweibull(x, scale = scale_ctrl, shape = shape, lower.tail = FALSE),
-      col = "red", add = TRUE
+    graphics::curve(
+      stats::pweibull(x, scale = scale_ctrl, shape = shape, lower.tail = FALSE),
+      col = "red",
+      add = TRUE
     )
     graphics::abline(v = tau, col = "blue")
-    graphics::text(x = tau, y = 0.1, pos = 4, labels = bquote("time horizon " * tau * " = " * .(tau)))
-    graphics::legend("bottomleft",
+    graphics::text(
+      x = tau,
+      y = 0.1,
+      pos = 4,
+      labels = bquote("time horizon " * tau * " = " * .(tau))
+    )
+    graphics::legend(
+      "bottomleft",
       legend = c(
         paste0(
-          "treatment group with \n", "scale = ",
-          round(scale_trmt, 2), " and shape = ",
+          "treatment group with \n",
+          "scale = ",
+          round(scale_trmt, 2),
+          " and shape = ",
           round(shape, 2)
         ),
         paste0(
-          "control group with \n", "scale = ",
-          round(scale_ctrl, 2), " and shape = ",
+          "control group with \n",
+          "scale = ",
+          round(scale_ctrl, 2),
+          " and shape = ",
           round(shape, 2)
         )
       ),
-      col = c("green", "red"), lty = 1:1, y.intersp = 1.5, bty = "n", cex = 0.8
+      col = c("green", "red"),
+      lty = 1:1,
+      y.intersp = 1.5,
+      bty = "n",
+      cex = 0.8
     )
   }
 
@@ -313,8 +355,13 @@ convert_contrast_ph <- function(scale_trmt = NULL,
 }
 
 find_root_weibull <- function(unknown_scale, shape, tau, RMST) {
-  stats::integrate(stats::pweibull,
-    shape = shape, scale = unknown_scale,
-    lower = 0, upper = tau, lower.tail = F
-  )$value - RMST
+  stats::integrate(
+    stats::pweibull,
+    shape = shape,
+    scale = unknown_scale,
+    lower = 0,
+    upper = tau,
+    lower.tail = F
+  )$value -
+    RMST
 }

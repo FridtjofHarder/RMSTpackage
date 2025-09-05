@@ -16,9 +16,9 @@
 #' @param scale_ctrl A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
 #' @param shape_ctrl A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.
 #' @param parameterization One of: \itemize{
-#' \item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
+#' \item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
 #' \item \code{parameterization = 2}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-#' \item \code{parametrization = 3}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
+#' \item \code{parameterization = 3}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
 #' @param accrual_time Length of accrual period.
 #' @param follow_up_time Length of follow-up period.
 #' @param tau A scalar \eqn{>0} specifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
@@ -64,42 +64,47 @@
 #'   M = 100,
 #'   simulation_sample_size = 100
 #' )
-calculate_sample_size <- function(scale_trmt,
-                                  shape_trmt = 1,
-                                  scale_ctrl,
-                                  shape_ctrl = 1,
-                                  parameterization = 1,
-                                  accrual_time = 0,
-                                  follow_up_time = NULL,
-                                  tau = NULL,
-                                  sides = 1,
-                                  one_sided_alpha = 0.025,
-                                  power = 0.8,
-                                  margin_cox = 1,
-                                  margin_RMSTD = 0,
-                                  margin_RMSTR = 1,
-                                  RMSTD_closed_form = FALSE,
-                                  RMSTR_closed_form = FALSE,
-                                  RMSTD_simulation = FALSE,
-                                  RMSTR_simulation = FALSE,
-                                  cox_ph_simulation = FALSE,
-                                  censor_beyond_tau = FALSE,
-                                  M = 1000,
-                                  simulation_sample_size,
-                                  plot_design_curves = TRUE,
-                                  plot_example_data = TRUE,
-                                  loss_scale = NULL,
-                                  loss_shape = 1) {
+calculate_sample_size <- function(
+    scale_trmt,
+    shape_trmt = 1,
+    scale_ctrl,
+    shape_ctrl = 1,
+    parameterization = 1,
+    accrual_time = 0,
+    follow_up_time = NULL,
+    tau = NULL,
+    sides = 1,
+    one_sided_alpha = 0.025,
+    power = 0.8,
+    margin_cox = 1,
+    margin_RMSTD = 0,
+    margin_RMSTR = 1,
+    RMSTD_closed_form = FALSE,
+    RMSTR_closed_form = FALSE,
+    RMSTD_simulation = FALSE,
+    RMSTR_simulation = FALSE,
+    cox_ph_simulation = FALSE,
+    censor_beyond_tau = FALSE,
+    M = 1000,
+    simulation_sample_size,
+    plot_design_curves = TRUE,
+    plot_example_data = TRUE,
+    loss_scale = NULL,
+    loss_shape = 1) {
   # error management -----------------------------------------------------------
   # browser()
   stopifnot(
     # throw error when parameterization misspecified
-    "parameterization must be defined as either 1, 2, or 3" = parameterization == 1 ||
-      parameterization == 2 || parameterization == 3
+    "parameterization must be defined as either 1, 2, or 3" = parameterization ==
+      1 ||
+      parameterization == 2 ||
+      parameterization == 3
   )
   # throw error when functions misspecified
   if (is.null(scale_trmt) || is.null(scale_ctrl)) {
-    stop("please specify scale parameters for both treatment and survival group")
+    stop(
+      "please specify scale parameters for both treatment and survival group"
+    )
   }
 
   # throw error when tau should have been specified
@@ -119,16 +124,17 @@ calculate_sample_size <- function(scale_trmt,
 
   # main function --------------------------------------------------------------
   # convert to standard parameterization if needed
-  if (parameterization == 2) {
-    scale_trmt <- 1 / (scale_trmt^(1 / shape_trmt))
-    scale_ctrl <- 1 / (scale_ctrl^(1 / shape_ctrl))
+  if (parameterization != 1){
+    scale_trmt <- reparameterize(parameterization = parameterization,
+                                 scale = scale_trmt,
+                                 shape = shape_trmt)
+    scale_ctrl <- reparameterize(parameterization = parameterization,
+                                 scale = scale_ctrl,
+                                 shape = shape_ctrl)
+    loss_scale <- reparameterize(parameterization = parameterization,
+                                 scale = loss_scale,
+                                 shape = loss_shape)
   }
-
-  if (parameterization == 3) {
-    scale_trmt <- 1 / scale_trmt
-    scale_ctrl <- 1 / scale_ctrl
-  }
-
   # simulations  ---------------------------------------------------------------
   # simulate trial if simulations requested
   if (RMSTD_simulation || RMSTR_simulation || cox_ph_simulation) {
@@ -151,8 +157,10 @@ calculate_sample_size <- function(scale_trmt,
         loss_scale = loss_scale,
         # loss is assumed to follow Weibull
         loss_shape = loss_shape,
-        sample_size = round(simulation_sample_size /
-          2),
+        sample_size = round(
+          simulation_sample_size /
+            2
+        ),
         label = 1
       ) # arm 1 = trmt
       simulated_data <- rbind(
@@ -165,8 +173,10 @@ calculate_sample_size <- function(scale_trmt,
           loss_scale = loss_scale,
           # loss is assumed to follow Weibull
           loss_shape = loss_shape,
-          sample_size = round(simulation_sample_size /
-            2),
+          sample_size = round(
+            simulation_sample_size /
+              2
+          ),
           label = 0
         )
       ) # arm 0 = ctrl
@@ -174,10 +184,13 @@ calculate_sample_size <- function(scale_trmt,
       if (RMSTD_simulation || RMSTR_simulation) {
         # handle large tau by limiting tau to minmax observation
         tau_temp <- tau # define tau_temp in case tau is too large
-        if (min(
-          max(simulated_data$observations[simulated_data$label == 0]),
-          max(simulated_data$observations[simulated_data$label == 1])
-        ) < tau) {
+        if (
+          min(
+            max(simulated_data$observations[simulated_data$label == 0]),
+            max(simulated_data$observations[simulated_data$label == 1])
+          ) <
+            tau
+        ) {
           tau_temp <- min(
             max(simulated_data$observations[simulated_data$label == 0]),
             max(simulated_data$observations[simulated_data$label == 1])
@@ -206,7 +219,10 @@ calculate_sample_size <- function(scale_trmt,
           # censor all observations beyond tau if requested
           simulated_data$status[simulated_data$observations > tau] <- 0
         }
-        fit <- survival::coxph(survival::Surv(observations, status) ~ label, data = simulated_data)
+        fit <- survival::coxph(
+          survival::Surv(observations, status) ~ label,
+          data = simulated_data
+        )
         cox_ph_simul_results[i] <-
           as.numeric(summary(fit)$conf.int[, "upper .95"] < margin_cox)
       }
@@ -249,7 +265,7 @@ calculate_sample_size <- function(scale_trmt,
 
   # plot example data if requested ---------------------------------------------
   if (plot_example_data) {
-    plot_surv_data(
+    plot_surv(
       scale_trmt = scale_trmt,
       shape_trmt = shape_trmt,
       scale_ctrl = scale_ctrl,
@@ -332,23 +348,29 @@ calculate_sample_size <- function(scale_trmt,
 
   # npsurvSS delete later
 
-  arm_trmt_npsurvSS <- npsurvSS::create_arm(size = 1,
-                                            accr_time = accrual_time,
-                                            follow_time = follow_up_time,
-                                            surv_scale = 1 / scale_trmt,
-                                            surv_shape = shape_trmt,
-                                            loss_scale = 1 / loss_scale,
-                                            loss_shape = loss_shape)
-  arm_ctrl_npsurvSS <- npsurvSS::create_arm(size = 1,
-                                            accr_time = accrual_time,
-                                            follow_time = follow_up_time,
-                                            surv_scale = 1 / scale_ctrl,
-                                            surv_shape = shape_ctrl,
-                                            loss_scale = 1 / loss_scale,
-                                            loss_shape = loss_shape)
-  n_npsurvSS <- npsurvSS::size_two_arm(arm0 = arm_trmt_npsurvSS,
-                             arm1 = arm_ctrl_npsurvSS,
-                             list(test="rmst difference", milestone=tau))[1]
+  arm_trmt_npsurvSS <- npsurvSS::create_arm(
+    size = 1,
+    accr_time = accrual_time,
+    follow_time = follow_up_time,
+    surv_scale = 1 / scale_trmt,
+    surv_shape = shape_trmt,
+    loss_scale = 1 / loss_scale,
+    loss_shape = loss_shape
+  )
+  arm_ctrl_npsurvSS <- npsurvSS::create_arm(
+    size = 1,
+    accr_time = accrual_time,
+    follow_time = follow_up_time,
+    surv_scale = 1 / scale_ctrl,
+    surv_shape = shape_ctrl,
+    loss_scale = 1 / loss_scale,
+    loss_shape = loss_shape
+  )
+  n_npsurvSS <- npsurvSS::size_two_arm(
+    arm0 = arm_trmt_npsurvSS,
+    arm1 = arm_ctrl_npsurvSS,
+    list(test = "rmst difference", milestone = tau)
+  )[1]
   print(paste("n as calculated by npsurvSS is", n_npsurvSS))
 
   return(result)

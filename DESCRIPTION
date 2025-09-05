@@ -12,7 +12,6 @@ URL: https://github.com/FridtjofHarder/RMSTpackage
 BugReports: https://github.com/FridtjofHarder/RMSTpackage/issues
 Imports: 
     knitr,
-    npsurvSS,
     survival,
     survRM2
 Suggests: 

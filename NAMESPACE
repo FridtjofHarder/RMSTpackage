@@ -2,5 +2,5 @@
 
 export(calculate_sample_size)
 export(convert_contrast_ph)
-export(plot_surv_data)
+export(plot_surv)
 export(simulate_data)
