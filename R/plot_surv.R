@@ -60,7 +60,6 @@ plot_surv <- function(
     plot_recruitment = FALSE,
     plot_extended = FALSE
     ) {
-  browser()
 
   if (parameterization != 1){
     scale_trmt <- reparameterize(parameterization = parameterization,
@@ -480,7 +479,6 @@ plot_surv <- function(
       cex = 1
     )
     # plot RMST(tau), RMSTD(tau), and RMSTR(tau)
-    browser()
     if (follow_up_time == Inf){
       upper_limit <- 1 * tau
       graphics::curve(

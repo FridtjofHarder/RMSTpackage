@@ -148,6 +148,7 @@ calculate_sample_size <- function(
     if (cox_ph_simulation) {
       cox_ph_simul_results <- rep(0, M)
     }
+    browser()
     for (i in 1:M) {
       simulated_data <- simulate_data(
         scale = scale_trmt,
@@ -167,7 +168,7 @@ calculate_sample_size <- function(
         simulated_data,
         simulate_data(
           scale = scale_ctrl,
-          shape = scale_ctrl,
+          shape = shape_ctrl,
           accrual_time = accrual_time,
           follow_up_time = follow_up_time,
           loss_scale = loss_scale,
@@ -366,12 +367,12 @@ calculate_sample_size <- function(
     loss_scale = 1 / loss_scale,
     loss_shape = loss_shape
   )
-  n_npsurvSS <- npsurvSS::size_two_arm(
-    arm0 = arm_trmt_npsurvSS,
-    arm1 = arm_ctrl_npsurvSS,
-    list(test = "rmst difference", milestone = tau)
-  )[1]
-  print(paste("n as calculated by npsurvSS is", n_npsurvSS))
+  # n_npsurvSS <- npsurvSS::size_two_arm(
+  #   arm0 = arm_trmt_npsurvSS,
+  #   arm1 = arm_ctrl_npsurvSS,
+  #   list(test = "rmst difference", milestone = tau)
+  # )[1]
+  # print(paste("n as calculated by npsurvSS is", n_npsurvSS))
 
   return(result)
 }
