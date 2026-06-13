@@ -5,3 +5,6 @@
 ^[.]?air[.]toml$
 ^\.vscode$
 ^\.github$
+^\.positai$
+^\.claude$
+^\.lintr$

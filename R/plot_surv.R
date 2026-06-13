@@ -29,15 +29,16 @@
 #'
 #' @examples
 #' plot_surv(
-#'   scale_trmt = 1.4,
+#'   scale_trmt = 2,
 #'   scale_ctrl = 1,
 #'   accrual_time = 1,
 #'   follow_up_time = 10,
 #'   tau = 1,
-#'   loss_scale = 0.2,
-#'   n = 100,
+#'   loss_scale = 1,
+#'   n = 1000,
 #'   plot_reverse_KM = TRUE,
 #'   plot_log_log = TRUE,
+#'   plot_recruitment = TRUE,
 #'   plot_extended = TRUE
 #' )
 plot_surv <- function(
@@ -61,6 +62,7 @@ plot_surv <- function(
     plot_extended = FALSE
     ) {
 
+# reparameterize ----------------------------------------------------------
   if (parameterization != 1){
     scale_trmt <- reparameterize(parameterization = parameterization,
                                  scale = scale_trmt,
@@ -73,7 +75,7 @@ plot_surv <- function(
                                  shape = loss_shape)
   }
 
-  # create data_frame_ctrl
+# simulate data and create surv object ------------------------------------
 
   data_frame_ctrl <- simulate_data(
     scale = scale_ctrl,
@@ -85,25 +87,27 @@ plot_surv <- function(
     sample_size = round(n / 2),
     label = 0
   )
-  simulated_data <- rbind(
-    data_frame_ctrl,
-    simulate_data(
-      scale = scale_trmt,
-      shape = shape_trmt,
-      accrual_time = accrual_time,
-      follow_up_time = follow_up_time,
-      loss_scale = loss_scale,
-      loss_shape = loss_shape,
-      sample_size = round(n / 2),
-      label = 1
-    )
+  data_frame_trmt <- simulate_data(
+    scale = scale_trmt,
+    shape = shape_trmt,
+    accrual_time = accrual_time,
+    follow_up_time = follow_up_time,
+    loss_scale = loss_scale,
+    loss_shape = loss_shape,
+    sample_size = round(n / 2),
+    label = 1
   )
+  simulated_data <- rbind(
+    data_frame_ctrl, data_frame_trmt)
+
   surv_obj <- survival::Surv(
     time = simulated_data$observations,
     event = simulated_data$status
   )
 
-  if (!is.null(tau) && is.null(xlim)) {
+# plot --------------------------------------------------------------------
+
+  if (!is.null(tau) && is.null(xlim)) { # define xlim in relation to tau if not specified
     xlim <- c(0, 1.5 * tau)
   } # set xlim if undefined
   # plot KM estimator
@@ -129,7 +133,6 @@ plot_surv <- function(
     las = 1
   )
 
-  # mark tau if defined
   if (!is.null(tau)) {
     # mark tau if defined
     graphics::abline(v = tau, col = "black", lwd = 2)
@@ -201,7 +204,7 @@ plot_surv <- function(
   if (plot_reverse_KM) {
     # reverse indicator for event and censure
     simulated_data_reverse <- simulated_data
-    simulated_data_reverse$status <- as.numeric(simulated_data$status == 0)
+    simulated_data_reverse$status <- as.numeric(simulated_data$status == 0) # reverse status
 
     surv_obj_reverse <- survival::Surv(
       time = simulated_data_reverse$observations,
@@ -236,8 +239,6 @@ plot_surv <- function(
       cex = 0.9
     )
 
-    # draw reverse design curves
-
     # mark tau if defined
     if (!is.null(tau)) {
       # mark tau if defined
@@ -268,11 +269,11 @@ plot_surv <- function(
 
     plot(
       survival::survfit(surv_obj ~ simulated_data$label),
-      xlim = c(min(simulated_data$observations), ),
+      xlim = c(min(simulated_data$observations), max(simulated_data$observations)),
       fun = "cloglog",
       xlab = "t",
-      ylab = "-ln[-ln(survival)]",
-      main = "Log-log curves for assessing proportionality of hazards",
+      ylab = expression(-log(-log(hat(S)(t)))),
+      main = "Parallel log-log curves indicate proportional hazards",
       col = c("red", "darkblue"),
       lwd = 2
     )
@@ -302,39 +303,41 @@ plot_surv <- function(
     )
   }
   if (plot_recruitment) {
-    indices <- 1:sample_size # indices for y-axis
-    sample_size_plot <- sample_size
-    # if sample size is above 100, only display sample of 100
-    if (100 < sample_size) {
-      indices <- round(seq(from = 1, to = sample_size, length.out = 100))
-      sample_size_plot <- 100
-    }
-    if (total_time == Inf) {
-      xlim <- c(0, max(observations))
+    # if sample size is above 100, only display sample of 100. Else display all.
+    if (100 < n) {
+      indices <- round(seq(from = 1, to = n, length.out = 100))
+      sample_size_recruitment <- 100
     } else {
-      xlim <- c(0, total_time)
+      indices <- 1:n
+      sample_size_recruitment <- n
     }
-    if (follow_up_time == Inf) {
-      recruitment <- rep(0, sample_size)
-    } else {
-      recruitment <- (total_time - admin_loss)[indices]
-    } # recruitment time in study time
-    stop <- recruitment + observations[indices] # last observation in study time
-    df <- data.frame(recruitment, stop)
-    df_sorted <- df[order(recruitment), ]
-    plot(
-      x = df_sorted$recruitment,
-      y = 1:sample_size_plot,
-      xlim = xlim,
-      ylim = c(0, sample_size_plot),
-      xlab = "Study time",
-      ylab = "Participants ordered by entry into study"
+    df_recruitment <- simulated_data[indices, ]
+    df_recruitment$accrual_timepoint <- stats::runif(sample_size_recruitment, min = 0, max = accrual_time)
+    df_recruitment$last_observation <- df_recruitment$accrual_timepoint + df_recruitment$observations
+    df_recruitment <- df_recruitment[order(df_recruitment$accrual_timepoint), ]
+
+    make_color <- function(label, status){ # fun generates colors according to group label and status
+      base_col = ifelse(label == 0, "red", "darkblue")
+      opacity  <- ifelse(status == 1, 1, 0.3)
+      grDevices::adjustcolor(base_col, alpha.f = opacity)
+    }
+    cols <- mapply(make_color, df_recruitment$label, df_recruitment$status)
+
+    plot( # prepare empty plot
+      NA, NA,
+      xlim = c(min(df_recruitment$accrual_timepoint), max(df_recruitment$last_observation)),
+      ylim = c(0, sample_size_recruitment),
+      xlab = "Time",
+      ylab = NA,
+      yaxt = "n",          # no default y ticks
     )
-    graphics::title("Individual observation trails in study time")
     graphics::segments(
-      x0 = df_sorted$recruitment,
-      y0 = 1:length(recruitment),
-      x1 = df_sorted$stop
+      x0 = c(df_recruitment$accrual_timepoint),
+      y0 = 1:100,
+      x1 = c(df_recruitment$last_observation),
+      y1 = 1:100,
+      lwd = 2,
+      col = cols
     )
   }
   if (plot_extended) {
@@ -354,7 +357,7 @@ plot_surv <- function(
       ylim = c(0, 100),
       xlab = "t",
       ylab = "Proportion remaining in %",
-      main = "Extended plot differentiating causes for censoring",
+      main = "Extended plot on survival and censoring",
       lwd = 2,
       col = "lightgrey"
     )

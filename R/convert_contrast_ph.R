@@ -1,17 +1,16 @@
 #' Calculates or converts contrast between RMSTD, RMSTR, and HR, and others
 #'
 #' Function for calculating or converting different contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), the hazard ratio (HR),
-#' and other contrasts.
+#' and other contrasts. Assumes Weibull distributed survival under proportional hazards.
 #'
-#' This function will calculate a range of different contrasts between two survival curves
-#' given their scale parameters and shape parameter. Alternatively only one scale parameter can be given together with one contrast (e.g. hazard
+#' Calculates a range of different contrasts between two survival curves
+#' given their scale parameters and shape parameter. Alternatively only one scale parameter may be supplied together with one contrast (e.g. hazard
 #' ratio) in order to calculate the missing scale parameter and the remaining contrasts.
-#' Survival curves are assumed to be Weibull functions with the same shape parameter.
-#' Specify either one scale parameter and one contrast, or specify both scale parameters. The shape
-#' parameter always needs to be specified.
+#' Survival curves are assumed to be Weibull functions with identical shape parameter.
+#' Specify either one scale parameter and one contrast, or specify both scale parameters.
 #'
 #'
-#' contrasts are: \itemize{
+#' Supported contrasts are: \itemize{
 #' \item Hazard ratio (HR).
 #' \item Median difference: the difference in times \eqn{\Delta t} at which each survival curve passes \eqn{S(t) = 0.5 = 50 \%}.
 #' \item Percentile difference: the difference in times \eqn{\Delta t} at which each survival curve passes a certain \eqn{S(t)}. Simplifies to the median difference when the percentile \eqn{50} is chosen.
@@ -19,28 +18,27 @@
 #' Survival is assumed to follow Weibull distributions in both control and treatment group with a constant HR,
 #' implying the same shape parameter in treatment and control group.
 #'
-#' @param scale_trmt A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
-#' @param scale_ctrl A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
-#' @param shape A scalar \eqn{>0} specifying the \dfn{shape parameter} in both groups. Shape
-#' parameters in both groups are assumed to be equal.
+#' @param scale_trmt Specifies the \dfn{scale parameter} in the treatment group.
+#' @param scale_ctrl Specifies the \dfn{scale parameter} in the treatment group.
+#' @param shape Specifies the \dfn{shape parameter} in both groups.
 #' @param parameterization One of: \itemize{
 #' \item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
 #' \item \code{parameterization = 2}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
 #' \item \code{parameterization = 3}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
-#' @param median_diff A scalar specifying the difference in time \eqn{\Delta t} at which each group has survival \eqn{S(t) = 0.5}. \code{median_diff} \eqn{> 0} suggests superior survival in the treatment group.
-#' @param percentile_diff A scalar specifying the difference in time \eqn{\Delta t} at which each group has the survival \eqn{S(t) =} \code{percentile}.
-#' @param percentile A scalar specifying at which percentile of survival to evaluate \code{percentile_diff}.
+#' @param median_diff Specifies the difference in time \eqn{\Delta t} at which each group has survival \eqn{S(t) = 0.5}. \code{median_diff} \eqn{> 0} suggests superior survival in the treatment group.
+#' @param percentile_diff Specifies the difference in time \eqn{\Delta t} at which each group has the survival \eqn{S(t) =} \code{percentile}.
+#' @param percentile Specifies at which percentile of survival to evaluate \code{percentile_diff}.
 #' \code{percentile_diff} is equal to \code{median_diff} when \code{percentile}  \eqn{=50}.
-#' @param survival_diff A scalar specifying the survival difference in survival \eqn{\Delta S(\tau)} between treatment and control group.
-#' @param HR A scalar specifying a hazard ratio. \code{HR} \eqn{< 1} suggests a lower hazard in the treatment group than in the control group.
-#' @param tau A scalar specifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
-#' @param RMSTD A scalar specifying the RMSTD between control group and treatment group. Allows for converting RMSTD to HR.
-#' @param RMSTR A scalar specifying the RMSTR between control group and treatment group. Allows for converting RMSTD to HR.
-#' @param plot_curves Boolean. Creates a plot if \code{TRUE}.
+#' @param survival_diff Specifies the survival difference in survival \eqn{\Delta S(\tau)} between treatment and control group at \eqn{\tau}.
+#' @param HR Specifies a hazard ratio. \code{HR} \eqn{< 1} suggests a lower hazard in the treatment group than in the control group.
+#' @param tau Specifies the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
+#' @param RMSTD Specifies the RMSTD between control group and treatment group. Allows for converting RMSTD to HR.
+#' @param RMSTR Specifies the RMSTR between control group and treatment group. Allows for converting RMSTD to HR.
+#' @param plot_curves Logical. Creates a plot if \code{TRUE}.
 #'
 #' @return Returns a dataframe containing the inputs, scale and shape parameters,
 #' the difference (RMSTD) and ratio (RMSTR) in RMST,
-#' the HR between treatment group and control group, the median survival time difference
+#' the HR between treatment group and control group, the median survival time difference.
 #' An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group,
 #' a HR \eqn{< 1} indicates lower hazard in the treatment group. Input scales are converted
 #' to first paratmeterization.
@@ -154,7 +152,7 @@ convert_contrast_ph <- function(
   # survival diff. procedure similar to median difference
   if (!is.null(survival_diff)) {
     if (!is.null(scale_trmt)) {
-      survival_trmt <- stats::pweibull(tau, scale_trmt, shape, lower.tail = F)
+      survival_trmt <- stats::pweibull(tau, scale = scale_trmt, shape = shape, lower.tail = F)
       survival_ctrl <- survival_trmt - survival_diff
       if (survival_ctrl <= 0) {
         stop(
@@ -163,7 +161,7 @@ convert_contrast_ph <- function(
       }
       scale_ctrl <- tau * (-log(survival_ctrl))^(-1 / shape)
     } else {
-      survival_ctrl <- stats::pweibull(tau, scale_ctrl, shape, lower.tail = F)
+      survival_ctrl <- stats::pweibull(tau, scale = scale_ctrl, shape = shape, lower.tail = F)
       survival_trmt <- survival_ctrl + survival_diff
       if (survival_trmt <= 0) {
         stop(
@@ -255,8 +253,8 @@ convert_contrast_ph <- function(
 
   # calculate survival_diff
   if (is.null(survival_diff)) {
-    survival_trmt <- stats::pweibull(tau, scale_trmt, shape, lower.tail = F)
-    survival_ctrl <- stats::pweibull(tau, scale_ctrl, shape, lower.tail = F)
+    survival_trmt <- stats::pweibull(tau, shape = shape, scale = scale_trmt, lower.tail = F)
+    survival_ctrl <- stats::pweibull(tau, shape = shape, scale = scale_ctrl, shape, lower.tail = F)
     survival_diff <- survival_trmt - survival_ctrl
   }
 
@@ -314,14 +312,14 @@ convert_contrast_ph <- function(
       "bottomleft",
       legend = c(
         paste0(
-          "treatment group with \n",
+          "Treatment group with \n",
           "scale = ",
           round(scale_trmt, 2),
           " and shape = ",
           round(shape, 2)
         ),
         paste0(
-          "control group with \n",
+          "Control group with \n",
           "scale = ",
           round(scale_ctrl, 2),
           " and shape = ",

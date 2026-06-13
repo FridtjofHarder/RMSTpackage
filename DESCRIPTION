@@ -4,14 +4,13 @@ Title: Sample Size and Power Calculation and Other Tools for Restricted
 Version: 0.0.0.9000
 Authors@R: 
     person("Fridtjof", "Harder", , "harder.fridtjof@gmail.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
+           comment = c(ORCID = "0009-0003-8584-5239"))
 Description: Provides tools useful in Restricted Mean Survival Time (RMST)
     trial design (put some more info here).
 License: MIT + file LICENSE
 URL: https://github.com/FridtjofHarder/RMSTpackage
 BugReports: https://github.com/FridtjofHarder/RMSTpackage/issues
 Imports: 
-    knitr,
     survival,
     survRM2
 Suggests: 
@@ -19,4 +18,4 @@ Suggests:
 Config/testthat/edition: 3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
+Config/roxygen2/version: 8.0.0

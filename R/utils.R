@@ -4,6 +4,8 @@
 #'
 #' @noRd
 
+# get design parameters ---------------------------------------------------
+
 # calculate true RMST for weibull function
 get_theoretical_rmst <- function(tau, scale, shape) {
   stats::integrate(
@@ -27,6 +29,8 @@ get_h <- function(x, scale, shape) {
   return(h)
 }
 
+# get probability distributions -------------------------------------------
+
 # calculate probability of not lost to administrative censoring
 get_p_not_lost_admin <- function(x, follow_up_time, accrual_time) {
   if (x <= follow_up_time || follow_up_time == Inf) {
@@ -35,8 +39,6 @@ get_p_not_lost_admin <- function(x, follow_up_time, accrual_time) {
     return(max(((follow_up_time + accrual_time - x) / accrual_time), 0))
   }
 }
-
-get_p_not_lost_admin_v <- Vectorize(get_p_not_lost_admin)
 
 # calculate p(not being censored) as product of p(not lost to admin. censoring) *
 # p (not lost to FU). Return only p(not being censored) if no loss to FU.
@@ -99,6 +101,21 @@ get_p_at_risk <- function(
   )
 }
 
+# get event density function f(t) * p(not censored) = -d/dt S(t) * p(not censored)
+get_density <- function(x, scale, shape, follow_up_time,
+                        accrual_time,
+                        loss_scale,
+                        loss_shape){
+  stats::dweibull(x = x, shape = shape, scale = scale) *
+    get_p_not_censored(x = x,
+                        follow_up_time = follow_up_time,
+                        accrual_time = accrual_time,
+                        loss_scale = loss_scale,
+                        loss_shape = loss_shape)
+}
+
+# get sigma2 and delta--------------------------------------------------------------
+
 # calculate true sigma2 for RMST
 get_sigma2_rmst <- function(
     tau,
@@ -139,8 +156,145 @@ get_sigma2_rmst <- function(
   )$value
 }
 
-# get sample size by closed-form margin still missing
-get_ss_cf <- function(
+# calculate true sigma2 for LRT
+get_sigma2_LRT <- function(scale_trmt,
+                           shape_trmt = 1,
+                           scale_ctrl,
+                           shape_ctrl = 1,
+                           accrual_time = 0,
+                           follow_up_time = NULL,
+                           tau = NULL,
+                           censor_beyond_tau = FALSE,
+                           loss_scale = NULL,
+                           loss_shape = 1) {
+  if (censor_beyond_tau){
+    total_time <- tau} else{
+      total_time <- accrual_time + follow_up_time}
+  sigma2  <- stats::integrate(
+    Vectorize(function(x){ # vectorize since integrate() passes a vector
+      get_p_at_risk(
+        x,
+        scale = scale_ctrl,
+        shape = shape_ctrl,
+        loss_scale = loss_scale,
+        loss_shape = loss_shape,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
+      ) * get_p_at_risk(
+        x,
+        scale = scale_trmt,
+        shape = shape_trmt,
+        loss_scale = loss_scale,
+        loss_shape = loss_shape,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
+      ) /
+      (
+        get_p_at_risk(
+          x,
+          scale = scale_ctrl,
+          shape = shape_ctrl,
+          loss_scale = loss_scale,
+          loss_shape = loss_shape,
+          accrual_time = accrual_time,
+          follow_up_time = follow_up_time
+        ) + get_p_at_risk(
+          x,
+          scale = scale_trmt,
+          shape = shape_trmt,
+          loss_scale = loss_scale,
+          loss_shape = loss_shape,
+          accrual_time = accrual_time,
+          follow_up_time = follow_up_time
+        )
+      )^2 *
+      (get_density(x, scale = scale_ctrl, shape = shape_ctrl, follow_up_time = follow_up_time, # wird 0 für x > FU, unbedingt checken!
+                   accrual_time = accrual_time,
+                   loss_scale = loss_scale,
+                   loss_shape = loss_shape) +
+         get_density(x, scale = scale_trmt, shape = shape_trmt, follow_up_time = follow_up_time,
+                     accrual_time = accrual_time,
+                     loss_scale = loss_scale,
+                     loss_shape = loss_shape)) / 2}),
+    lower = 0,
+    upper = total_time
+  )$value
+  return(sigma2)
+}
+
+# new delta calculation: schoenfeld instead of asymptotic npsurvSS
+get_delta_LRT <- function(scale_trmt,
+                          shape_trmt = 1,
+                          scale_ctrl,
+                          shape_ctrl = 1,
+                          accrual_time = 0,
+                          follow_up_time = NULL,
+                          tau = NULL,
+                          censor_beyond_tau = FALSE,
+                          loss_scale = NULL,
+                          loss_shape = 1,
+                          margin_LRT = 1) {
+  print("delta schoenfeld")
+  if (censor_beyond_tau) {
+    total_time <- tau
+  } else{
+    total_time <- accrual_time + follow_up_time
+  }
+  delta_LRT <- stats::integrate(Vectorize(function(x){
+    (log(get_h(x, scale = scale_trmt, shape = shape_trmt)) -
+      log(get_h(x, scale = scale_ctrl, shape = shape_ctrl)) -
+      log(margin_LRT))*
+      get_p_at_risk(
+        x,
+        scale = scale_trmt,
+        shape = shape_trmt,
+        loss_scale = loss_scale,
+        loss_shape = loss_shape,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
+      ) *
+      get_p_at_risk(
+        x,
+        scale = scale_ctrl,
+        shape = shape_ctrl,
+        loss_scale = loss_scale,
+        loss_shape = loss_shape,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
+      ) /
+      (get_p_at_risk(
+        x,
+        scale = scale_trmt,
+        shape = shape_trmt,
+        loss_scale = loss_scale,
+        loss_shape = loss_shape,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
+      ) +
+      get_p_at_risk(
+        x,
+        scale = scale_ctrl,
+        shape = shape_ctrl,
+        loss_scale = loss_scale,
+        loss_shape = loss_shape,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
+      ))^2 *
+      (get_density(x, scale = scale_ctrl, shape = shape_ctrl, follow_up_time = follow_up_time,
+                   accrual_time = accrual_time,
+                   loss_scale = loss_scale,
+                   loss_shape = loss_shape) +
+         get_density(x, scale = scale_trmt, shape = shape_trmt, follow_up_time = follow_up_time,
+                     accrual_time = accrual_time,
+                     loss_scale = loss_scale,
+                     loss_shape = loss_shape)) / 2 }), lower = 0, upper = total_time)$value
+  return(delta_LRT)
+}
+
+# get sample size closed form ---------------------------------------------
+
+# get sample size by closed-form for RMSTD
+get_ss_cf_RMSTD <- function(
     sides = 2,
     power = 0.8,
     alpha = 0.05,
@@ -153,13 +307,12 @@ get_ss_cf <- function(
     loss_shape,
     follow_up_time,
     accrual_time,
-    margin = 0) {
-  delta <- get_theoretical_rmst(
-    tau = tau,
-    scale = scale_trmt,
-    shape = shape_trmt
-  ) -
-    get_theoretical_rmst(tau = tau, scale = scale_ctrl, shape = shape_ctrl)
+    margin = 0,
+    satterthwaite_n = NA) {
+
+  RMST_ctrl <- get_theoretical_rmst(tau = tau, scale = scale_ctrl, shape = shape_ctrl)
+  RMST_trmt <- get_theoretical_rmst(tau = tau, scale = scale_trmt, shape = shape_trmt)
+  delta <- RMST_trmt - RMST_ctrl
   sigma2_ctrl <- get_sigma2_rmst(
     tau = tau,
     scale = scale_ctrl,
@@ -181,6 +334,17 @@ get_ss_cf <- function(
     accrual_time = accrual_time
   )
   sigma2 <- sigma2_ctrl / 0.5 + sigma2_trmt / 0.5
+  if (!is.na(satterthwaite_n)){
+    df <- get_satterthwaite_df(scale_ctrl, scale_trmt, shape_ctrl, shape_trmt,
+    follow_up_time, accrual_time, loss_scale,
+    loss_shape, tau, satterthwaite_n, sigma2_ctrl, sigma2_trmt)
+    return(
+      (sqrt(sigma2) *
+         stats::qt(1 - alpha / sides, df) +
+         sqrt(sigma2) * stats::qt(power, df))^2 /
+        (delta - margin)^2
+    )
+  }
   return(
     (sqrt(sigma2) *
       stats::qnorm(1 - alpha / sides) +
@@ -189,9 +353,139 @@ get_ss_cf <- function(
   )
 }
 
+# get sample size by closed-form for RMSTR
+get_ss_cf_RMSTR <- function(
+    sides = 2,
+    power = 0.8,
+    alpha = 0.05,
+    scale_ctrl,
+    shape_ctrl,
+    scale_trmt,
+    shape_trmt,
+    tau,
+    loss_scale,
+    loss_shape,
+    follow_up_time,
+    accrual_time,
+    margin = 1,
+    satterthwaite_n = NA) {
+  RMST_ctrl <- get_theoretical_rmst(tau = tau, scale = scale_ctrl, shape = shape_ctrl)
+  RMST_trmt <- get_theoretical_rmst(tau = tau, scale = scale_trmt, shape = shape_trmt)
+  delta <- log(RMST_trmt) - log(RMST_ctrl)
+  sigma2_ctrl <- get_sigma2_rmst(
+    tau = tau,
+    scale = scale_ctrl,
+    shape = shape_ctrl,
+    # my method
+    loss_scale = loss_scale,
+    loss_shape = loss_shape,
+    follow_up_time = follow_up_time,
+    accrual_time = accrual_time
+  )
+  sigma2_trmt <- get_sigma2_rmst(
+    tau = tau,
+    scale = scale_trmt,
+    shape = shape_trmt,
+    # my method
+    loss_scale = loss_scale,
+    loss_shape = loss_shape,
+    follow_up_time = follow_up_time,
+    accrual_time = accrual_time
+  )
+  sigma2  <- sigma2_ctrl / .5 / RMST_ctrl^2 +
+    sigma2_trmt / .5 / RMST_trmt^2
+  if (!is.na(satterthwaite_n)){
+    df <- get_satterthwaite_df(scale_ctrl, scale_trmt, shape_ctrl, shape_trmt,
+                               follow_up_time, accrual_time, loss_scale,
+                               loss_shape, tau, satterthwaite_n, sigma2_ctrl, sigma2_trmt)
+    return(
+      (sqrt(sigma2) *
+         stats::qt(1 - alpha / sides, df) +
+         sqrt(sigma2) * stats::qt(power, df))^2 /
+        (delta - log(margin))^2
+    )
+  }
+  return(
+    (sqrt(sigma2) *
+       stats::qnorm(1 - alpha / sides) +
+       sqrt(sigma2) * stats::qnorm(power))^2 /
+      (delta - log(margin))^2
+  )
+
+}
+
+# get sample size by closed-form for LRT
+get_ss_cf_LRT <- function( sides = 1,
+                           power = 0.8,
+                           alpha = 0.025,
+                           scale_ctrl,
+                           shape_ctrl,
+                           scale_trmt,
+                           shape_trmt,
+                           tau,
+                           censor_beyond_tau,
+                           loss_scale,
+                           loss_shape,
+                           follow_up_time,
+                           accrual_time,
+                           margin_LRT = 1){ # probably have to change to 1???
+  sigma2 <- get_sigma2_LRT(scale_trmt = scale_trmt,
+                           shape_trmt = shape_trmt,
+                           scale_ctrl = scale_ctrl,
+                           shape_ctrl = shape_ctrl,
+                           accrual_time = accrual_time,
+                           follow_up_time = follow_up_time,
+                           tau = tau,
+                           censor_beyond_tau = censor_beyond_tau,
+                           loss_scale = loss_scale,
+                           loss_shape = loss_shape)
+  delta <- get_delta_LRT(scale_trmt = scale_trmt,
+                         shape_trmt = shape_trmt,
+                         scale_ctrl = scale_ctrl,
+                         shape_ctrl = shape_ctrl,
+                         accrual_time = accrual_time,
+                         follow_up_time = follow_up_time,
+                         tau = tau,
+                         censor_beyond_tau = censor_beyond_tau,
+                         loss_scale = loss_scale,
+                         loss_shape = loss_shape,
+                         margin_LRT = margin_LRT)
+  return(
+    (sqrt(sigma2) *
+       stats::qnorm(1 - alpha / sides) +
+       sqrt(sigma2) * stats::qnorm(power))^2 /
+      (delta)^2
+  )
+
+}
+
+# misc ------------------------------------------------------------------
+
 # reparameterize non-standard parameterizations
 reparameterize <- function(parameterization, scale, shape){
   if (is.null(scale)) return (NULL)
   if (parameterization == 2) return (1 / (scale^(1 / shape)))
   if (parameterization == 3) return (1 / scale)
 }
+
+# get satterthwaite degrees of freedom
+get_satterthwaite_df <- function(scale_ctrl, scale_trmt, shape_ctrl, shape_trmt,
+                                 follow_up_time, accrual_time, loss_scale,
+                                 loss_shape, tau, satterthwaite_n, sigma2_ctrl, sigma2_trmt){
+    events_ctrl <- stats::integrate(Vectorize(function(x) get_density(x, scale = scale_ctrl, shape = shape_ctrl,
+                                                                      follow_up_time = follow_up_time,
+                                                                      accrual_time = accrual_time,
+                                                                      loss_scale = loss_scale,
+                                                                      loss_shape = loss_shape)), lower = 0, upper = tau)$value *
+      satterthwaite_n
+    events_trmt <- stats::integrate(Vectorize(function(x) get_density(x, scale = scale_trmt, shape = shape_trmt,
+                                                                      follow_up_time = follow_up_time,
+                                                                      accrual_time = accrual_time,
+                                                                      loss_scale = loss_scale,
+                                                                      loss_shape = loss_shape)), lower = 0, upper = tau)$value *
+      satterthwaite_n
+    df <- (sigma2_ctrl / events_ctrl + sigma2_trmt / events_trmt)^2 / # get satterthwaite degrees of freedom
+      ((sigma2_ctrl / events_ctrl)^2 / (events_ctrl - 1) + (sigma2_trmt / events_trmt)^2 / (events_trmt - 1))
+    return(df)
+}
+

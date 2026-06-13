@@ -16,16 +16,18 @@ calculate_sample_size(
   sides = 1,
   one_sided_alpha = 0.025,
   power = 0.8,
-  margin_cox = 1,
+  margin_LRT = 1,
   margin_RMSTD = 0,
   margin_RMSTR = 1,
   RMSTD_closed_form = FALSE,
   RMSTR_closed_form = FALSE,
   RMSTD_simulation = FALSE,
   RMSTR_simulation = FALSE,
-  cox_ph_simulation = FALSE,
+  LRT_simulation = FALSE,
+  LRT_closed_form = FALSE,
+  satterthwaite_corr = FALSE,
   censor_beyond_tau = FALSE,
-  M = 1000,
+  M = 5000,
   simulation_sample_size,
   plot_design_curves = TRUE,
   plot_example_data = TRUE,
@@ -34,13 +36,13 @@ calculate_sample_size(
 )
 }
 \arguments{
-\item{scale_trmt}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
+\item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group.}
 
-\item{shape_trmt}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
+\item{shape_trmt}{Specifies the \dfn{shape parameter} in the treatment group. Default \code{shape_trmt} \eqn{=1} simplifies to exponential survival.}
 
-\item{scale_ctrl}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
+\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the treatment group.}
 
-\item{shape_ctrl}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.}
+\item{shape_ctrl}{Specifies the \dfn{shape parameter} in the treatment group. Default \code{shape_ctrl} \eqn{=1} simplifies to exponential survival.}
 
 \item{parameterization}{One of: \itemize{
 \item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
@@ -49,41 +51,45 @@ calculate_sample_size(
 
 \item{accrual_time}{Length of accrual period.}
 
-\item{follow_up_time}{Length of follow-up period.}
+\item{follow_up_time}{Length of follow-up period. Set to \code{Inf} if unspecified.}
 
-\item{tau}{A scalar \eqn{>0} specifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
+\item{tau}{Specifies the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
 
 \item{sides}{Sidedness of inference test, either \code{1} or \code{2}.}
 
-\item{one_sided_alpha}{MISSING}
+\item{one_sided_alpha}{\eqn{\alpha} level for one-sided inference test.}
 
 \item{power}{Test power with \code{power} \eqn{=1-\beta}.}
 
-\item{margin_cox}{Non-inferiority margin for Cox regression. \code{margin_cox} \eqn{=1} simplifies to superiority test.}
+\item{margin_LRT}{Non-inferiority margin for logrank test. Default \code{margin_LRT} \eqn{=1} simplifies to superiority test.}
 
-\item{margin_RMSTD}{Non-inferiority margin for RMST difference. \code{margin_RMSTD} \eqn{=0} simplifies to superiority test.}
+\item{margin_RMSTD}{Non-inferiority margin for RMST difference. Default \code{margin_RMSTD} \eqn{=0} simplifies to superiority test.}
 
-\item{margin_RMSTR}{Non-inferiority margin for RMST ratio. \code{margin_RMSTR} \eqn{=1} simplifies to superiority test.}
+\item{margin_RMSTR}{Non-inferiority margin for RMST ratio. Default \code{margin_RMSTR} \eqn{=1} simplifies to superiority test.}
 
-\item{RMSTD_closed_form}{MISSING}
+\item{RMSTD_closed_form}{Logical. Specifies whether to calculate sample size for RMST difference test.}
 
-\item{RMSTR_closed_form}{MISSING}
+\item{RMSTR_closed_form}{Logical. Specifies whether to calculate sample size for RMST ratio test.}
 
-\item{RMSTD_simulation}{MISSING}
+\item{RMSTD_simulation}{Logical. Specifies whether to determine RMST difference test power via simulation.}
 
-\item{RMSTR_simulation}{MISSING}
+\item{RMSTR_simulation}{Logical. Specifies whether to determine RMST ratio test power via simulation.}
 
-\item{cox_ph_simulation}{MISSING}
+\item{LRT_simulation}{Logical. Specifies whether to determine log rank test power via simulation.}
 
-\item{censor_beyond_tau}{Boolean. All observations past tau \eqn{\tau} censored if  \code{c(TRUE)}.}
+\item{LRT_closed_form}{Logical. Specifies whether to calculate sample size for log rank test.}
 
-\item{M}{Positive Integer. Number of iterations when running simulation.}
+\item{satterthwaite_corr}{Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic,}
 
-\item{simulation_sample_size}{MISSING}
+\item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored for simulations and log rank test if  \code{TRUE}.}
 
-\item{plot_design_curves}{Boolean. Specifies whether to plot survival curves.}
+\item{M}{Number of iterations when running simulation.}
 
-\item{plot_example_data}{Boolean. Specifies whether to create a plot with example data .}
+\item{simulation_sample_size}{Specifies sample size for simulations.}
+
+\item{plot_design_curves}{Logical. Specifies whether to plot survival curves.}
+
+\item{plot_example_data}{Logical. Specifies whether to create a plot with example data.}
 
 \item{loss_scale}{Scale of Weibull distributed loss to follow-up.}
 
@@ -93,15 +99,15 @@ calculate_sample_size(
 Returns a list with total sample size in both samples combined and a test power.
 }
 \description{
-Currently only determination of test power via simulation! Function for calculating the sample size given a desired test power, or the test power given a sample size.
+Function for calculating the sample size given a desired test power, or the test power given a sample size.
 Sample size and test power can be determined either analytically or by simulation.
 }
 \details{
 Sample size and power determination for both superiority and non-inferiority analysis are supported.
 Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterization
 defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. Sample size and power
-can be determined for either Cox regression or RMST-based methods (test for RMST difference and RMST ratio).
-For comparing Cox regression with RMST based methods, all observations past time horizon \eqn{\tau}
+can be determined for either logrank test or RMST-based methods (test for RMST difference and RMST ratio).
+For comparing logrank test with RMST based methods, all observations past time horizon \eqn{\tau}
 may be censored if desired.
 }
 \examples{
@@ -113,15 +119,11 @@ calculate_sample_size(
   tau = 1,
   RMSTD_simulation = TRUE,
   RMSTR_simulation = TRUE,
-  cox_ph_simulation = TRUE,
+  LRT_simulation = TRUE,
   RMSTD_closed_form = TRUE,
   RMSTR_closed_form = TRUE,
   loss_scale = 1,
   M = 100,
   simulation_sample_size = 100
 )
-}
-\references{
-Yung, G., & Liu, Y. (2020). Sample size and power for the weighted log-rank test and Kaplan-Meier based tests with allowance for
-nonproportional hazards. \emph{Biometrics}, \strong{76(3)}, 939-950.
 }

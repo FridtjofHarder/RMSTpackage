@@ -58,7 +58,7 @@ simulate_data <- function(
 
   total_time <- accrual_time + follow_up_time
 
-  # draw event times vom weibull distribution
+  # draw event times from weibull distribution
   observations <- stats::rweibull(n = sample_size, shape = shape, scale = scale)
   status <- rep(1, sample_size)
 

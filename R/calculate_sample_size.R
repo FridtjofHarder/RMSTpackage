@@ -1,52 +1,51 @@
 #' Calculates sample size or test power
 #'
-#' Currently only determination of test power via simulation! Function for calculating the sample size given a desired test power, or the test power given a sample size.
+#' Function for calculating the sample size given a desired test power, or the test power given a sample size.
 #' Sample size and test power can be determined either analytically or by simulation.
 #'
 #'
 #' Sample size and power determination for both superiority and non-inferiority analysis are supported.
 #' Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterization
 #' defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. Sample size and power
-#' can be determined for either Cox regression or RMST-based methods (test for RMST difference and RMST ratio).
-#' For comparing Cox regression with RMST based methods, all observations past time horizon \eqn{\tau}
+#' can be determined for either logrank test or RMST-based methods (test for RMST difference and RMST ratio).
+#' For comparing logrank test with RMST based methods, all observations past time horizon \eqn{\tau}
 #' may be censored if desired.
 #'
-#' @param scale_trmt A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
-#' @param shape_trmt A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.
-#' @param scale_ctrl A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.
-#' @param shape_ctrl A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.
+#' @param scale_trmt Specifies the \dfn{scale parameter} in the treatment group.
+#' @param shape_trmt Specifies the \dfn{shape parameter} in the treatment group. Default \code{shape_trmt} \eqn{=1} simplifies to exponential survival.
+#' @param scale_ctrl Specifies the \dfn{scale parameter} in the treatment group.
+#' @param shape_ctrl Specifies the \dfn{shape parameter} in the treatment group. Default \code{shape_ctrl} \eqn{=1} simplifies to exponential survival.
 #' @param parameterization One of: \itemize{
 #' \item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
 #' \item \code{parameterization = 2}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
 #' \item \code{parameterization = 3}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
 #' @param accrual_time Length of accrual period.
-#' @param follow_up_time Length of follow-up period.
-#' @param tau A scalar \eqn{>0} specifying the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
+#' @param follow_up_time Length of follow-up period. Set to \code{Inf} if unspecified.
+#' @param tau Specifies the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
 #' @param sides Sidedness of inference test, either \code{1} or \code{2}.
 #' @param power Test power with \code{power} \eqn{=1-\beta}.
-#' @param margin_RMSTD Non-inferiority margin for RMST difference. \code{margin_RMSTD} \eqn{=0} simplifies to superiority test.
-#' @param margin_RMSTR Non-inferiority margin for RMST ratio. \code{margin_RMSTR} \eqn{=1} simplifies to superiority test.
-#' @param margin_cox Non-inferiority margin for Cox regression. \code{margin_cox} \eqn{=1} simplifies to superiority test.
-#' @param M Positive Integer. Number of iterations when running simulation.
-#' @param plot_design_curves Boolean. Specifies whether to plot survival curves.
-#' @param plot_example_data Boolean. Specifies whether to create a plot with example data .
-#' @param one_sided_alpha MISSING
-#' @param RMSTD_closed_form MISSING
-#' @param RMSTR_closed_form MISSING
-#' @param RMSTD_simulation MISSING
-#' @param RMSTR_simulation MISSING
-#' @param cox_ph_simulation MISSING
-#' @param censor_beyond_tau Boolean. All observations past tau \eqn{\tau} censored if  \code{c(TRUE)}.
-#' @param simulation_sample_size MISSING
+#' @param margin_RMSTD Non-inferiority margin for RMST difference. Default \code{margin_RMSTD} \eqn{=0} simplifies to superiority test.
+#' @param margin_RMSTR Non-inferiority margin for RMST ratio. Default \code{margin_RMSTR} \eqn{=1} simplifies to superiority test.
+#' @param margin_LRT Non-inferiority margin for logrank test. Default \code{margin_LRT} \eqn{=1} simplifies to superiority test.
+#' @param M Number of iterations when running simulation.
+#' @param plot_design_curves Logical. Specifies whether to plot survival curves.
+#' @param plot_example_data Logical. Specifies whether to create a plot with example data.
+#' @param one_sided_alpha \eqn{\alpha} level for one-sided inference test.
+#' @param RMSTD_closed_form Logical. Specifies whether to calculate sample size for RMST difference test.
+#' @param RMSTR_closed_form Logical. Specifies whether to calculate sample size for RMST ratio test.
+#' @param LRT_closed_form Logical. Specifies whether to calculate sample size for log rank test.
+#' @param RMSTD_simulation Logical. Specifies whether to determine RMST difference test power via simulation.
+#' @param RMSTR_simulation Logical. Specifies whether to determine RMST ratio test power via simulation.
+#' @param LRT_simulation Logical. Specifies whether to determine log rank test power via simulation.
+#' @param censor_beyond_tau Logical. All observations past \eqn{\tau} are censored for simulations and log rank test if  \code{TRUE}.
+#' @param simulation_sample_size Specifies sample size for simulations.
 #' @param loss_scale Scale of Weibull distributed loss to follow-up.
 #' @param loss_shape Shape of Weibull distributed loss to follow-up.
+#' @param satterthwaite_corr Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic,
 #'
 #' @return Returns a list with total sample size in both samples combined and a test power.
 #'
 #' @export
-#' @references
-#' Yung, G., & Liu, Y. (2020). Sample size and power for the weighted log-rank test and Kaplan-Meier based tests with allowance for
-#' nonproportional hazards. \emph{Biometrics}, \strong{76(3)}, 939-950.
 #'
 #' @examples
 #' calculate_sample_size(
@@ -57,7 +56,7 @@
 #'   tau = 1,
 #'   RMSTD_simulation = TRUE,
 #'   RMSTR_simulation = TRUE,
-#'   cox_ph_simulation = TRUE,
+#'   LRT_simulation = TRUE,
 #'   RMSTD_closed_form = TRUE,
 #'   RMSTR_closed_form = TRUE,
 #'   loss_scale = 1,
@@ -76,26 +75,38 @@ calculate_sample_size <- function(
     sides = 1,
     one_sided_alpha = 0.025,
     power = 0.8,
-    margin_cox = 1,
-    margin_RMSTD = 0,
+    margin_LRT = 1,
+    margin_RMSTD = 0, #
     margin_RMSTR = 1,
     RMSTD_closed_form = FALSE,
     RMSTR_closed_form = FALSE,
-    RMSTD_simulation = FALSE,
-    RMSTR_simulation = FALSE,
-    cox_ph_simulation = FALSE,
+    RMSTD_simulation = FALSE, # RMSTD = RMST_trmt - RMST_ctrl = RMST_arm1 - RMST_arm0
+    RMSTR_simulation = FALSE, # RMSTR = RMST_trmt / RMST_ctrl = RMST_arm1 / RMST_arm0
+    LRT_simulation = FALSE, # HR = h(trmt) / h(ctrl = h_arm1 / h_arm0)
+    LRT_closed_form = FALSE,
+    satterthwaite_corr = FALSE,
     censor_beyond_tau = FALSE,
-    M = 1000,
+    M = 5000,
     simulation_sample_size,
     plot_design_curves = TRUE,
     plot_example_data = TRUE,
     loss_scale = NULL,
     loss_shape = 1) {
-  # error management -----------------------------------------------------------
-  # browser()
+# basic definitions -----------------------------------------------------------
+  # get total time
+  total_time <- accrual_time + follow_up_time
+
+  # fill output elements in case they are not filled later on
+  power_RMSTD_simulated <- power_RMSTR_simulated <- power_LRT_simulated <-
+    ss_closed_form_RMSTD <- ss_closed_form_RMSTR <- ss_closed_form_LRT <-
+    RMST_ctrl <- RMST_trmt <- True_RMSTD <- True_RMSTR <-
+    ss_closed_form_RMSTD_sat <- ss_closed_form_RMSTR_sat <- "not determined"
+
+# error management --------------------------------------------------------
+
   stopifnot(
     # throw error when parameterization misspecified
-    "parameterization must be defined as either 1, 2, or 3" = parameterization ==
+    "Parameterization must be defined as either 1, 2, or 3." = parameterization ==
       1 ||
       parameterization == 2 ||
       parameterization == 3
@@ -103,27 +114,49 @@ calculate_sample_size <- function(
   # throw error when functions misspecified
   if (is.null(scale_trmt) || is.null(scale_ctrl)) {
     stop(
-      "please specify scale parameters for both treatment and survival group"
+      "Please specify scale parameters for both treatment and survival group."
     )
   }
 
   # throw error when tau should have been specified
   if (!is.numeric(tau)) {
-    stop("please specify valid time horizon tau")
+    stop("Please specify valid time horizon tau.")
   }
 
   if (is.null(follow_up_time)) {
-    warning("follow_up_time not specified, has been set to Inf")
+    warning("Follow_up_time not specified, has been set to Inf.")
     follow_up_time <- Inf
   }
-  total_time <- accrual_time + follow_up_time
 
-  # fill output elements in case they are not filled later on
-  power_RMSTD_simulated <- power_RMSTR_simulated <- power_cox_ph_simulated <-
-    ss_closed_form <- "not determined"
+  if(RMSTD_closed_form || RMSTR_closed_form){ # get RMSTD and RMSTR
+    RMST_trmt <- get_theoretical_rmst(tau = tau, scale = scale_trmt, shape = shape_trmt)
+    RMST_ctrl <- get_theoretical_rmst(tau = tau, scale = scale_ctrl, shape = shape_ctrl)
+    True_RMSTD <- RMST_trmt - RMST_ctrl
+    True_RMSTR <- RMST_trmt / RMST_ctrl
+  }
 
-  # main function --------------------------------------------------------------
-  # convert to standard parameterization if needed
+  if (margin_RMSTD != 0){
+    stopifnot("Noninferiority margin of RMST difference must be below assumed RMST difference." =
+                margin_RMSTD < True_RMSTD)
+  }
+
+  if (margin_RMSTR != 1){
+    stopifnot("Noninferiority margin of RMST ratio must be below assumed RMST ratio." =
+                margin_RMSTD < True_RMSTR)
+  }
+
+  if (margin_LRT != 1){
+    stopifnot("Hazard ratio is not constant since shape parameters differ between groups.
+              Noninferiority margin for hazard ratio is appropriate only when hazard ratio is constant" =
+                shape_trmt == shape_ctrl)
+    h_trmt <- get_h(x = 1, scale = scale_trmt, shape = shape_trmt)
+    h_ctrl <- get_h(x = 1, scale = scale_ctrl, shape = shape_ctrl)
+    true_HR <- h_trmt / h_ctrl
+    stopifnot("Noninferiority margin of hazrad ratio be above assumed hazard ratio." =
+                margin_LRT > true_HR)
+  }
+
+# reparameterize if necessary --------------------------------------------------------------
   if (parameterization != 1){
     scale_trmt <- reparameterize(parameterization = parameterization,
                                  scale = scale_trmt,
@@ -135,20 +168,18 @@ calculate_sample_size <- function(
                                  scale = loss_scale,
                                  shape = loss_shape)
   }
-  # simulations  ---------------------------------------------------------------
-  # simulate trial if simulations requested
-  if (RMSTD_simulation || RMSTR_simulation || cox_ph_simulation) {
-    tau_changed <- FALSE # define tau_changed in case tau is too large
+# simulations  ---------------------------------------------------------------
+  if (RMSTD_simulation || RMSTR_simulation || LRT_simulation) {
+    tau_changed <- FALSE # indicator whether tau has been reduced in at least one iteration
     if (RMSTD_simulation) {
-      RMSTD_simul_results <- rep(0, M)
+      RMSTD_simul_results <- rep(0, M) # vector of results
     }
     if (RMSTR_simulation) {
       RMSTR_simul_results <- rep(0, M)
     }
-    if (cox_ph_simulation) {
-      cox_ph_simul_results <- rep(0, M)
+    if (LRT_simulation) {
+      LRT_simul_results <- rep(0, M)
     }
-    browser()
     for (i in 1:M) {
       simulated_data <- simulate_data(
         scale = scale_trmt,
@@ -162,8 +193,8 @@ calculate_sample_size <- function(
           simulation_sample_size /
             2
         ),
-        label = 1
-      ) # arm 1 = trmt
+        label = 1 # arm 1 = trmt
+      )
       simulated_data <- rbind(
         simulated_data,
         simulate_data(
@@ -178,9 +209,9 @@ calculate_sample_size <- function(
             simulation_sample_size /
               2
           ),
-          label = 0
+          label = 0 # arm 0 = ctrl
         )
-      ) # arm 0 = ctrl
+      )
       # determine whether testing for RMSTD and RMSTR turns out positive
       if (RMSTD_simulation || RMSTR_simulation) {
         # handle large tau by limiting tau to minmax observation
@@ -189,14 +220,13 @@ calculate_sample_size <- function(
           min(
             max(simulated_data$observations[simulated_data$label == 0]),
             max(simulated_data$observations[simulated_data$label == 1])
-          ) <
-            tau
+          ) < tau
         ) {
           tau_temp <- min(
             max(simulated_data$observations[simulated_data$label == 0]),
             max(simulated_data$observations[simulated_data$label == 1])
           )
-          tau_changed <- TRUE
+          tau_changed <- TRUE # indicates whether tau has been reducted at least in one indication
         }
         result <- survRM2::rmst2(
           simulated_data$observations,
@@ -214,8 +244,8 @@ calculate_sample_size <- function(
           RMSTR_simul_results[i] <- as.numeric(lower_RMSTR > margin_RMSTR)
         }
       }
-      # determine whether testing for cox_ph turns out positive
-      if (cox_ph_simulation) {
+      # determine whether testing for LRT turns out positive
+      if (LRT_simulation) {
         if (censor_beyond_tau) {
           # censor all observations beyond tau if requested
           simulated_data$status[simulated_data$observations > tau] <- 0
@@ -224,8 +254,8 @@ calculate_sample_size <- function(
           survival::Surv(observations, status) ~ label,
           data = simulated_data
         )
-        cox_ph_simul_results[i] <-
-          as.numeric(summary(fit)$conf.int[, "upper .95"] < margin_cox)
+        LRT_simul_results[i] <-
+          as.numeric(summary(fit)$conf.int[, "upper .95"] < margin_LRT)
       }
     }
     if (RMSTD_simulation) {
@@ -234,8 +264,8 @@ calculate_sample_size <- function(
     if (RMSTR_simulation) {
       power_RMSTR_simulated <- sum(RMSTR_simul_results) / M
     }
-    if (cox_ph_simulation) {
-      power_cox_ph_simulated <- sum(cox_ph_simul_results) / M
+    if (LRT_simulation) {
+      power_LRT_simulated <- sum(LRT_simul_results) / M
     }
     if (tau_changed) {
       warning(
@@ -244,10 +274,10 @@ calculate_sample_size <- function(
       )
     }
   }
-  # closed form ----------------------------------------------------------------
+# closed form ----------------------------------------------------------------
   # sample size RMSTD by closed form
   if (RMSTD_closed_form) {
-    ss_closed_form <- get_ss_cf(
+    ss_closed_form_RMSTD <- get_ss_cf_RMSTD(
       sides = sides,
       power = power,
       alpha = one_sided_alpha,
@@ -262,9 +292,80 @@ calculate_sample_size <- function(
       accrual_time = accrual_time,
       margin = margin_RMSTD
     )
+    if(satterthwaite_corr){
+      ss_closed_form_RMSTD_sat <- get_ss_cf_RMSTD(
+        sides = sides,
+        power = power,
+        alpha = one_sided_alpha,
+        scale_ctrl = scale_ctrl,
+        shape_ctrl = shape_ctrl,
+        scale_trmt = scale_trmt,
+        shape_trmt = shape_trmt,
+        tau = tau,
+        loss_scale = loss_scale,
+        loss_shape = loss_shape,
+        follow_up_time = follow_up_time,
+        accrual_time = accrual_time,
+        margin = margin_RMSTD,
+        satterthwaite_n = ss_closed_form_RMSTD
+      )
+    }
   }
 
-  # plot example data if requested ---------------------------------------------
+  if (RMSTR_closed_form) {
+    ss_closed_form_RMSTR <- get_ss_cf_RMSTR(
+      sides = sides,
+      power = power,
+      alpha = one_sided_alpha,
+      scale_ctrl = scale_ctrl,
+      shape_ctrl = shape_ctrl,
+      scale_trmt = scale_trmt,
+      shape_trmt = shape_trmt,
+      tau = tau,
+      loss_scale = loss_scale,
+      loss_shape = loss_shape,
+      follow_up_time = follow_up_time,
+      accrual_time = accrual_time,
+      margin = margin_RMSTR
+    )
+    if(satterthwaite_corr){
+    ss_closed_form_RMSTR_sat <- get_ss_cf_RMSTR(
+      sides = sides,
+      power = power,
+      alpha = one_sided_alpha,
+      scale_ctrl = scale_ctrl,
+      shape_ctrl = shape_ctrl,
+      scale_trmt = scale_trmt,
+      shape_trmt = shape_trmt,
+      tau = tau,
+      loss_scale = loss_scale,
+      loss_shape = loss_shape,
+      follow_up_time = follow_up_time,
+      accrual_time = accrual_time,
+      margin = margin_RMSTR,
+      satterthwaite_n <- ss_closed_form_RMSTR
+    )
+    }
+  }
+    if (LRT_closed_form) {
+      ss_closed_form_LRT <- get_ss_cf_LRT(
+        sides = sides,
+        power = power,
+        alpha = one_sided_alpha,
+        scale_ctrl = scale_ctrl,
+        shape_ctrl = shape_ctrl,
+        scale_trmt = scale_trmt,
+        shape_trmt = shape_trmt,
+        tau = tau,
+        loss_scale = loss_scale,
+        loss_shape = loss_shape,
+        follow_up_time = follow_up_time,
+        accrual_time = accrual_time,
+        margin_LRT = margin_LRT,
+        censor_beyond_tau = censor_beyond_tau
+      )
+    }
+# plot example data if requested ---------------------------------------------
   if (plot_example_data) {
     plot_surv(
       scale_trmt = scale_trmt,
@@ -340,42 +441,27 @@ calculate_sample_size <- function(
     )
     # plot hazard and hazard ratio
   }
+
+# returns -----------------------------------------------------------------
   result <- list(
     "RMSTD power determined by simulation" = power_RMSTD_simulated,
     "RMSTR power determined by simulation" = power_RMSTR_simulated,
-    "Cox PH power determined by simulation" = power_cox_ph_simulated,
-    "sample size determined by closed-form solution" = ss_closed_form
+    "LRT power determined by simulation" = power_LRT_simulated,
+    "Sample size for RMST difference determined by closed-form solution" = ss_closed_form_RMSTD,
+    "Satterthwaite-corrected sample size for RMST difference" = ss_closed_form_RMSTD_sat,
+    "Sample size for RMST ratio determined by closed-form solution" = ss_closed_form_RMSTR,
+    "Satterthwaite-corrected sample size for RMST ratio" = ss_closed_form_RMSTR_sat,
+    "Sample size for LRT determined by closed-form solution" = ss_closed_form_LRT,
+    "RMST control group" = RMST_ctrl,
+    "RMST treatment group" = RMST_trmt,
+    "RMST difference" = True_RMSTD,
+    "RMST ratio" = True_RMSTR
   )
-
-  # npsurvSS delete later
-
-  arm_trmt_npsurvSS <- npsurvSS::create_arm(
-    size = 1,
-    accr_time = accrual_time,
-    follow_time = follow_up_time,
-    surv_scale = 1 / scale_trmt,
-    surv_shape = shape_trmt,
-    loss_scale = 1 / loss_scale,
-    loss_shape = loss_shape
-  )
-  arm_ctrl_npsurvSS <- npsurvSS::create_arm(
-    size = 1,
-    accr_time = accrual_time,
-    follow_time = follow_up_time,
-    surv_scale = 1 / scale_ctrl,
-    surv_shape = shape_ctrl,
-    loss_scale = 1 / loss_scale,
-    loss_shape = loss_shape
-  )
-  # n_npsurvSS <- npsurvSS::size_two_arm(
-  #   arm0 = arm_trmt_npsurvSS,
-  #   arm1 = arm_ctrl_npsurvSS,
-  #   list(test = "rmst difference", milestone = tau)
-  # )[1]
-  # print(paste("n as calculated by npsurvSS is", n_npsurvSS))
-
   return(result)
 }
 
 # todo:
-# calc sample size instead of power
+# calc sample size instead of power for simulations
+# calculate power instead of sample size in closed form
+# update documentation
+# wrapper for calculate_sample_size called calculate_power()
