@@ -70,15 +70,16 @@ Plots example survival data, survival functions, and other characteristics
 }
 \examples{
 plot_surv(
-  scale_trmt = 1.4,
+  scale_trmt = 2,
   scale_ctrl = 1,
   accrual_time = 1,
   follow_up_time = 10,
   tau = 1,
-  loss_scale = 0.2,
-  n = 100,
+  loss_scale = 1,
+  n = 1000,
   plot_reverse_KM = TRUE,
   plot_log_log = TRUE,
+  plot_recruitment = TRUE,
   plot_extended = TRUE
 )
 }
