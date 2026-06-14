@@ -61,17 +61,22 @@
 #'   result_sup <- do.call(calculate_sample_size, args = args_sup)
 #'   print(result_sup)
 #'
-#' # Validate by simulation: power should be .8 for RMST difference
+#' # Validate by running simulation with sample size previously obtained for RMST difference
 #'   args_sup_sim <- args_sup
 #'   args_sup_sim$RMSTD_simulation <- TRUE
-#'   args_sup_sim$simulation_n <- result_sup$`Sample size for RMST difference determined by closed-form solution` # run simulation with sample size obtained from closed form calculation
+#'   args_sup_sim$simulation_n <-
+#'     result_sup$
+#'     `Sample size for RMST difference determined by closed-form solution`
 #'   result_sup_sim <- do.call(calculate_sample_size, args = args_sup_sim)
 #'   print(result_sup_sim)
 #'
 #' # Sample size for non-inferiority test with margin
 #'   args_noninf <- args_sup
 #'   args_noninf$margin_LRT <- 1.3 # define noninferiority margin in terms of HR
-#'   contrasts <- convert_contrast_ph(scale_ctrl = args_noninf$scale_ctrl, tau = args_noninf$tau, HR = args_noninf$margin_LRT) # find RMST difference and RMST ratio margins equivalent to HR margin
+#' # find RMST difference and RMST ratio margins equivalent to HR margin
+#'   contrasts <- convert_contrast_ph(scale_ctrl = args_noninf$scale_ctrl,
+#'                                    tau = args_noninf$tau,
+#'                                    HR = args_noninf$margin_LRT)
 #'   print(contrasts$RMSTD) # display RMST difference margin
 #'   print(contrasts$RMSTR) # display RMST ratio margin
 #'   args_noninf$margin_RMSTD <- contrasts$RMSTD
@@ -85,10 +90,12 @@
 #'   result_sup_loss <- do.call(calculate_sample_size, args = args_sup_loss)
 #'   print(result_sup_loss)
 #'
-#' # Censure all observations past tau for LRT: eliminates information advantage of LRT over RMST based methods.
+#' # Censure all observations past tau for LRT:
+#' # eliminates information advantage of LRT over RMST based methods.
 #'   args_sup_tau_cen <- args_sup
 #'   args_sup_tau_cen$censor_beyond_tau <- TRUE
-#'   result_sup_tau_cen <- do.call(calculate_sample_size, args = args_sup_tau_cen)
+#'   result_sup_tau_cen <- do.call(calculate_sample_size,
+#'                                 args = args_sup_tau_cen)
 #'   print(result_sup_tau_cen)
 #'
 #'

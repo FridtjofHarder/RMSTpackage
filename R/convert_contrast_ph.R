@@ -13,7 +13,8 @@
 #' Supported contrasts are: \itemize{
 #' \item Hazard ratio (HR).
 #' \item Median difference: the difference in times \eqn{\Delta t} at which each survival curve passes \eqn{S(t) = 0.5 = 50 \%}.
-#' \item Percentile difference: the difference in times \eqn{\Delta t} at which each survival curve passes a certain \eqn{S(t)}. Simplifies to the median difference when the percentile \eqn{50} is chosen.
+#' \item Percentile difference: the difference in times \eqn{\Delta t} at which each survival curve passes a certain \eqn{S(t)}.
+#' Simplifies to the median difference when the percentile \eqn{50} is chosen.
 #' \item Survival difference: difference between two survival curves \eqn{S(t)} at a specified time \eqn{\tau}.}
 #' Survival is assumed to follow Weibull distributions in both control and treatment group with a constant HR,
 #' implying the same shape parameter in treatment and control group.
@@ -38,22 +39,28 @@
 #' @param survival_diff Specifies the survival difference \eqn{\Delta S(\tau) = S(t)_{trmt} - S(t)_{ctrl}}.
 #' @param plot_curves Logical. Creates a plot if \code{TRUE}.
 #'
-#' @return Returns a list containing scale and shape parameters, hazard ratio, median and percentile difference, survival difference, RMST in treatment and control group, and RMST difference and ratio.
+#' @return Returns a list containing scale and shape parameters, hazard ratio, median and percentile difference, survival difference, RMST in treatment and control group,
+#' and RMST difference and ratio.
 #'
 #' @export
 #'
 #' @examples
-#' # Specify survival curves and obtain contrasts. Percentile difference is calculated at S(t) = 0.8. Obtain contrasts.
-#' results <- convert_contrast_ph(scale_trmt = 10, scale_ctrl = 6, tau = 4, percentile = 80, plot_curves = TRUE)
+#' # Specify survival curves and obtain contrasts.
+#' # Percentile difference is calculated at S(t) = 0.8. Obtain contrasts.
+#' results <- convert_contrast_ph(scale_trmt = 10, scale_ctrl = 6, tau = 4,
+#'                                percentile = 80, plot_curves = TRUE)
 #' print(results)
 #'
-#' # Specify scale in control group and hazard ratio. Obtain scale in treatment group and remaining contrasts.
+#' # Specify scale in control group and hazard ratio.
+#' # Obtain scale in treatment group and remaining contrasts.
 #' results <- convert_contrast_ph(scale_ctrl = 6, tau = 4, HR = 0.6)
-#' print(results
+#' print(results)
 #'
-#' # Specify scale in treatment group, shape and median survival. Obtain scale in control group and remaining contrasts.
-#' results <- convert_contrast_ph(scale_trmt = 10, shape = 1.5, tau = 4, median_diff = 2)
-#' print(results
+#' # Specify scale in treatment group, shape and median survival.
+#' # Obtain scale in control group and remaining contrasts.
+#' results <- convert_contrast_ph(scale_trmt = 10, shape = 1.5,
+#'                                tau = 4, median_diff = 2)
+#' print(results)
 #'
 convert_contrast_ph <- function(
     scale_trmt = NULL,
