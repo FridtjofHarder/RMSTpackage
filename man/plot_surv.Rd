@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_surv.R
 \name{plot_surv}
 \alias{plot_surv}
-\title{Plots example survival data, survival functions, and other characteristics}
+\title{Produces extensive surival plots}
 \usage{
 plot_surv(
   scale_trmt,
@@ -10,76 +10,85 @@ plot_surv(
   shape_trmt = 1,
   shape_ctrl = 1,
   parameterization = 1,
-  tau = NULL,
-  xlim = NULL,
-  ylim = c(0, 100),
-  n = NULL,
   accrual_time = 0,
   follow_up_time = Inf,
+  tau = NULL,
   censor_beyond_tau = FALSE,
+  n = NULL,
   loss_scale = NULL,
   loss_shape = 1,
   plot_reverse_KM = FALSE,
   plot_log_log = FALSE,
   plot_recruitment = FALSE,
-  plot_extended = FALSE
+  plot_extended = FALSE,
+  xlim = NULL,
+  ylim = c(0, 100)
 )
 }
 \arguments{
-\item{scale_trmt}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
+\item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group.}
 
-\item{scale_ctrl}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
+\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the treatment group.}
 
-\item{shape_trmt}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
+\item{shape_trmt}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
 
-\item{shape_ctrl}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.}
+\item{shape_ctrl}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.}
 
 \item{parameterization}{One of: \itemize{
-\item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
-\item \code{parameterization = 2}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parameterization = 3}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
-
-\item{tau}{A scalar \eqn{>0} specifying the time horizon \eqn{\tau}. The time horizon will be marked in the figure by a vertical line.}
-
-\item{xlim}{Defaults to \code{c(0, 1.5*tau)}.}
-
-\item{ylim}{Range of y-axis as survival percentages. Defaults to \code{c(0, 100)}.}
-
-\item{n}{An integer \eqn{>0} specifying the total sample size. Will be increased to the next even number if uneven. Group sample sizes are assumed to be equal.}
+\item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+\item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 
 \item{accrual_time}{Length of accrual period.}
 
-\item{follow_up_time}{Length of follow-up period.}
+\item{follow_up_time}{Length of follow-up period. Set to \code{Inf} if unspecified.}
 
-\item{censor_beyond_tau}{Boolean. All observations past tau \eqn{\tau} censored if \code{c(TRUE)}.}
+\item{tau}{Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
 
-\item{loss_scale}{Scale of Weibull distributed loss to follow-up.}
+\item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored if \code{TRUE}.}
 
-\item{loss_shape}{Shape of Weibull distributed loss to follow-up.}
+\item{n}{Specifies the total sample size. Increases to next even number if uneven. Group sample sizes are assumed to be equal.}
 
-\item{plot_reverse_KM}{Boolean. Will plot a reverse KM curve if  \code{c(TRUE)}.}
+\item{loss_scale}{Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
 
-\item{plot_log_log}{Boolean. Will plot a log-log plot for assessing proportionality of hazards if \code{c(TRUE)}.}
+\item{loss_shape}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.}
 
-\item{plot_recruitment}{Boolean. Plots recruitment plot.}
+\item{plot_reverse_KM}{Logical. Will plot a reverse KM curve if \code{c(TRUE)}, indicating censure-free follow-up.}
 
-\item{plot_extended}{Boolean. Will produce extended plots (..)}
+\item{plot_log_log}{Logical. Will plot a log-log plot for assessing proportionality of hazards if \code{TRUE}.}
+
+\item{plot_recruitment}{Logical. Plots recruitment plot indicating time between recruitment and last observation in study time. Will
+plot a representative sample of size \eqn{100} if \code{n} \eqn{> 100}.}
+
+\item{plot_extended}{Logical. Will produce extended plots differentiating causes of loss to follow up.}
+
+\item{xlim}{Range of plot x-axis. Defaults to \code{c(0, 1.5*tau)}.}
+
+\item{ylim}{Range of plot y-axis as survival percentages. Defaults to \code{c(0, 100)}.}
 }
 \description{
-Plots example survival data, survival functions, and other characteristics
+Plots example survival data, survival functions, reverse KM plot, recruitment plot, and censoring functions differentiating causes for censoring.
 }
 \examples{
-plot_surv(
-  scale_trmt = 2,
-  scale_ctrl = 1,
-  accrual_time = 1,
-  follow_up_time = 10,
-  tau = 1,
-  loss_scale = 1,
-  n = 1000,
-  plot_reverse_KM = TRUE,
-  plot_log_log = TRUE,
-  plot_recruitment = TRUE,
-  plot_extended = TRUE
-)
+
+# plot full range of plots with sample size n = 1000
+args_plot <- list(scale_trmt = 10,
+scale_ctrl = 6,
+accrual_time = 6,
+follow_up_time = 3,
+tau = 4,
+loss_scale = 10,
+n = 1000,
+plot_reverse_KM = TRUE,
+plot_log_log = TRUE,
+plot_recruitment = TRUE,
+plot_extended = TRUE)
+do.call(plot_surv, args = args_plot)
+
+# crossing survival curves
+args_cross <- args_plot
+args_cross$shape_ctrl <- .7
+args_cross$shape_trmt <- 1.3
+do.call(plot_surv, args = args_cross)
+
 }

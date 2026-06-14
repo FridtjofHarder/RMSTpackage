@@ -234,7 +234,6 @@ get_delta_LRT <- function(scale_trmt,
                           loss_scale = NULL,
                           loss_shape = 1,
                           margin_LRT = 1) {
-  print("delta schoenfeld")
   if (censor_beyond_tau) {
     total_time <- tau
   } else{

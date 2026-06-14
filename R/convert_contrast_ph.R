@@ -1,7 +1,7 @@
 #' Calculates or converts contrast between RMSTD, RMSTR, and HR, and others
 #'
-#' Function for calculating or converting different contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), the hazard ratio (HR),
-#' and other contrasts. Assumes Weibull distributed survival under proportional hazards.
+#' Calculates or converts contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), the hazard ratio (HR),
+#' or other contrasts. Assumes Weibull distributed survival under proportional hazards.
 #'
 #' Calculates a range of different contrasts between two survival curves
 #' given their scale parameters and shape parameter. Alternatively only one scale parameter may be supplied together with one contrast (e.g. hazard
@@ -22,48 +22,54 @@
 #' @param scale_ctrl Specifies the \dfn{scale parameter} in the treatment group.
 #' @param shape Specifies the \dfn{shape parameter} in both groups.
 #' @param parameterization One of: \itemize{
-#' \item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
-#' \item \code{parameterization = 2}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-#' \item \code{parameterization = 3}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
-#' @param median_diff Specifies the difference in time \eqn{\Delta t} at which each group has survival \eqn{S(t) = 0.5}. \code{median_diff} \eqn{> 0} suggests superior survival in the treatment group.
-#' @param percentile_diff Specifies the difference in time \eqn{\Delta t} at which each group has the survival \eqn{S(t) =} \code{percentile}.
-#' @param percentile Specifies at which percentile of survival to evaluate \code{percentile_diff}.
-#' \code{percentile_diff} is equal to \code{median_diff} when \code{percentile}  \eqn{=50}.
-#' @param survival_diff Specifies the survival difference in survival \eqn{\Delta S(\tau)} between treatment and control group at \eqn{\tau}.
-#' @param HR Specifies a hazard ratio. \code{HR} \eqn{< 1} suggests a lower hazard in the treatment group than in the control group.
-#' @param tau Specifies the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
+#' \item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+#' \item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+#' \item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
 #' @param RMSTD Specifies the RMSTD between control group and treatment group. Allows for converting RMSTD to HR.
 #' @param RMSTR Specifies the RMSTR between control group and treatment group. Allows for converting RMSTD to HR.
+#' @param tau Specifies the time horizon \eqn{\tau} where evaluate RMST with \eqn{\mathrm{RMST(\tau)} = \int_{0}^{\tau}S(t) \,dt}, and where to evaluate \eqn{\Delta S(\tau)}.
+#' @param HR Specifies a hazard ratio with \eqn{\text{HR} = h(t)_{\text{trmt}} / h(t)_{\text{ctrl}}}.
+#' @param median_diff Specifies the difference of median survival times, with \cr
+#' \code{median_diff} \eqn{= t_{\text{median, trmt}} - t_{\text{median, ctrl}} = \{t : S_\text{trmt}(t) = 0.5\} - \{t : S_\text{ctrl}(t) = 0.5\}}.
+#' @param percentile_diff Specifies the difference in time \eqn{\Delta t} at which each group has the survival \eqn{S(t) =} \code{percentile} with \cr
+#' \code{percentile_diff} \eqn{= t_{\text{percentile, trmt}} - t_{\text{percentile, ctrl}} = \{t : S_\text{trmt}(t) = \code{percentile}\} - \{t : S_\text{ctrl}(t) = \code{percentile}\}}.
+#' @param percentile Specifies at which percentile of survival to evaluate \code{percentile_diff}.
+#' \code{percentile_diff} is equal to \code{median_diff} when \code{percentile}  \eqn{=50}.
+#' @param survival_diff Specifies the survival difference \eqn{\Delta S(\tau) = S(t)_{trmt} - S(t)_{ctrl}}.
 #' @param plot_curves Logical. Creates a plot if \code{TRUE}.
 #'
-#' @return Returns a dataframe containing the inputs, scale and shape parameters,
-#' the difference (RMSTD) and ratio (RMSTR) in RMST,
-#' the HR between treatment group and control group, the median survival time difference.
-#' An RMSTD \eqn{> 0} or an RMSTR \eqn{> 1} indicate a larger RMST in the treatment group,
-#' a HR \eqn{< 1} indicates lower hazard in the treatment group. Input scales are converted
-#' to first paratmeterization.
+#' @return Returns a list containing scale and shape parameters, hazard ratio, median and percentile difference, survival difference, RMST in treatment and control group, and RMST difference and ratio.
 #'
 #' @export
 #'
 #' @examples
-#' results <- convert_contrast_ph(scale_trmt = 1, scale_ctrl = 0.9, tau = 1)
-#' results <- convert_contrast_ph(scale_trmt = 1, shape = 1, tau = 1, HR = 0.9)
+#' # Specify survival curves and obtain contrasts. Percentile difference is calculated at S(t) = 0.8. Obtain contrasts.
+#' results <- convert_contrast_ph(scale_trmt = 10, scale_ctrl = 6, tau = 4, percentile = 80, plot_curves = TRUE)
+#' print(results)
+#'
+#' # Specify scale in control group and hazard ratio. Obtain scale in treatment group and remaining contrasts.
+#' results <- convert_contrast_ph(scale_ctrl = 6, tau = 4, HR = 0.6)
+#' print(results
+#'
+#' # Specify scale in treatment group, shape and median survival. Obtain scale in control group and remaining contrasts.
+#' results <- convert_contrast_ph(scale_trmt = 10, shape = 1.5, tau = 4, median_diff = 2)
+#' print(results
+#'
 convert_contrast_ph <- function(
     scale_trmt = NULL,
     scale_ctrl = NULL,
     shape = 1,
     parameterization = 1,
+    RMSTD = NULL,
+    RMSTR = NULL,
+    tau = NULL,
     HR = NULL,
     median_diff = NULL,
     percentile_diff = NULL,
     percentile = 50,
     survival_diff = NULL,
-    RMSTD = NULL,
-    RMSTR = NULL,
-    tau = NULL,
-    plot_curves = TRUE) {
+    plot_curves = FALSE) {
   # error management -------------------------------------------------------------
-
   number_of_defined_scales <- sum(!is.null(scale_trmt), !is.null(scale_ctrl))
   number_of_defined_contrasts <- sum(
     !is.null(HR),
@@ -173,6 +179,7 @@ convert_contrast_ph <- function(
   }
 
   # calculate RMST in unspecified group when RMSTR or RMSTD are given as input
+
   if (xor(!is.null(RMSTD), !is.null(RMSTR))) {
     # when either RMSTR or RMSTD defined
     if (!is.null(scale_trmt)) {
@@ -254,10 +261,9 @@ convert_contrast_ph <- function(
   # calculate survival_diff
   if (is.null(survival_diff)) {
     survival_trmt <- stats::pweibull(tau, shape = shape, scale = scale_trmt, lower.tail = F)
-    survival_ctrl <- stats::pweibull(tau, shape = shape, scale = scale_ctrl, shape, lower.tail = F)
+    survival_ctrl <- stats::pweibull(tau, shape = shape, scale = scale_ctrl, lower.tail = F)
     survival_diff <- survival_trmt - survival_ctrl
   }
-
   # calculate RMSTs, and RMSTR or RMSTD, if not defined already.
   if (!exists("RMST_trmt")) {
     RMST_trmt <- stats::integrate(
@@ -290,23 +296,26 @@ convert_contrast_ph <- function(
     x <- NULL
     graphics::curve(
       stats::pweibull(x, scale = scale_trmt, shape = shape, lower.tail = FALSE),
-      col = "green",
+      col = "darkblue",
       xlab = "t",
       ylab = "S(t)",
       ylim = c(0, 1),
-      xlim = c(0, 1.5 * tau)
+      xlim = c(0, 1.5 * tau),
+      lwd = 2
     )
     graphics::curve(
       stats::pweibull(x, scale = scale_ctrl, shape = shape, lower.tail = FALSE),
       col = "red",
-      add = TRUE
+      add = TRUE,
+      lwd = 2
     )
-    graphics::abline(v = tau, col = "blue")
+    graphics::abline(v = tau, col = "black", lwd = 2)
     graphics::text(
       x = tau,
       y = 0.1,
       pos = 4,
-      labels = bquote("time horizon " * tau * " = " * .(tau))
+      labels = bquote("time horizon " * tau * " = " * .(tau)),
+      cex = .8
     )
     graphics::legend(
       "bottomleft",
@@ -326,7 +335,7 @@ convert_contrast_ph <- function(
           round(shape, 2)
         )
       ),
-      col = c("green", "red"),
+      col = c("darkblue", "red"),
       lty = 1:1,
       y.intersp = 1.5,
       bty = "n",
@@ -334,8 +343,8 @@ convert_contrast_ph <- function(
     )
   }
 
-  # prepare df of all results and return
-  results_df <- data.frame(
+  # prepare list of all results and return
+  results_df <- list(
     "scale trmt" = scale_trmt,
     "scale ctrl" = scale_ctrl,
     "shape" = shape,

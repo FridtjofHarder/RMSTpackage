@@ -10,58 +10,71 @@ simulate_data(
   parameterization = 1,
   accrual_time = 0,
   follow_up_time = Inf,
+  tau = NULL,
+  censor_beyond_tau = FALSE,
+  n,
   loss_scale = NULL,
   loss_shape = 1,
-  sample_size,
-  label = 0,
-  tau = NULL,
-  censor_beyond_tau = FALSE
+  label = 0
 )
 }
 \arguments{
-\item{scale}{A scalar \eqn{>0} specifying the \dfn{scale parameter} in the treatment group.}
+\item{scale}{Specifies the \dfn{scale parameter} in the treatment group.}
 
-\item{shape}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
+\item{shape}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
 
 \item{parameterization}{One of: \itemize{
-\item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}},
-\item \code{parameterization = 2}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parametrization = 3}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+\item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 
-\item{accrual_time}{Specifies the accrual time during which participants are recruited.}
+\item{accrual_time}{Length of accrual period.}
 
-\item{follow_up_time}{Specifies the follow-up time after accrual.}
+\item{follow_up_time}{Length of follow-up period. Set to \code{Inf} if unspecified.}
 
-\item{loss_scale}{A scalar \eqn{>0} specifying the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
+\item{tau}{Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
 
-\item{loss_shape}{A scalar \eqn{>0} specifying the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.}
+\item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored if \code{TRUE}.}
 
-\item{sample_size}{Sample size.}
+\item{n}{Sample size.}
+
+\item{loss_scale}{Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
+
+\item{loss_shape}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.}
 
 \item{label}{Group label.}
-
-\item{tau}{A scalar \eqn{>0} specifying the time horizon \eqn{\tau}.}
-
-\item{censor_beyond_tau}{Boolean. All observations past tau \eqn{\tau} censored if \code{c(TRUE)}.}
 }
 \value{
-data frame containing observations times, status (event = 1, censored
-= 1), and group label
+Data frame containing observations times, status (event = 1, censored
+= 0), and group label
 }
 \description{
-Simulates survival of one arm, including administrative censoring and loss to follow-up. Survival function needs to be fully defined
-as a Weibull or exponential distribution.
+Simulates survival of one arm, including administrative censoring and loss to follow-up. Survival function needs to be specified
+as Weibull or exponential.
 }
 \details{
 Details
 }
 \examples{
-simulate_data(
-  scale = 1,
-  accrual_time = 1,
-  follow_up_time = 1,
-  loss_scale = 1,
-  sample_size = 100,
+ctrl_df <- simulate_data(
+  scale = 6,
+  accrual_time = 6,
+  follow_up_time = 3,
+  loss_scale = 10,
+  n = 50,
   label = 0,
 )
+trmt_df <- simulate_data(
+  scale = 10,
+  accrual_time = 6,
+  follow_up_time = 3,
+  loss_scale = 10,
+  n = 50,
+  label = 1,
+)
+surv_df <- rbind(ctrl_df, trmt_df) # build data frame for both control and treatment group
+head(surv_df)
+tail(surv_df)
+
+
 }

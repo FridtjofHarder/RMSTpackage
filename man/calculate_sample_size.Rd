@@ -2,7 +2,7 @@
 % Please edit documentation in R/calculate_sample_size.R
 \name{calculate_sample_size}
 \alias{calculate_sample_size}
-\title{Calculates sample size or test power}
+\title{Determines sample size or test power}
 \usage{
 calculate_sample_size(
   scale_trmt,
@@ -14,23 +14,23 @@ calculate_sample_size(
   follow_up_time = NULL,
   tau = NULL,
   sides = 1,
-  one_sided_alpha = 0.025,
   power = 0.8,
-  margin_LRT = 1,
+  one_sided_alpha = 0.025,
   margin_RMSTD = 0,
   margin_RMSTR = 1,
-  RMSTD_closed_form = FALSE,
-  RMSTR_closed_form = FALSE,
+  margin_LRT = 1,
+  RMSTD_closed_form = TRUE,
+  RMSTR_closed_form = TRUE,
+  LRT_closed_form = TRUE,
+  satterthwaite_corr = FALSE,
   RMSTD_simulation = FALSE,
   RMSTR_simulation = FALSE,
   LRT_simulation = FALSE,
-  LRT_closed_form = FALSE,
-  satterthwaite_corr = FALSE,
   censor_beyond_tau = FALSE,
   M = 5000,
-  simulation_sample_size,
-  plot_design_curves = TRUE,
+  simulation_n = NA,
   plot_example_data = TRUE,
+  plot_design_curves = TRUE,
   loss_scale = NULL,
   loss_shape = 1
 )
@@ -38,38 +38,45 @@ calculate_sample_size(
 \arguments{
 \item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group.}
 
-\item{shape_trmt}{Specifies the \dfn{shape parameter} in the treatment group. Default \code{shape_trmt} \eqn{=1} simplifies to exponential survival.}
+\item{shape_trmt}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
 
 \item{scale_ctrl}{Specifies the \dfn{scale parameter} in the treatment group.}
 
-\item{shape_ctrl}{Specifies the \dfn{shape parameter} in the treatment group. Default \code{shape_ctrl} \eqn{=1} simplifies to exponential survival.}
+\item{shape_ctrl}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.}
 
 \item{parameterization}{One of: \itemize{
-\item \code{parameterization = 1}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
-\item \code{parameterization = 2}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parameterization = 3}: Specifies Weibull distributed survival as \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+\item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 
 \item{accrual_time}{Length of accrual period.}
 
 \item{follow_up_time}{Length of follow-up period. Set to \code{Inf} if unspecified.}
 
-\item{tau}{Specifies the time horizon \eqn{\tau} at which to evaluate RMST with \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
+\item{tau}{Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
 
-\item{sides}{Sidedness of inference test, either \code{1} or \code{2}.}
-
-\item{one_sided_alpha}{\eqn{\alpha} level for one-sided inference test.}
+\item{sides}{Sidedness of inference test, either \code{1} or \code{2}. \code{sides = 1} assumes alternative hypothesis of: \itemize{
+\item \eqn{H_1\text{: } \text{RMST}_\text{difference} = \text{RMST}_\text{trmt} - \text{RMST}_\text{ctrl} > 0},
+\item \eqn{H_1\text{: } \text{RMST}_\text{ratio} = \text{RMST}_\text{trmt} / \text{RMST}_\text{ctrl} > 1}, or
+\item \eqn{H_1\text{: } \text{HR} = h(t)_\text{trmt} / h(t)_\text{ctrl} < 1}.}}
 
 \item{power}{Test power with \code{power} \eqn{=1-\beta}.}
 
-\item{margin_LRT}{Non-inferiority margin for logrank test. Default \code{margin_LRT} \eqn{=1} simplifies to superiority test.}
+\item{one_sided_alpha}{\eqn{\alpha} level for one-sided inference test.}
 
-\item{margin_RMSTD}{Non-inferiority margin for RMST difference. Default \code{margin_RMSTD} \eqn{=0} simplifies to superiority test.}
+\item{margin_RMSTD}{Non-inferiority margin for RMST difference. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{difference} > } \code{margin_RMSTD}, with  default \code{margin_RMSTD} \eqn{=0} simplifying to superiority test.}
 
-\item{margin_RMSTR}{Non-inferiority margin for RMST ratio. Default \code{margin_RMSTR} \eqn{=1} simplifies to superiority test.}
+\item{margin_RMSTR}{Non-inferiority margin for RMST ratio. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{ratio} > } \code{margin_RMSTR}, with  default \code{margin_RMSTR} \eqn{=1} simplifying to superiority test.}
+
+\item{margin_LRT}{Non-inferiority margin for logrank test in terms of hazard ratio \eqn{\text{HR}}. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{HR} < } \code{margin_LRT}, with  default \code{margin_LRT} \eqn{=1} simplifying to superiority test.}
 
 \item{RMSTD_closed_form}{Logical. Specifies whether to calculate sample size for RMST difference test.}
 
 \item{RMSTR_closed_form}{Logical. Specifies whether to calculate sample size for RMST ratio test.}
+
+\item{LRT_closed_form}{Logical. Specifies whether to calculate sample size for log rank test.}
+
+\item{satterthwaite_corr}{Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.}
 
 \item{RMSTD_simulation}{Logical. Specifies whether to determine RMST difference test power via simulation.}
 
@@ -77,53 +84,76 @@ calculate_sample_size(
 
 \item{LRT_simulation}{Logical. Specifies whether to determine log rank test power via simulation.}
 
-\item{LRT_closed_form}{Logical. Specifies whether to calculate sample size for log rank test.}
-
-\item{satterthwaite_corr}{Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic,}
-
-\item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored for simulations and log rank test if  \code{TRUE}.}
+\item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored for simulations and log rank test if \code{TRUE}.}
 
 \item{M}{Number of iterations when running simulation.}
 
-\item{simulation_sample_size}{Specifies sample size for simulations.}
+\item{simulation_n}{Specifies sample size for simulations and for example plot.}
+
+\item{plot_example_data}{Logical. Specifies whether to create a plot with example data. Plots with total sample size of \eqn{n = 100} if \code{simulation_n} is undefined.}
 
 \item{plot_design_curves}{Logical. Specifies whether to plot survival curves.}
 
-\item{plot_example_data}{Logical. Specifies whether to create a plot with example data.}
+\item{loss_scale}{Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
 
-\item{loss_scale}{Scale of Weibull distributed loss to follow-up.}
-
-\item{loss_shape}{Shape of Weibull distributed loss to follow-up.}
+\item{loss_shape}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.}
 }
 \value{
-Returns a list with total sample size in both samples combined and a test power.
+Returns a list with total sample sizes for each test and a test power.
 }
 \description{
-Function for calculating the sample size given a desired test power, or the test power given a sample size.
-Sample size and test power can be determined either analytically or by simulation.
+Calculates the sample size given a desired test power, or simulates the test power given a sample size. Supports tests on difference and ratio in restricted mean survival time (RMST), and log rank test (LRT). Supports superiority and non-inferiority tests.
 }
 \details{
 Sample size and power determination for both superiority and non-inferiority analysis are supported.
 Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterization
 defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. Sample size and power
-can be determined for either logrank test or RMST-based methods (test for RMST difference and RMST ratio).
-For comparing logrank test with RMST based methods, all observations past time horizon \eqn{\tau}
-may be censored if desired.
+can be determined for logrank test, RMST difference, and RMST ratio.
 }
 \examples{
-calculate_sample_size(
-  scale_trmt = 1.4,
-  scale_ctrl = 1,
-  accrual_time = 1,
-  follow_up_time = 10,
-  tau = 1,
-  RMSTD_simulation = TRUE,
-  RMSTR_simulation = TRUE,
-  LRT_simulation = TRUE,
-  RMSTD_closed_form = TRUE,
-  RMSTR_closed_form = TRUE,
-  loss_scale = 1,
-  M = 100,
-  simulation_sample_size = 100
-)
+
+# Sample size for superiority test with Satterthwaite approximation
+  args_sup <- list(
+  scale_trmt = 10,
+  scale_ctrl = 6,
+  accrual_time = 6,
+  follow_up_time = 3,
+  tau = 4,
+  loss_scale = 10,
+  satterthwaite_corr = TRUE
+  )
+  result_sup <- do.call(calculate_sample_size, args = args_sup)
+  print(result_sup)
+
+# Validate by simulation: power should be .8 for RMST difference
+  args_sup_sim <- args_sup
+  args_sup_sim$RMSTD_simulation <- TRUE
+  args_sup_sim$simulation_n <- result_sup$`Sample size for RMST difference determined by closed-form solution` # run simulation with sample size obtained from closed form calculation
+  result_sup_sim <- do.call(calculate_sample_size, args = args_sup_sim)
+  print(result_sup_sim)
+
+# Sample size for non-inferiority test with margin
+  args_noninf <- args_sup
+  args_noninf$margin_LRT <- 1.3 # define noninferiority margin in terms of HR
+  contrasts <- convert_contrast_ph(scale_ctrl = args_noninf$scale_ctrl, tau = args_noninf$tau, HR = args_noninf$margin_LRT) # find RMST difference and RMST ratio margins equivalent to HR margin
+  print(contrasts$RMSTD) # display RMST difference margin
+  print(contrasts$RMSTR) # display RMST ratio margin
+  args_noninf$margin_RMSTD <- contrasts$RMSTD
+  args_noninf$margin_RMSTR <- contrasts$RMSTR
+  result_noninf <- do.call(calculate_sample_size, args = args_noninf)
+  print(result_noninf)
+
+# Assume heavy loss to follow up
+  args_sup_loss <- args_sup
+  args_sup_loss$loss_scale <- 2
+  result_sup_loss <- do.call(calculate_sample_size, args = args_sup_loss)
+  print(result_sup_loss)
+
+# Censure all observations past tau for LRT: eliminates information advantage of LRT over RMST based methods.
+  args_sup_tau_cen <- args_sup
+  args_sup_tau_cen$censor_beyond_tau <- TRUE
+  result_sup_tau_cen <- do.call(calculate_sample_size, args = args_sup_tau_cen)
+  print(result_sup_tau_cen)
+
+
 }
