@@ -40,7 +40,7 @@
 #' @param plot_curves Logical. Creates a plot if \code{TRUE}.
 #'
 #' @return Returns a list containing scale and shape parameters, hazard ratio, median and percentile difference, survival difference, RMST in treatment and control group,
-#' and RMST difference and ratio.
+#' and RMST difference and ratio. Returns a plot as well if requested.
 #'
 #' @export
 #'
@@ -348,24 +348,30 @@ convert_contrast_ph <- function(
       bty = "n",
       cex = 0.8
     )
+    plot_obj <- grDevices::recordPlot()
   }
 
   # prepare list of all results and return
-  results_df <- list(
+  results_list <- list(
     "scale trmt" = scale_trmt,
     "scale ctrl" = scale_ctrl,
     "shape" = shape,
+    "parameterization" = parameterization,
+    "RMSTD" = RMSTD,
+    "RMSTR" = RMSTR,
+    "tau" = tau,
     "hazard ratio" = HR,
     "median difference" = median_diff,
     "percentile difference" = percentile_diff,
     "percentile" = percentile,
     "survival difference at tau" = survival_diff,
     "RMST trmt" = RMST_trmt,
-    "RMST ctrl" = RMST_ctrl,
-    "RMSTD" = RMSTD,
-    "RMSTR" = RMSTR
+    "RMST ctrl" = RMST_ctrl
   )
-  return(results_df)
+  if(plot_curves){
+    results_list$plot <- plot_obj
+  }
+  return(results_list)
 }
 
 find_root_weibull <- function(unknown_scale, shape, tau, RMST) {

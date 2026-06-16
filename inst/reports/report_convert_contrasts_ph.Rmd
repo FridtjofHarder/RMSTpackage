@@ -1,0 +1,26 @@
+---
+title: "convert_contrast_ph report"
+output: pdf_document
+params:
+  result: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      comment = "")
+```
+
+```{r fig.width=5, fig.height=6}
+res <- params$result
+
+if (!is.null(res$plot)) {
+  grDevices::replayPlot(res$plot)
+}
+
+nm_all  <- names(res)
+nm_keep <- setdiff(nm_all, "plot")
+
+for (nm in nm_keep) {
+  cat(nm, " = ", res[[nm]], "\n")
+}
+```

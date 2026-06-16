@@ -55,7 +55,7 @@ convert_contrast_ph(
 }
 \value{
 Returns a list containing scale and shape parameters, hazard ratio, median and percentile difference, survival difference, RMST in treatment and control group,
-and RMST difference and ratio.
+and RMST difference and ratio. Returns a plot as well if requested.
 }
 \description{
 Calculates or converts contrasts into either the difference or the ratio of restricted mean survival times (RMSTs), the hazard ratio (HR),
