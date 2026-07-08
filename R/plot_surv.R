@@ -226,7 +226,7 @@ plot_surv <- function(
       add = TRUE,
       col = "black",
       lwd = 4,
-      lty = 3
+      lty = 1
     )
   } else{
   # draw hazard curves

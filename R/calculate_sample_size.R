@@ -126,7 +126,7 @@ calculate_sample_size <- function(
   RMSTR_simulation = FALSE, # RMSTR = RMST_trmt / RMST_ctrl = RMST_arm1 / RMST_arm0
   LRT_simulation = FALSE,   # HR = h(trmt) / h(ctrl = h_arm1 / h_arm0)
   censor_beyond_tau = FALSE,
-  M = 5000,
+  M = 1000,
   simulation_n = NA,
   plot_example_data = TRUE,
   plot_design_curves = TRUE,
@@ -344,6 +344,7 @@ calculate_sample_size <- function(
       simulated_data <- simulate_data(
         scale = scale_trmt,
         shape = shape_trmt,
+        breakpoints = breakpoints_trmt,
         accrual_time = accrual_time,
         follow_up_time = follow_up_time,
         scale_loss = scale_loss,
@@ -359,6 +360,7 @@ calculate_sample_size <- function(
         simulate_data(
           scale = scale_ctrl,
           shape = shape_ctrl,
+          breakpoints = breakpoints_ctrl,
           accrual_time = accrual_time,
           follow_up_time = follow_up_time,
           scale_loss = scale_loss,
