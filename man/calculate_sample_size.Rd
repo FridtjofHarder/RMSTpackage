@@ -5,14 +5,17 @@
 \title{Determines sample size or test power}
 \usage{
 calculate_sample_size(
-  scale_trmt,
-  shape_trmt = 1,
   scale_ctrl,
+  scale_trmt,
   shape_ctrl = 1,
-  parameterization = 1,
+  shape_trmt = 1,
+  breakpoints_ctrl = 0,
+  breakpoints_trmt = 0,
   accrual_time = 0,
   follow_up_time = NULL,
   tau = NULL,
+  scale_loss = NULL,
+  shape_loss = 1,
   sides = 1,
   power = 0.8,
   one_sided_alpha = 0.025,
@@ -31,29 +34,31 @@ calculate_sample_size(
   simulation_n = NA,
   plot_example_data = TRUE,
   plot_design_curves = TRUE,
-  loss_scale = NULL,
-  loss_shape = 1
+  parameterization = 1
 )
 }
 \arguments{
-\item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group.}
+\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the control group. Can be a scalar (weibull or exponential survival), or a vector (piecewise weibull).}
 
-\item{shape_trmt}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
+\item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (weibull or exponential survival), or a vector (piecewise weibull).}
 
-\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the treatment group.}
+\item{shape_ctrl}{Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival. If \code{length(shape_ctrl) = 1} and \code{length(shape_ctrl) > 1}, the same shape parameter will be assumed for each section of the survival function.}
 
-\item{shape_ctrl}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.}
+\item{shape_trmt}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt = 1}, simplifying to exponential survival. If \code{length(shape_trmt) = 1} and \code{length(shape_trmt) > 1}, the same shape parameter will be assumed for each section of the survival function.}
 
-\item{parameterization}{One of: \itemize{
-\item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
-\item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item{breakpoints_ctrl}{Vector of breakpoints of the piecewise weibull distribution in the control group. Must have length of \code{scale_ctrl}and \code{shape_ctrl}. First element must be \code{0}.}
+
+\item{breakpoints_trmt}{Vector of breakpoints of the piecewise weibull distribution in the treatment group. Must have length of \code{scale_trmt}and \code{shape_trmt}. First element must be \code{0}.}
 
 \item{accrual_time}{Length of accrual period.}
 
 \item{follow_up_time}{Length of follow-up period. Set to \code{Inf} if unspecified.}
 
 \item{tau}{Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
+
+\item{scale_loss}{Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
+
+\item{shape_loss}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.}
 
 \item{sides}{Sidedness of inference test, either \code{1} or \code{2}. \code{sides = 1} assumes alternative hypothesis of: \itemize{
 \item \eqn{H_1\text{: } \text{RMST}_\text{difference} = \text{RMST}_\text{trmt} - \text{RMST}_\text{ctrl} > 0},
@@ -68,7 +73,7 @@ calculate_sample_size(
 
 \item{margin_RMSTR}{Non-inferiority margin for RMST ratio. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{ratio} > } \code{margin_RMSTR}, with  default \code{margin_RMSTR} \eqn{=1} simplifying to superiority test.}
 
-\item{margin_LRT}{Non-inferiority margin for logrank test in terms of hazard ratio \eqn{\text{HR}}. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{HR} < } \code{margin_LRT}, with  default \code{margin_LRT} \eqn{=1} simplifying to superiority test.}
+\item{margin_LRT}{Non-inferiority margin for log rank test in terms of hazard ratio \eqn{\text{HR}}. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{HR} < } \code{margin_LRT}, with  default \code{margin_LRT} \eqn{=1} simplifying to superiority test.}
 
 \item{RMSTD_closed_form}{Logical. Specifies whether to calculate sample size for RMST difference test.}
 
@@ -94,9 +99,10 @@ calculate_sample_size(
 
 \item{plot_design_curves}{Logical. Specifies whether to plot survival curves.}
 
-\item{loss_scale}{Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
-
-\item{loss_shape}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.}
+\item{parameterization}{One of: \itemize{
+\item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+\item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 }
 \value{
 Returns a list with total sample sizes for each test and a test power.
@@ -108,18 +114,18 @@ Calculates the sample size given a desired test power, or simulates the test pow
 Sample size and power determination for both superiority and non-inferiority analysis are supported.
 Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterization
 defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. Sample size and power
-can be determined for logrank test, RMST difference, and RMST ratio.
+can be determined for log rank test, RMST difference, and RMST ratio.
 }
 \examples{
 
 # Sample size for superiority test with Satterthwaite approximation
   args_sup <- list(
-  scale_trmt = 10,
   scale_ctrl = 6,
+  scale_trmt = 10,
   accrual_time = 6,
   follow_up_time = 3,
   tau = 4,
-  loss_scale = 10,
+  scale_loss = 10,
   satterthwaite_corr = TRUE
   )
   result_sup <- do.call(calculate_sample_size, args = args_sup)
@@ -150,7 +156,7 @@ can be determined for logrank test, RMST difference, and RMST ratio.
 
 # Assume heavy loss to follow up
   args_sup_loss <- args_sup
-  args_sup_loss$loss_scale <- 2
+  args_sup_loss$scale_loss <- 2
   result_sup_loss <- do.call(calculate_sample_size, args = args_sup_loss)
   print(result_sup_loss)
 
@@ -161,6 +167,5 @@ can be determined for logrank test, RMST difference, and RMST ratio.
   result_sup_tau_cen <- do.call(calculate_sample_size,
                                 args = args_sup_tau_cen)
   print(result_sup_tau_cen)
-
 
 }

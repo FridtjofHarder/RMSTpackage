@@ -80,8 +80,10 @@ implying the same shape parameter in treatment and control group.
 \examples{
 # Specify survival curves and obtain contrasts.
 # Percentile difference is calculated at S(t) = 0.8. Obtain contrasts.
-results <- convert_contrast_ph(scale_trmt = 10, scale_ctrl = 6, tau = 4,
-                               percentile = 80, plot_curves = TRUE)
+results <- convert_contrast_ph(
+  scale_trmt = 10, scale_ctrl = 6, tau = 4,
+  percentile = 80, plot_curves = TRUE
+)
 print(results)
 
 # Specify scale in control group and hazard ratio.
@@ -91,8 +93,10 @@ print(results)
 
 # Specify scale in treatment group, shape and median survival.
 # Obtain scale in control group and remaining contrasts.
-results <- convert_contrast_ph(scale_trmt = 10, shape = 1.5,
-                               tau = 4, median_diff = 2)
+results <- convert_contrast_ph(
+  scale_trmt = 10, shape = 1.5,
+  tau = 4, median_diff = 2
+)
 print(results)
 
 }

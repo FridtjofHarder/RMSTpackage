@@ -9,39 +9,29 @@
 #'   app_convert_contrast_ph()
 #' }
 app_convert_contrast_ph <- function() {
-
   ui <- shiny::fluidPage(
     shiny::titlePanel("convert_contrast_ph"),
-
     shiny::sidebarLayout(
       shiny::sidebarPanel(
         shiny::h4("Input / output parameters"),
-
         shiny::numericInput("scale_trmt", "scale trmt", value = NA_real_),
         shiny::numericInput("scale_ctrl", "scale ctrl", value = NA_real_),
-        shiny::numericInput("shape",      "shape",      value = 1),
+        shiny::numericInput("shape", "shape", value = 1),
         shiny::numericInput("parameterization", "parameterization", value = 1),
-
         shiny::numericInput("RMSTD", "RMSTD", value = NA_real_),
         shiny::numericInput("RMSTR", "RMSTR", value = NA_real_),
-
-        shiny::numericInput("tau",  "tau",  value = NA_real_),
-        shiny::numericInput("HR",   "hazard ratio (HR)", value = NA_real_),
-
-        shiny::numericInput("median_diff",     "median difference",     value = NA_real_),
+        shiny::numericInput("tau", "tau", value = NA_real_),
+        shiny::numericInput("HR", "hazard ratio (HR)", value = NA_real_),
+        shiny::numericInput("median_diff", "median difference", value = NA_real_),
         shiny::numericInput("percentile_diff", "percentile difference", value = NA_real_),
-        shiny::numericInput("percentile",      "percentile",            value = 50),
-        shiny::numericInput("survival_diff",   "survival difference at tau", value = NA_real_),
-
+        shiny::numericInput("percentile", "percentile", value = 50),
+        shiny::numericInput("survival_diff", "survival difference at tau", value = NA_real_),
         shiny::checkboxInput("plot_curves", "Show plot", value = TRUE),
-
         shiny::actionButton("go", "Update")
       ),
-
       shiny::mainPanel(
         shiny::h4("Results"),
         shiny::verbatimTextOutput("results"),
-
         shiny::h4("Survival curves"),
         shiny::plotOutput("surv_plot", height = "350px")
       )
@@ -49,11 +39,16 @@ app_convert_contrast_ph <- function() {
   )
 
   server <- function(input, output, session) {
-
     clean_input <- function(x) {
-      if (is.null(x)) return(NULL)
-      if (length(x) == 0L) return(NULL)
-      if (is.na(x)) return(NULL)
+      if (is.null(x)) {
+        return(NULL)
+      }
+      if (length(x) == 0L) {
+        return(NULL)
+      }
+      if (is.na(x)) {
+        return(NULL)
+      }
       x
     }
 
@@ -82,74 +77,77 @@ app_convert_contrast_ph <- function() {
       tmp
     })
 
-    output$surv_plot <- shiny::renderPlot({
-      shiny::req(res())
-      if (!is.null(res()$plot)) {
-        grDevices::replayPlot(res()$plot)
-      }
-    }, res = 96)
+    output$surv_plot <- shiny::renderPlot(
+      {
+        shiny::req(res())
+        if (!is.null(res()$plot)) {
+          grDevices::replayPlot(res()$plot)
+        }
+      },
+      res = 96
+    )
 
     shiny::observeEvent(res(), {
       out <- res()
 
       if (!is.null(out$`scale trmt`)) {
         shiny::updateNumericInput(session, "scale_trmt",
-                                  value = out$`scale trmt`
+          value = out$`scale trmt`
         )
       }
       if (!is.null(out$`scale ctrl`)) {
         shiny::updateNumericInput(session, "scale_ctrl",
-                                  value = out$`scale ctrl`
+          value = out$`scale ctrl`
         )
       }
       if (!is.null(out$shape)) {
         shiny::updateNumericInput(session, "shape",
-                                  value = out$shape
+          value = out$shape
         )
       }
       if (!is.null(out$parameterization)) {
         shiny::updateNumericInput(session, "parameterization",
-                                  value = out$parameterization
+          value = out$parameterization
         )
       }
       if (!is.null(out$RMSTD)) {
         shiny::updateNumericInput(session, "RMSTD",
-                                  value = out$RMSTD
+          value = out$RMSTD
         )
       }
       if (!is.null(out$RMSTR)) {
         shiny::updateNumericInput(session, "RMSTR",
-                                  value = out$RMSTR
+          value = out$RMSTR
         )
       }
       if (!is.null(out$tau)) {
         shiny::updateNumericInput(session, "tau",
-                                  value = out$tau
+          value = out$tau
         )
       }
       if (!is.null(out$`hazard ratio`)) {
         shiny::updateNumericInput(session, "HR",
-                                  value = out$`hazard ratio`
+          value = out$`hazard ratio`
         )
       }
       if (!is.null(out$`median difference`)) {
         shiny::updateNumericInput(session, "median_diff",
-                                  value = out$`median difference`
+          value = out$`median difference`
         )
       }
       if (!is.null(out$`percentile difference`)) {
         shiny::updateNumericInput(session, "percentile_diff",
-                                  value = out$`percentile difference`
+          value = out$`percentile difference`
         )
       }
       if (!is.null(out$percentile)) {
         shiny::updateNumericInput(session, "percentile",
-                                  value = out$percentile
+          value = out$percentile
         )
       }
       if (!is.null(out$`survival difference at tau`)) {
         shiny::updateNumericInput(session, "survival_diff",
-                                  value = out$`survival difference at tau`
+          value = out$`survival difference at tau`
         )
       }
     })

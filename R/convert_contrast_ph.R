@@ -47,8 +47,10 @@
 #' @examples
 #' # Specify survival curves and obtain contrasts.
 #' # Percentile difference is calculated at S(t) = 0.8. Obtain contrasts.
-#' results <- convert_contrast_ph(scale_trmt = 10, scale_ctrl = 6, tau = 4,
-#'                                percentile = 80, plot_curves = TRUE)
+#' results <- convert_contrast_ph(
+#'   scale_trmt = 10, scale_ctrl = 6, tau = 4,
+#'   percentile = 80, plot_curves = TRUE
+#' )
 #' print(results)
 #'
 #' # Specify scale in control group and hazard ratio.
@@ -58,24 +60,27 @@
 #'
 #' # Specify scale in treatment group, shape and median survival.
 #' # Obtain scale in control group and remaining contrasts.
-#' results <- convert_contrast_ph(scale_trmt = 10, shape = 1.5,
-#'                                tau = 4, median_diff = 2)
+#' results <- convert_contrast_ph(
+#'   scale_trmt = 10, shape = 1.5,
+#'   tau = 4, median_diff = 2
+#' )
 #' print(results)
 #'
 convert_contrast_ph <- function(
-    scale_trmt = NULL,
-    scale_ctrl = NULL,
-    shape = 1,
-    parameterization = 1,
-    RMSTD = NULL,
-    RMSTR = NULL,
-    tau = NULL,
-    HR = NULL,
-    median_diff = NULL,
-    percentile_diff = NULL,
-    percentile = 50,
-    survival_diff = NULL,
-    plot_curves = FALSE) {
+  scale_trmt = NULL,
+  scale_ctrl = NULL,
+  shape = 1,
+  parameterization = 1,
+  RMSTD = NULL,
+  RMSTR = NULL,
+  tau = NULL,
+  HR = NULL,
+  median_diff = NULL,
+  percentile_diff = NULL,
+  percentile = 50,
+  survival_diff = NULL,
+  plot_curves = FALSE
+) {
   # error management -------------------------------------------------------------
   number_of_defined_scales <- sum(!is.null(scale_trmt), !is.null(scale_ctrl))
   number_of_defined_contrasts <- sum(
@@ -98,33 +103,37 @@ convert_contrast_ph <- function(
   )
 
   stopifnot(
-    # throw error when parameterization misspecified
     "parameterization must be defined as either 1, 2, or 3" = parameterization ==
       1 ||
       parameterization == 2 ||
       parameterization == 3
   )
 
+  # local helper: RMST of a simple Weibull survival curve ----------------------
+  rmst_weibull <- function(scale) {
+    stats::integrate(
+      stats::pweibull,
+      scale = scale,
+      shape = shape,
+      lower = 0,
+      upper = tau,
+      lower.tail = FALSE
+    )$value
+  }
+
   # convert parameters -----------------------------------------------------------
 
-  # converts scale parameter wrt parameterization
   if (parameterization == 2) {
-    if (!is.null(scale_trmt)) {
-      scale_trmt <- 1 / (scale_trmt^(1 / shape))
-    }
+    if (!is.null(scale_trmt)) scale_trmt <- 1 / (scale_trmt^(1 / shape))
     if (!is.null(scale_ctrl)) scale_ctrl <- 1 / (scale_ctrl^(1 / shape))
   }
-  # converts scale parameter wrt parameterization
   if (parameterization == 3) {
-    if (!is.null(scale_trmt)) {
-      scale_trmt <- 1 / scale_trmt
-    }
+    if (!is.null(scale_trmt)) scale_trmt <- 1 / scale_trmt
     if (!is.null(scale_ctrl)) scale_ctrl <- 1 / scale_ctrl
   }
 
   # obtain missing scale parameter -----------------------------------------------
 
-  # specifies previously undefined scale parameter if HR is chosen as input contrast
   if (!is.null(HR)) {
     if (!is.null(scale_trmt)) {
       scale_ctrl <- scale_trmt * HR
@@ -133,10 +142,6 @@ convert_contrast_ph <- function(
     }
   }
 
-  # if median difference is chosen as input parameter, median in one group is
-  # calculated from scale and shape parameters, and input from other group is
-  # calculated from median of first group minus median difference. Undefined
-  # Scale and shape parameters are calculated from median.
   if (!is.null(median_diff)) {
     if (!is.null(scale_trmt)) {
       median_time_trmt <- (-log(0.5))^(1 / shape) * scale_trmt
@@ -149,7 +154,6 @@ convert_contrast_ph <- function(
     }
   }
 
-  # percentile diff. procedure, similar to median difference
   if (!is.null(percentile_diff)) {
     if (!is.null(scale_trmt)) {
       percentile_time_trmt <- (-log(percentile / 100))^(1 / shape) * scale_trmt
@@ -162,10 +166,9 @@ convert_contrast_ph <- function(
     }
   }
 
-  # survival diff. procedure similar to median difference
   if (!is.null(survival_diff)) {
     if (!is.null(scale_trmt)) {
-      survival_trmt <- stats::pweibull(tau, scale = scale_trmt, shape = shape, lower.tail = F)
+      survival_trmt <- stats::pweibull(tau, scale = scale_trmt, shape = shape, lower.tail = FALSE)
       survival_ctrl <- survival_trmt - survival_diff
       if (survival_ctrl <= 0) {
         stop(
@@ -174,7 +177,7 @@ convert_contrast_ph <- function(
       }
       scale_ctrl <- tau * (-log(survival_ctrl))^(-1 / shape)
     } else {
-      survival_ctrl <- stats::pweibull(tau, scale = scale_ctrl, shape = shape, lower.tail = F)
+      survival_ctrl <- stats::pweibull(tau, scale = scale_ctrl, shape = shape, lower.tail = FALSE)
       survival_trmt <- survival_ctrl + survival_diff
       if (survival_trmt <= 0) {
         stop(
@@ -185,119 +188,61 @@ convert_contrast_ph <- function(
     }
   }
 
-  # calculate RMST in unspecified group when RMSTR or RMSTD are given as input
+  # calculate RMST in unspecified group when RMSTR or RMSTD are given as input --
+  RMST_trmt <- NULL
+  RMST_ctrl <- NULL
 
   if (xor(!is.null(RMSTD), !is.null(RMSTR))) {
-    # when either RMSTR or RMSTD defined
     if (!is.null(scale_trmt)) {
-      # if scale_ctrl is undefined, calculate it from RMST of trmt and RMSTD/RMSTR
-      RMST_trmt <- stats::integrate(
-        stats::pweibull,
-        shape = shape,
-        scale = scale_trmt,
-        lower = 0,
-        upper = tau,
-        lower.tail = F
-      )$value
-      if (!is.null(RMSTD)) {
-        RMST_ctrl <- RMST_trmt - RMSTD
-      }
-      if (!is.null(RMSTR)) {
-        RMST_ctrl <- RMST_trmt / RMSTR
-      }
-      scale_ctrl_temp <- stats::uniroot(
-        find_root_weibull,
-        shape = shape,
-        tau = tau,
-        RMST = RMST_ctrl,
+      RMST_trmt <- rmst_weibull(scale_trmt)
+      RMST_ctrl <- if (!is.null(RMSTD)) RMST_trmt - RMSTD else RMST_trmt / RMSTR
+      scale_ctrl <- stats::uniroot(
+        function(s) rmst_weibull(s) - RMST_ctrl,
         lower = 0.000001,
         upper = 100000,
         tol = 0.0001
       )$root
-    }
-    if (!is.null(scale_ctrl)) {
-      RMST_ctrl <- stats::integrate(
-        stats::pweibull,
-        shape = shape,
-        scale = scale_ctrl,
-        lower = 0,
-        upper = tau,
-        lower.tail = F
-      )$value
-      if (!is.null(RMSTD)) {
-        RMST_trmt <- RMST_ctrl + RMSTD
-      }
-      if (!is.null(RMSTR)) {
-        RMST_trmt <- RMST_ctrl * RMSTR
-      }
-
+    } else {
+      RMST_ctrl <- rmst_weibull(scale_ctrl)
+      RMST_trmt <- if (!is.null(RMSTD)) RMST_ctrl + RMSTD else RMST_ctrl * RMSTR
       scale_trmt <- stats::uniroot(
-        find_root_weibull,
-        shape = shape,
-        tau = tau,
-        RMST = RMST_trmt,
+        function(s) rmst_weibull(s) - RMST_trmt,
         lower = 0.000001,
         upper = 100000,
         tol = 0.0001
       )$root
     }
-    if (is.null(scale_ctrl)) scale_ctrl <- scale_ctrl_temp
   }
 
   # calculate missing contrasts --------------------------------------------------
 
-  # calculate HR
   if (is.null(HR)) {
     HR <- scale_ctrl / scale_trmt
   }
 
-  # calculate median_diff
   if (is.null(median_diff)) {
     median_time_trmt <- (-log(0.5))^(1 / shape) * scale_trmt
     median_time_ctrl <- (-log(0.5))^(1 / shape) * scale_ctrl
     median_diff <- median_time_trmt - median_time_ctrl
   }
 
-  # calculate percentile_diff
   if (is.null(percentile_diff)) {
     percentile_time_trmt <- (-log(percentile / 100))^(1 / shape) * scale_trmt
     percentile_time_ctrl <- (-log(percentile / 100))^(1 / shape) * scale_ctrl
     percentile_diff <- percentile_time_trmt - percentile_time_ctrl
   }
 
-  # calculate survival_diff
   if (is.null(survival_diff)) {
-    survival_trmt <- stats::pweibull(tau, shape = shape, scale = scale_trmt, lower.tail = F)
-    survival_ctrl <- stats::pweibull(tau, shape = shape, scale = scale_ctrl, lower.tail = F)
+    survival_trmt <- stats::pweibull(tau, scale = scale_trmt, shape = shape, lower.tail = FALSE)
+    survival_ctrl <- stats::pweibull(tau, scale = scale_ctrl, shape = shape, lower.tail = FALSE)
     survival_diff <- survival_trmt - survival_ctrl
   }
-  # calculate RMSTs, and RMSTR or RMSTD, if not defined already.
-  if (!exists("RMST_trmt")) {
-    RMST_trmt <- stats::integrate(
-      stats::pweibull,
-      shape = shape,
-      scale = scale_trmt,
-      lower = 0,
-      upper = tau,
-      lower.tail = F
-    )$value
-  }
-  if (!exists("RMST_ctrl")) {
-    RMST_ctrl <- stats::integrate(
-      stats::pweibull,
-      shape = shape,
-      scale = scale_ctrl,
-      lower = 0,
-      upper = tau,
-      lower.tail = F
-    )$value
-  }
-  if (is.null(RMSTD)) {
-    RMSTD <- RMST_trmt - RMST_ctrl
-  }
-  if (is.null(RMSTR)) {
-    RMSTR <- RMST_trmt / RMST_ctrl
-  }
+
+  if (is.null(RMST_trmt)) RMST_trmt <- rmst_weibull(scale_trmt)
+  if (is.null(RMST_ctrl)) RMST_ctrl <- rmst_weibull(scale_ctrl)
+
+  if (is.null(RMSTD)) RMSTD <- RMST_trmt - RMST_ctrl
+  if (is.null(RMSTR)) RMSTR <- RMST_trmt / RMST_ctrl
 
   if (plot_curves) {
     x <- NULL
@@ -351,7 +296,7 @@ convert_contrast_ph <- function(
     plot_obj <- grDevices::recordPlot()
   }
 
-  # prepare list of all results and return
+  # prepare list of all results and return ---------------------------------------
   results_list <- list(
     "scale trmt" = scale_trmt,
     "scale ctrl" = scale_ctrl,
@@ -368,20 +313,8 @@ convert_contrast_ph <- function(
     "RMST trmt" = RMST_trmt,
     "RMST ctrl" = RMST_ctrl
   )
-  if(plot_curves){
+  if (plot_curves) {
     results_list$plot <- plot_obj
   }
   return(results_list)
-}
-
-find_root_weibull <- function(unknown_scale, shape, tau, RMST) {
-  stats::integrate(
-    stats::pweibull,
-    shape = shape,
-    scale = unknown_scale,
-    lower = 0,
-    upper = tau,
-    lower.tail = F
-  )$value -
-    RMST
 }

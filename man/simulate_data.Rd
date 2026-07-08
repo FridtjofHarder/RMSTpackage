@@ -7,14 +7,15 @@
 simulate_data(
   scale,
   shape = 1,
+  breakpoints = 0,
   parameterization = 1,
   accrual_time = 0,
   follow_up_time = Inf,
   tau = NULL,
   censor_beyond_tau = FALSE,
   n,
-  loss_scale = NULL,
-  loss_shape = 1,
+  scale_loss = NULL,
+  shape_loss = 1,
   label = 0
 )
 }
@@ -22,6 +23,8 @@ simulate_data(
 \item{scale}{Specifies the \dfn{scale parameter} in the treatment group.}
 
 \item{shape}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
+
+\item{breakpoints}{Vector of breakpoints of the piecewise weibull distribution. Must have length of \code{scale}and \code{shape}. First element must be \code{0}.}
 
 \item{parameterization}{One of: \itemize{
 \item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
@@ -38,9 +41,9 @@ simulate_data(
 
 \item{n}{Sample size.}
 
-\item{loss_scale}{Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
+\item{scale_loss}{Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
 
-\item{loss_shape}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.}
+\item{shape_loss}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.}
 
 \item{label}{Group label.}
 }
@@ -60,7 +63,7 @@ ctrl_df <- simulate_data(
   scale = 6,
   accrual_time = 6,
   follow_up_time = 3,
-  loss_scale = 10,
+  scale_loss = 10,
   n = 50,
   label = 0,
 )
@@ -68,13 +71,12 @@ trmt_df <- simulate_data(
   scale = 10,
   accrual_time = 6,
   follow_up_time = 3,
-  loss_scale = 10,
+  scale_loss = 10,
   n = 50,
   label = 1,
 )
 surv_df <- rbind(ctrl_df, trmt_df) # build data frame for both control and treatment group
 head(surv_df)
 tail(surv_df)
-
 
 }

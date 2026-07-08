@@ -5,39 +5,42 @@
 \title{Produces extensive surival plots}
 \usage{
 plot_surv(
-  scale_trmt,
   scale_ctrl,
-  shape_trmt = 1,
+  scale_trmt,
   shape_ctrl = 1,
-  parameterization = 1,
+  shape_trmt = 1,
+  breakpoints_ctrl = 0,
+  breakpoints_trmt = 0,
   accrual_time = 0,
   follow_up_time = Inf,
   tau = NULL,
+  scale_loss = NULL,
+  shape_loss = 1,
   censor_beyond_tau = FALSE,
   n = NULL,
-  loss_scale = NULL,
-  loss_shape = 1,
+  plot_data = TRUE,
+  plot_HR = FALSE,
   plot_reverse_KM = FALSE,
   plot_log_log = FALSE,
   plot_recruitment = FALSE,
   plot_extended = FALSE,
   xlim = NULL,
-  ylim = c(0, 100)
+  ylim = c(0, 100),
+  parameterization = 1
 )
 }
 \arguments{
+\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the control group.}
+
 \item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group.}
 
-\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the treatment group.}
+\item{shape_ctrl}{Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.}
 
 \item{shape_trmt}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
 
-\item{shape_ctrl}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.}
+\item{breakpoints_ctrl}{Vector of breakpoints of the piecewise weibull distribution in the control group. Must have length of \code{scale_ctrl}and \code{shape_ctrl}. First element must be \code{0}.}
 
-\item{parameterization}{One of: \itemize{
-\item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
-\item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item{breakpoints_trmt}{Vector of breakpoints of the piecewise weibull distribution in the treatment group. Must have length of \code{scale_trmt}and \code{shape_trmt}. First element must be \code{0}.}
 
 \item{accrual_time}{Length of accrual period.}
 
@@ -45,13 +48,17 @@ plot_surv(
 
 \item{tau}{Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
 
+\item{scale_loss}{Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
+
+\item{shape_loss}{Specifies the \dfn{shape parameter} of loss to follow-up. Defaults to \eqn{=1}, simplifying to exponential loss.}
+
 \item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored if \code{TRUE}.}
 
 \item{n}{Specifies the total sample size. Increases to next even number if uneven. Group sample sizes are assumed to be equal.}
 
-\item{loss_scale}{Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
+\item{plot_data}{Logical. Will plot random-generated survival data.}
 
-\item{loss_shape}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.}
+\item{plot_HR}{Logical. Will plot hazard ratio instead of hazards.}
 
 \item{plot_reverse_KM}{Logical. Will plot a reverse KM curve if \code{c(TRUE)}, indicating censure-free follow-up.}
 
@@ -65,6 +72,11 @@ plot a representative sample of size \eqn{100} if \code{n} \eqn{> 100}.}
 \item{xlim}{Range of plot x-axis. Defaults to \code{c(0, 1.5*tau)}.}
 
 \item{ylim}{Range of plot y-axis as survival percentages. Defaults to \code{c(0, 100)}.}
+
+\item{parameterization}{One of: \itemize{
+\item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+\item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 }
 \description{
 Plots example survival data, survival functions, reverse KM plot, recruitment plot, and censoring functions differentiating causes for censoring.
@@ -72,17 +84,19 @@ Plots example survival data, survival functions, reverse KM plot, recruitment pl
 \examples{
 
 # plot full range of plots with sample size n = 1000
-args_plot <- list(scale_trmt = 10,
-scale_ctrl = 6,
-accrual_time = 6,
-follow_up_time = 3,
-tau = 4,
-loss_scale = 10,
-n = 1000,
-plot_reverse_KM = TRUE,
-plot_log_log = TRUE,
-plot_recruitment = TRUE,
-plot_extended = TRUE)
+args_plot <- list(
+  scale_ctrl = 6,
+  scale_trmt = 10,
+  accrual_time = 6,
+  follow_up_time = 3,
+  tau = 4,
+  scale_loss = 10,
+  n = 1000,
+  plot_reverse_KM = TRUE,
+  plot_log_log = TRUE,
+  plot_recruitment = TRUE,
+  plot_extended = TRUE
+)
 do.call(plot_surv, args = args_plot)
 
 # crossing survival curves

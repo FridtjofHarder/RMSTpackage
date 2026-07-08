@@ -2,21 +2,21 @@
 #'
 #' Plots example survival data, survival functions, reverse KM plot, recruitment plot, and censoring functions differentiating causes for censoring.
 #'
+#' @param scale_ctrl Specifies the \dfn{scale parameter} in the control group.
 #' @param scale_trmt Specifies the \dfn{scale parameter} in the treatment group.
+#' @param shape_ctrl Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.
 #' @param shape_trmt Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.
-#' @param scale_ctrl Specifies the \dfn{scale parameter} in the treatment group.
-#' @param shape_ctrl Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.
-#' @param parameterization One of: \itemize{
-#' \item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
-#' \item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-#' \item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
+#' @param breakpoints_ctrl Vector of breakpoints of the piecewise weibull distribution in the control group. Must have length of \code{scale_ctrl}and \code{shape_ctrl}. First element must be \code{0}.
+#' @param breakpoints_trmt Vector of breakpoints of the piecewise weibull distribution in the treatment group. Must have length of \code{scale_trmt}and \code{shape_trmt}. First element must be \code{0}.
 #' @param accrual_time Length of accrual period.
 #' @param follow_up_time Length of follow-up period. Set to \code{Inf} if unspecified.
 #' @param tau Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
+#' @param scale_loss Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.
+#' @param shape_loss Specifies the \dfn{shape parameter} of loss to follow-up. Defaults to \eqn{=1}, simplifying to exponential loss.
 #' @param censor_beyond_tau Logical. All observations past \eqn{\tau} are censored if \code{TRUE}.
 #' @param n Specifies the total sample size. Increases to next even number if uneven. Group sample sizes are assumed to be equal.
-#' @param loss_scale Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.
-#' @param loss_shape Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.
+#' @param plot_data Logical. Will plot random-generated survival data.
+#' @param plot_HR Logical. Will plot hazard ratio instead of hazards.
 #' @param plot_reverse_KM Logical. Will plot a reverse KM curve if \code{c(TRUE)}, indicating censure-free follow-up.
 #' @param plot_log_log Logical. Will plot a log-log plot for assessing proportionality of hazards if \code{TRUE}.
 #' @param plot_recruitment Logical. Plots recruitment plot indicating time between recruitment and last observation in study time. Will
@@ -24,23 +24,29 @@
 #' @param plot_extended Logical. Will produce extended plots differentiating causes of loss to follow up.
 #' @param xlim Range of plot x-axis. Defaults to \code{c(0, 1.5*tau)}.
 #' @param ylim Range of plot y-axis as survival percentages. Defaults to \code{c(0, 100)}.
+#' @param parameterization One of: \itemize{
+#' \item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+#' \item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+#' \item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
 #'
 #' @export
 #'
 #' @examples
 #'
 #' # plot full range of plots with sample size n = 1000
-#' args_plot <- list(scale_trmt = 10,
-#' scale_ctrl = 6,
-#' accrual_time = 6,
-#' follow_up_time = 3,
-#' tau = 4,
-#' loss_scale = 10,
-#' n = 1000,
-#' plot_reverse_KM = TRUE,
-#' plot_log_log = TRUE,
-#' plot_recruitment = TRUE,
-#' plot_extended = TRUE)
+#' args_plot <- list(
+#'   scale_ctrl = 6,
+#'   scale_trmt = 10,
+#'   accrual_time = 6,
+#'   follow_up_time = 3,
+#'   tau = 4,
+#'   scale_loss = 10,
+#'   n = 1000,
+#'   plot_reverse_KM = TRUE,
+#'   plot_log_log = TRUE,
+#'   plot_recruitment = TRUE,
+#'   plot_extended = TRUE
+#' )
 #' do.call(plot_surv, args = args_plot)
 #'
 #' # crossing survival curves
@@ -50,93 +56,127 @@
 #' do.call(plot_surv, args = args_cross)
 #'
 plot_surv <- function(
-    scale_trmt,
-    scale_ctrl,
-    shape_trmt = 1,
-    shape_ctrl = 1,
-    parameterization = 1,
-    accrual_time = 0,
-    follow_up_time = Inf,
-    tau = NULL,
-    censor_beyond_tau = FALSE,
-    n = NULL,
-    loss_scale = NULL,
-    loss_shape = 1,
-    plot_reverse_KM = FALSE,
-    plot_log_log = FALSE,
-    plot_recruitment = FALSE,
-    plot_extended = FALSE,
-    xlim = NULL,
-    ylim = c(0, 100)
-    ) {
-
-# reparameterize ----------------------------------------------------------
-  if (parameterization != 1){
-    scale_trmt <- reparameterize(parameterization = parameterization,
-                                 scale = scale_trmt,
-                                 shape = shape_trmt)
-    scale_ctrl <- reparameterize(parameterization = parameterization,
-                                 scale = scale_ctrl,
-                                 shape = shape_ctrl)
-    loss_scale <- reparameterize(parameterization = parameterization,
-                                 scale = loss_scale,
-                                 shape = loss_shape)
+  scale_ctrl,
+  scale_trmt,
+  shape_ctrl = 1,
+  shape_trmt = 1,
+  breakpoints_ctrl = 0,
+  breakpoints_trmt = 0,
+  accrual_time = 0,
+  follow_up_time = Inf,
+  tau = NULL,
+  scale_loss = NULL,
+  shape_loss = 1,
+  censor_beyond_tau = FALSE,
+  n = NULL,
+  plot_data = TRUE,
+  plot_HR = FALSE,
+  plot_reverse_KM = FALSE,
+  plot_log_log = FALSE,
+  plot_recruitment = FALSE,
+  plot_extended = FALSE,
+  xlim = NULL,
+  ylim = c(0, 100),
+  parameterization = 1
+) {
+  # reparameterize ----------------------------------------------------------
+  if (parameterization != 1) {
+    scale_ctrl <- reparameterize(
+      parameterization = parameterization,
+      scale = scale_ctrl,
+      shape = shape_ctrl
+    )
+    scale_trmt <- reparameterize(
+      parameterization = parameterization,
+      scale = scale_trmt,
+      shape = shape_trmt
+    )
+    scale_loss <- reparameterize(
+      parameterization = parameterization,
+      scale = scale_loss,
+      shape = shape_loss
+    )
   }
 
-# simulate data and create surv object ------------------------------------
-  data_frame_ctrl <- simulate_data(
-    scale = scale_ctrl,
-    shape = shape_ctrl,
-    accrual_time = accrual_time,
-    follow_up_time = follow_up_time,
-    loss_scale = loss_scale,
-    loss_shape = loss_shape,
-    n = round(n / 2),
-    label = 0
-  )
-  data_frame_trmt <- simulate_data(
-    scale = scale_trmt,
-    shape = shape_trmt,
-    accrual_time = accrual_time,
-    follow_up_time = follow_up_time,
-    loss_scale = loss_scale,
-    loss_shape = loss_shape,
-    n = round(n / 2),
-    label = 1
-  )
-  simulated_data <- rbind(
-    data_frame_ctrl, data_frame_trmt)
+  if(length(shape_ctrl) == 1 & length(scale_ctrl) > 1){
+    shape_ctrl <- rep(shape_ctrl, length(scale_ctrl))
+  }
+  if(length(shape_trmt) == 1 & length(scale_trmt) > 1){
+    shape_trmt <- rep(shape_trmt, length(scale_trmt))
+  }
+  # simulate data and create surv object ------------------------------------
+  # only simulate when at least one data-dependent plot is requested
+  needs_data <- plot_data || plot_reverse_KM || plot_log_log || plot_recruitment
+  if (needs_data) {
+    data_frame_ctrl <- simulate_data(
+      scale = scale_ctrl,
+      shape = shape_ctrl,
+      breakpoints = breakpoints_ctrl,
+      accrual_time = accrual_time,
+      follow_up_time = follow_up_time,
+      scale_loss = scale_loss,
+      shape_loss = shape_loss,
+      n = round(n / 2),
+      label = 0
+    )
+    data_frame_trmt <- simulate_data(
+      scale = scale_trmt,
+      shape = shape_trmt,
+      breakpoints = breakpoints_trmt,
+      accrual_time = accrual_time,
+      follow_up_time = follow_up_time,
+      scale_loss = scale_loss,
+      shape_loss = shape_loss,
+      n = round(n / 2),
+      label = 1
+    )
+    simulated_data <- rbind(
+      data_frame_ctrl, data_frame_trmt
+    )
 
-  if(censor_beyond_tau){ # censor all observations beyond tau if requested
-    simulated_data$status[simulated_data$observations > tau] <- 0
-    simulated_data$observations[simulated_data$observations > tau] <- tau
+    if (censor_beyond_tau) { # censor all observations beyond tau if requested
+      simulated_data$status[simulated_data$observations > tau] <- 0
+      simulated_data$observations[simulated_data$observations > tau] <- tau
+    }
+
+    surv_obj <- survival::Surv(
+      time = simulated_data$observations,
+      event = simulated_data$status
+    )
   }
 
-  surv_obj <- survival::Surv(
-    time = simulated_data$observations,
-    event = simulated_data$status
-  )
-
-# plot --------------------------------------------------------------------
+  # plot --------------------------------------------------------------------
 
   if (!is.null(tau) && is.null(xlim)) { # define xlim in relation to tau if not specified
     xlim <- c(0, 1.5 * tau)
-  } # set xlim if undefined
-  # plot KM estimator
+  }
+  # plot KM estimator or empty canvas
   graphics::par(mar = c(5, 6, 4, 1) + .1)
-  plot(
-    survival::survfit(surv_obj ~ simulated_data$label),
-    mark.time = T,
-    conf.int = F,
-    xlab = "t",
-    ylab = expression(hat(S)(t) ~ "in %"),
-    col = c("red", "darkblue"),
-    xlim = xlim,
-    ylim = c(0, 1),
-    lwd = 2,
-    main = "Kaplan Meier estimators for treatment and control group",
-    yaxt = "n"
-  )
+  if (plot_data) {
+    plot(
+      survival::survfit(surv_obj ~ simulated_data$label),
+      mark.time = TRUE,
+      conf.int = FALSE,
+      xlab = "t",
+      ylab = expression(hat(S)(t) ~ "in %"),
+      col = c("red", "darkblue"),
+      xlim = xlim,
+      ylim = c(0, 1),
+      lwd = 2,
+      main = "Kaplan Meier estimators for treatment and control group",
+      yaxt = "n"
+    )
+  } else {
+    plot(
+      NA,
+      xlab = "t",
+      ylab = expression(S(t) ~ "in %"),
+      xlim = xlim,
+      ylim = c(0, 1),
+      main = "Survival functions for treatment and control group",
+      yaxt = "n"
+    )
+  }
 
   graphics::axis(
     2,
@@ -159,26 +199,7 @@ plot_surv <- function(
 
   # draw design curves
   graphics::curve(
-    stats::pweibull(
-      x,
-      shape = shape_trmt,
-      scale = scale_trmt,
-      lower.tail = FALSE
-    ),
-    from = xlim[1],
-    to = xlim[2],
-    add = TRUE,
-    col = "darkblue",
-    lwd = 2,
-    lty = 2
-  )
-  graphics::curve(
-    stats::pweibull(
-      x,
-      shape = shape_ctrl,
-      scale = scale_ctrl,
-      lower.tail = FALSE
-    ),
+    my_pew_surv(q = x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl),
     from = xlim[1],
     to = xlim[2],
     add = TRUE,
@@ -186,6 +207,48 @@ plot_surv <- function(
     lwd = 2,
     lty = 2
   )
+  graphics::curve(
+    my_pew_surv(q = x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt),
+    from = xlim[1],
+    to = xlim[2],
+    add = TRUE,
+    col = "darkblue",
+    lwd = 2,
+    lty = 2
+  )
+
+  if(plot_HR){
+    graphics::curve(
+      get_h(x = x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt) /
+        get_h(x = x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl),
+      from = xlim[1],
+      to = xlim[2],
+      add = TRUE,
+      col = "black",
+      lwd = 4,
+      lty = 3
+    )
+  } else{
+  # draw hazard curves
+  graphics::curve(
+    get_h(x = x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl),
+    from = xlim[1],
+    to = xlim[2],
+    add = TRUE,
+    col = "red",
+    lwd = 4,
+    lty = 3
+  )
+  graphics::curve(
+    get_h(x = x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt),
+    from = xlim[1],
+    to = xlim[2],
+    add = TRUE,
+    col = "darkblue",
+    lwd = 4,
+    lty = 3
+  )
+  }
 
   # create legend
   graphics::legend(
@@ -194,16 +257,16 @@ plot_surv <- function(
       paste0(
         "Treatment group with \n",
         "scale = ",
-        round(scale_trmt, 2),
+        paste(round(scale_trmt, 2), collapse = ", "),
         " and shape = ",
-        round(shape_trmt, 2)
+        paste(round(shape_trmt, 2), collapse = ", ")
       ),
       paste0(
         "Control group with \n",
         "scale = ",
-        round(scale_ctrl, 2),
+        paste(round(scale_ctrl, 2), collapse = ", "),
         " and shape = ",
-        round(shape_ctrl, 2)
+        paste(round(shape_ctrl, 2), collapse = ", ")
       )
     ),
     col = c("darkblue", "red"),
@@ -226,8 +289,8 @@ plot_surv <- function(
     # create plot reverse KM
     plot(
       survival::survfit(surv_obj_reverse ~ simulated_data_reverse$label),
-      mark.time = T,
-      conf.int = F,
+      mark.time = TRUE,
+      conf.int = FALSE,
       xlab = "t",
       ylab = "Censure-free observations in %",
       col = c("red", "darkblue"),
@@ -253,7 +316,6 @@ plot_surv <- function(
 
     # mark tau if defined
     if (!is.null(tau)) {
-      # mark tau if defined
       graphics::abline(v = tau, col = "black", lwd = 2)
       graphics::text(
         x = tau,
@@ -279,7 +341,6 @@ plot_surv <- function(
     )
   }
   if (plot_log_log) {
-
     plot(
       survival::survfit(surv_obj ~ simulated_data$label),
       xlim = c(min(simulated_data$observations), max(simulated_data$observations)),
@@ -296,16 +357,16 @@ plot_surv <- function(
         paste0(
           "Treatment group with \n",
           "scale = ",
-          round(scale_trmt, 2),
+          paste(round(scale_trmt, 2), collapse = ", "),
           " and shape = ",
-          round(shape_trmt, 2)
+          paste(round(shape_trmt, 2), collapse = ", ")
         ),
         paste0(
           "Control group with \n",
           "scale = ",
-          round(scale_ctrl, 2),
+          paste(round(scale_ctrl, 2), collapse = ", "),
           " and shape = ",
-          round(shape_ctrl, 2)
+          paste(round(shape_ctrl, 2), collapse = ", ")
         )
       ),
       col = c("darkblue", "red"),
@@ -329,9 +390,9 @@ plot_surv <- function(
     df_recruitment$last_observation <- df_recruitment$accrual_timepoint + df_recruitment$observations
     df_recruitment <- df_recruitment[order(df_recruitment$accrual_timepoint), ]
 
-    make_color <- function(label, status){ # fun generates colors according to group label and status
-      base_col = ifelse(label == 0, "red", "darkblue")
-      opacity  <- ifelse(status == 1, 1, 0.3)
+    make_color <- function(label, status) { # fun generates colors according to group label and status
+      base_col <- ifelse(label == 0, "red", "darkblue")
+      opacity <- ifelse(status == 1, 1, 0.3)
       grDevices::adjustcolor(base_col, alpha.f = opacity)
     }
     cols <- mapply(make_color, df_recruitment$label, df_recruitment$status)
@@ -343,7 +404,7 @@ plot_surv <- function(
       xlab = "Time",
       main = "Time from recruitment to last observation in study time",
       ylab = NA,
-      yaxt = "n",          # no default y ticks
+      yaxt = "n", # no default y ticks
     )
     graphics::segments(
       x0 = c(df_recruitment$accrual_timepoint),
@@ -355,17 +416,17 @@ plot_surv <- function(
     )
   }
   if (plot_extended) {
-    # admin censoring
     if (follow_up_time != Inf && is.null(xlim)) {
       xlim <- c(0, follow_up_time + accrual_time)
     }
+    # admin censoring
     graphics::curve(
       100 *
         sapply(
           x,
           get_p_not_lost_admin,
-          follow_up_time = follow_up_time,
-          accrual_time = accrual_time
+          accrual_time = accrual_time,
+          follow_up_time = follow_up_time
         ),
       xlim = xlim,
       ylim = c(0, 100),
@@ -376,17 +437,11 @@ plot_surv <- function(
       col = "lightgrey"
     )
     # pts not lost to FU
-    if (is.null(loss_scale)) {
+    if (is.null(scale_loss)) {
       graphics::abline(h = 100, col = "darkgrey", lwd = 2)
     } else {
       graphics::curve(
-        100 *
-          stats::pweibull(
-            q = x,
-            shape = loss_shape,
-            scale = loss_scale,
-            lower.tail = FALSE
-          ),
+        100 * my_pew_surv(q = x, scale = scale_loss, shape = shape_loss, breakpoints = 0),
         lwd = 2,
         col = "darkgrey",
         add = TRUE
@@ -398,10 +453,11 @@ plot_surv <- function(
         sapply(
           x,
           get_p_not_censored,
-          follow_up_time = follow_up_time,
           accrual_time = accrual_time,
-          loss_scale = loss_scale,
-          loss_shape = loss_shape
+          follow_up_time = follow_up_time,
+          scale_loss = scale_loss,
+          shape_loss = shape_loss,
+          breakpoints = 0
         ),
       lwd = 2,
       col = "black",
@@ -416,10 +472,11 @@ plot_surv <- function(
           get_p_at_risk,
           scale = scale_ctrl,
           shape = shape_ctrl,
-          loss_scale = loss_scale,
-          loss_shape = loss_shape,
+          breakpoints = breakpoints_ctrl,
           accrual_time = accrual_time,
-          follow_up_time = follow_up_time
+          follow_up_time = follow_up_time,
+          scale_loss = scale_loss,
+          shape_loss = shape_loss
         ),
       lwd = 2,
       col = "#EA95BA",
@@ -434,10 +491,11 @@ plot_surv <- function(
           get_p_at_risk,
           scale = scale_trmt,
           shape = shape_trmt,
-          loss_scale = loss_scale,
-          loss_shape = loss_shape,
+          breakpoints = breakpoints_trmt,
           accrual_time = accrual_time,
-          follow_up_time = follow_up_time
+          follow_up_time = follow_up_time,
+          scale_loss = scale_loss,
+          shape_loss = shape_loss
         ),
       lwd = 2,
       col = "steelblue1",
@@ -446,12 +504,7 @@ plot_surv <- function(
 
     graphics::curve(
       100 *
-        stats::pweibull(
-          x,
-          shape = shape_ctrl,
-          scale = scale_ctrl,
-          lower.tail = FALSE
-        ),
+        my_pew_surv(q = x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl),
       add = TRUE,
       col = "red",
       lwd = 2
@@ -459,12 +512,7 @@ plot_surv <- function(
 
     graphics::curve(
       100 *
-        stats::pweibull(
-          x,
-          shape = shape_trmt,
-          scale = scale_trmt,
-          lower.tail = FALSE
-        ),
+        my_pew_surv(q = x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt),
       add = TRUE,
       col = "darkblue",
       lwd = 2
@@ -495,20 +543,6 @@ plot_surv <- function(
       bty = "n",
       cex = 0.8
     )
-    # plot RMST(tau), RMSTD(tau), and RMSTR(tau)
-    if (follow_up_time == Inf){
-      upper_limit <- 1 * tau
-      graphics::curve(
-        100 *
-          sapply(
-            x,
-            get_theoretical_rmst,
-            scale = scale_ctrl,
-            shape = shape_ctrl),
-        lwd = 2,
-        col = "#EA95BA"
-      )
-    }
   }
 }
 

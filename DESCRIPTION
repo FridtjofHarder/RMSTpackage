@@ -14,7 +14,7 @@ Imports:
     survival,
     survRM2,
     shiny,
-    rmarkdown      
+    rmarkdown
 Suggests:
     knitr,
     tinytex,

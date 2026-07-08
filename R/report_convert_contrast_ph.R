@@ -12,8 +12,10 @@
 #' @examples
 #' # convert contrasts using convert_contrast_ph() and create a report on its results
 #' if (requireNamespace("rmarkdown", quietly = TRUE)) {
-#'   results <- convert_contrast_ph(scale_trmt = 10, scale_ctrl = 6, tau = 4,
-#'                                  percentile = 80, plot_curves = TRUE)
+#'   results <- convert_contrast_ph(
+#'     scale_trmt = 10, scale_ctrl = 6, tau = 4,
+#'     percentile = 80, plot_curves = TRUE
+#'   )
 #'   report_convert_contrasts_ph(results)
 #' }
 report_convert_contrasts_ph <- function(x, output_file = "report_convert_contrasts_ph.pdf", output_dir = getwd()) {
