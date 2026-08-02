@@ -6,7 +6,7 @@
 #' @param output_file Output file name.
 #' @param output_dir Output directory.
 #'
-#' @returns A character string with the path to the generated PDF report, returned invisibly.
+#' @return A character string with the path to the generated PDF report, returned invisibly.
 #' @export
 #'
 #' @examples

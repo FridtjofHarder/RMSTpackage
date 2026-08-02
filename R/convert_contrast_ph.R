@@ -20,15 +20,15 @@
 #' implying the same shape parameter in treatment and control group.
 #'
 #' @param scale_trmt Specifies the \dfn{scale parameter} in the treatment group.
-#' @param scale_ctrl Specifies the \dfn{scale parameter} in the treatment group.
+#' @param scale_ctrl Specifies the \dfn{scale parameter} in the control group.
 #' @param shape Specifies the \dfn{shape parameter} in both groups.
-#' @param parameterization One of: \itemize{
-#' \item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
-#' \item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-#' \item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
+#' @param parameterisation One of: \itemize{
+#' \item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+#' \item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+#' \item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
 #' @param RMSTD Specifies the RMSTD between control group and treatment group. Allows for converting RMSTD to HR.
-#' @param RMSTR Specifies the RMSTR between control group and treatment group. Allows for converting RMSTD to HR.
-#' @param tau Specifies the time horizon \eqn{\tau} where evaluate RMST with \eqn{\mathrm{RMST(\tau)} = \int_{0}^{\tau}S(t) \,dt}, and where to evaluate \eqn{\Delta S(\tau)}.
+#' @param RMSTR Specifies the RMSTR between control group and treatment group. Allows for converting RMSTR to HR.
+#' @param tau Specifies the time horizon \eqn{\tau} where to evaluate RMST with \eqn{\mathrm{RMST(\tau)} = \int_{0}^{\tau}S(t) \,dt}, and where to evaluate \eqn{\Delta S(\tau)}.
 #' @param HR Specifies a hazard ratio with \eqn{\text{HR} = h(t)_{\text{trmt}} / h(t)_{\text{ctrl}}}.
 #' @param median_diff Specifies the difference of median survival times, with \cr
 #' \code{median_diff} \eqn{= t_{\text{median, trmt}} - t_{\text{median, ctrl}} = \{t : S_\text{trmt}(t) = 0.5\} - \{t : S_\text{ctrl}(t) = 0.5\}}.
@@ -70,7 +70,7 @@ convert_contrast_ph <- function(
   scale_trmt = NULL,
   scale_ctrl = NULL,
   shape = 1,
-  parameterization = 1,
+  parameterisation = 1,
   RMSTD = NULL,
   RMSTR = NULL,
   tau = NULL,
@@ -103,18 +103,19 @@ convert_contrast_ph <- function(
   )
 
   stopifnot(
-    "parameterization must be defined as either 1, 2, or 3" = parameterization ==
+    "parameterisation must be defined as either 1, 2, or 3" = parameterisation ==
       1 ||
-      parameterization == 2 ||
-      parameterization == 3
+      parameterisation == 2 ||
+      parameterisation == 3
   )
 
   # local helper: RMST of a simple Weibull survival curve ----------------------
-  rmst_weibull <- function(scale) {
+  rmst_weibull <- function(scale, shape = 1, breakpoints = 0) {
     stats::integrate(
-      stats::pweibull,
-      scale = scale,
-      shape = shape,
+      ppweibull::ppweibull,
+      rate = 1 / scale^shape,
+      alpha = shape,
+      t = breakpoints,
       lower = 0,
       upper = tau,
       lower.tail = FALSE
@@ -123,11 +124,11 @@ convert_contrast_ph <- function(
 
   # convert parameters -----------------------------------------------------------
 
-  if (parameterization == 2) {
+  if (parameterisation == 2) {
     if (!is.null(scale_trmt)) scale_trmt <- 1 / (scale_trmt^(1 / shape))
     if (!is.null(scale_ctrl)) scale_ctrl <- 1 / (scale_ctrl^(1 / shape))
   }
-  if (parameterization == 3) {
+  if (parameterisation == 3) {
     if (!is.null(scale_trmt)) scale_trmt <- 1 / scale_trmt
     if (!is.null(scale_ctrl)) scale_ctrl <- 1 / scale_ctrl
   }
@@ -301,7 +302,7 @@ convert_contrast_ph <- function(
     "scale trmt" = scale_trmt,
     "scale ctrl" = scale_ctrl,
     "shape" = shape,
-    "parameterization" = parameterization,
+    "parameterisation" = parameterisation,
     "RMSTD" = RMSTD,
     "RMSTR" = RMSTR,
     "tau" = tau,

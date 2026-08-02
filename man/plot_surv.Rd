@@ -2,20 +2,21 @@
 % Please edit documentation in R/plot_surv.R
 \name{plot_surv}
 \alias{plot_surv}
-\title{Produces extensive surival plots}
+\title{Produces extensive survival plots}
 \usage{
 plot_surv(
   scale_ctrl,
   scale_trmt,
+  scale_loss = NULL,
   shape_ctrl = 1,
   shape_trmt = 1,
-  breakpoints_ctrl = 0,
-  breakpoints_trmt = 0,
+  shape_loss = 1,
+  breakpoints_ctrl = NULL,
+  breakpoints_trmt = NULL,
+  breakpoints_loss = NULL,
   accrual_time = 0,
   follow_up_time = Inf,
   tau = NULL,
-  scale_loss = NULL,
-  shape_loss = 1,
   censor_beyond_tau = FALSE,
   n = NULL,
   plot_data = TRUE,
@@ -26,31 +27,33 @@ plot_surv(
   plot_extended = FALSE,
   xlim = NULL,
   ylim = c(0, 100),
-  parameterization = 1
+  parameterisation = 1
 )
 }
 \arguments{
-\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the control group.}
+\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
 
-\item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group.}
+\item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
 
-\item{shape_ctrl}{Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.}
+\item{scale_loss}{Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull). No loss to follow-up is assumed if undefined.}
 
-\item{shape_trmt}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
+\item{shape_ctrl}{Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival. If \code{length(shape_ctrl) = 1} and \code{length(scale_ctrl) > 1}, the same shape parameter will be assumed for each section of the survival function.}
 
-\item{breakpoints_ctrl}{Vector of breakpoints of the piecewise weibull distribution in the control group. Must have length of \code{scale_ctrl}and \code{shape_ctrl}. First element must be \code{0}.}
+\item{shape_trmt}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt = 1}, simplifying to exponential survival. If \code{length(shape_trmt) = 1} and \code{length(scale_trmt) > 1}, the same shape parameter will be assumed for each section of the survival function.}
 
-\item{breakpoints_trmt}{Vector of breakpoints of the piecewise weibull distribution in the treatment group. Must have length of \code{scale_trmt}and \code{shape_trmt}. First element must be \code{0}.}
+\item{shape_loss}{Specifies the \dfn{shape parameter} for loss to follow-up. Defaults to \code{shape_loss = 1}, simplifying to exponential loss. If \code{length(shape_loss) = 1} and \code{length(scale_loss) > 1}, the same shape parameter will be assumed for each section of the loss distribution.}
+
+\item{breakpoints_ctrl}{Vector of breakpoints of the piecewise Weibull distribution in the control group. Must have length of \code{scale_ctrl} \eqn{-1} and \code{shape_ctrl} \eqn{-1}. First element must be \code{> 0}.}
+
+\item{breakpoints_trmt}{Vector of breakpoints of the piecewise Weibull distribution in the treatment group. Must have length of \code{scale_trmt} \eqn{-1} and \code{shape_trmt} \eqn{-1}. First element must be \code{> 0}.}
+
+\item{breakpoints_loss}{Vector of breakpoints of the piecewise Weibull distribution for loss to follow-up. Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. First element must be \code{> 0}.}
 
 \item{accrual_time}{Length of accrual period.}
 
 \item{follow_up_time}{Length of follow-up period. Set to \code{Inf} if unspecified.}
 
 \item{tau}{Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
-
-\item{scale_loss}{Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
-
-\item{shape_loss}{Specifies the \dfn{shape parameter} of loss to follow-up. Defaults to \eqn{=1}, simplifying to exponential loss.}
 
 \item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored if \code{TRUE}.}
 
@@ -60,23 +63,23 @@ plot_surv(
 
 \item{plot_HR}{Logical. Will plot hazard ratio instead of hazards.}
 
-\item{plot_reverse_KM}{Logical. Will plot a reverse KM curve if \code{c(TRUE)}, indicating censure-free follow-up.}
+\item{plot_reverse_KM}{Logical. Will plot a reverse KM curve if \code{c(TRUE)}, indicating censoring-free follow-up.}
 
 \item{plot_log_log}{Logical. Will plot a log-log plot for assessing proportionality of hazards if \code{TRUE}.}
 
 \item{plot_recruitment}{Logical. Plots recruitment plot indicating time between recruitment and last observation in study time. Will
 plot a representative sample of size \eqn{100} if \code{n} \eqn{> 100}.}
 
-\item{plot_extended}{Logical. Will produce extended plots differentiating causes of loss to follow up.}
+\item{plot_extended}{Logical. Will produce extended plots differentiating causes of loss to follow-up.}
 
 \item{xlim}{Range of plot x-axis. Defaults to \code{c(0, 1.5*tau)}.}
 
 \item{ylim}{Range of plot y-axis as survival percentages. Defaults to \code{c(0, 100)}.}
 
-\item{parameterization}{One of: \itemize{
-\item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
-\item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item{parameterisation}{One of: \itemize{
+\item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+\item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 }
 \description{
 Plots example survival data, survival functions, reverse KM plot, recruitment plot, and censoring functions differentiating causes for censoring.

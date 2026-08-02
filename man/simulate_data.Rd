@@ -6,30 +6,37 @@
 \usage{
 simulate_data(
   scale,
+  scale_loss = NULL,
   shape = 1,
-  breakpoints = 0,
-  parameterization = 1,
+  shape_loss = 1,
+  breakpoints = NULL,
+  breakpoints_loss = NULL,
+  parameterisation = 1,
   accrual_time = 0,
   follow_up_time = Inf,
   tau = NULL,
   censor_beyond_tau = FALSE,
   n,
-  scale_loss = NULL,
-  shape_loss = 1,
   label = 0
 )
 }
 \arguments{
-\item{scale}{Specifies the \dfn{scale parameter} in the treatment group.}
+\item{scale}{Specifies the \dfn{scale parameter}. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
 
-\item{shape}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.}
+\item{scale_loss}{Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull). No loss to follow-up is assumed if undefined.}
 
-\item{breakpoints}{Vector of breakpoints of the piecewise weibull distribution. Must have length of \code{scale}and \code{shape}. First element must be \code{0}.}
+\item{shape}{Specifies the \dfn{shape parameter}. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
 
-\item{parameterization}{One of: \itemize{
-\item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
-\item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item{shape_loss}{Specifies the \dfn{shape parameter} for loss to follow-up. Defaults to \code{shape_loss = 1}, simplifying to exponential loss. If \code{length(shape_loss) = 1} and \code{length(scale_loss) > 1}, the same shape parameter will be assumed for each section of the loss distribution.}
+
+\item{breakpoints}{Vector of breakpoints of the piecewise Weibull distribution. Must have length of \code{scale} \eqn{-1} and \code{shape} \eqn{-1}. First element must be \code{> 0}.}
+
+\item{breakpoints_loss}{Vector of breakpoints of the piecewise Weibull distribution for loss to follow-up. Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. First element must be \code{> 0}.}
+
+\item{parameterisation}{One of: \itemize{
+\item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+\item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 
 \item{accrual_time}{Length of accrual period.}
 
@@ -41,22 +48,15 @@ simulate_data(
 
 \item{n}{Sample size.}
 
-\item{scale_loss}{Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
-
-\item{shape_loss}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.}
-
 \item{label}{Group label.}
 }
 \value{
 Data frame containing observations times, status (event = 1, censored
-= 0), and group label
+= 0), and group label.
 }
 \description{
 Simulates survival of one arm, including administrative censoring and loss to follow-up. Survival function needs to be specified
 as Weibull or exponential.
-}
-\details{
-Details
 }
 \examples{
 ctrl_df <- simulate_data(

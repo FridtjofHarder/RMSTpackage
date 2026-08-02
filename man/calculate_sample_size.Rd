@@ -7,15 +7,16 @@
 calculate_sample_size(
   scale_ctrl,
   scale_trmt,
+  scale_loss = NULL,
   shape_ctrl = 1,
   shape_trmt = 1,
-  breakpoints_ctrl = 0,
-  breakpoints_trmt = 0,
-  accrual_time = 0,
-  follow_up_time = NULL,
-  tau = NULL,
-  scale_loss = NULL,
   shape_loss = 1,
+  breakpoints_ctrl = NULL,
+  breakpoints_trmt = NULL,
+  breakpoints_loss = NULL,
+  accrual_time = 0,
+  follow_up_time = Inf,
+  tau = NULL,
   sides = 1,
   power = 0.8,
   one_sided_alpha = 0.025,
@@ -30,35 +31,37 @@ calculate_sample_size(
   RMSTR_simulation = FALSE,
   LRT_simulation = FALSE,
   censor_beyond_tau = FALSE,
-  M = 5000,
-  simulation_n = NA,
+  M = 1,
+  n = NA,
   plot_example_data = TRUE,
   plot_design_curves = TRUE,
-  parameterization = 1
+  parameterisation = 1
 )
 }
 \arguments{
-\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the control group. Can be a scalar (weibull or exponential survival), or a vector (piecewise weibull).}
+\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
 
-\item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (weibull or exponential survival), or a vector (piecewise weibull).}
+\item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
 
-\item{shape_ctrl}{Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival. If \code{length(shape_ctrl) = 1} and \code{length(shape_ctrl) > 1}, the same shape parameter will be assumed for each section of the survival function.}
+\item{scale_loss}{Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull). No loss to follow-up is assumed if undefined.}
 
-\item{shape_trmt}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt = 1}, simplifying to exponential survival. If \code{length(shape_trmt) = 1} and \code{length(shape_trmt) > 1}, the same shape parameter will be assumed for each section of the survival function.}
+\item{shape_ctrl}{Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival. If \code{length(shape_ctrl) = 1} and \code{length(scale_ctrl) > 1}, the same shape parameter will be assumed for each section of the survival function.}
 
-\item{breakpoints_ctrl}{Vector of breakpoints of the piecewise weibull distribution in the control group. Must have length of \code{scale_ctrl}and \code{shape_ctrl}. First element must be \code{0}.}
+\item{shape_trmt}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt = 1}, simplifying to exponential survival. If \code{length(shape_trmt) = 1} and \code{length(scale_trmt) > 1}, the same shape parameter will be assumed for each section of the survival function.}
 
-\item{breakpoints_trmt}{Vector of breakpoints of the piecewise weibull distribution in the treatment group. Must have length of \code{scale_trmt}and \code{shape_trmt}. First element must be \code{0}.}
+\item{shape_loss}{Specifies the \dfn{shape parameter} for loss to follow-up. Defaults to \code{shape_loss = 1}, simplifying to exponential loss. If \code{length(shape_loss) = 1} and \code{length(scale_loss) > 1}, the same shape parameter will be assumed for each section of the loss distribution.}
+
+\item{breakpoints_ctrl}{Vector of breakpoints of the piecewise Weibull distribution in the control group. Must have length of \code{scale_ctrl} \eqn{-1} and \code{shape_ctrl} \eqn{-1}. First element must be \code{> 0}.}
+
+\item{breakpoints_trmt}{Vector of breakpoints of the piecewise Weibull distribution in the treatment group. Must have length of \code{scale_trmt} \eqn{-1} and \code{shape_trmt} \eqn{-1}. First element must be \code{> 0}.}
+
+\item{breakpoints_loss}{Vector of breakpoints of the piecewise Weibull distribution for loss to follow-up. Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. First element must be \code{> 0}.}
 
 \item{accrual_time}{Length of accrual period.}
 
 \item{follow_up_time}{Length of follow-up period. Set to \code{Inf} if unspecified.}
 
 \item{tau}{Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
-
-\item{scale_loss}{Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.}
-
-\item{shape_loss}{Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential loss.}
 
 \item{sides}{Sidedness of inference test, either \code{1} or \code{2}. \code{sides = 1} assumes alternative hypothesis of: \itemize{
 \item \eqn{H_1\text{: } \text{RMST}_\text{difference} = \text{RMST}_\text{trmt} - \text{RMST}_\text{ctrl} > 0},
@@ -93,16 +96,16 @@ calculate_sample_size(
 
 \item{M}{Number of iterations when running simulation.}
 
-\item{simulation_n}{Specifies sample size for simulations and for example plot.}
+\item{n}{Specifies sample size determining power.}
 
-\item{plot_example_data}{Logical. Specifies whether to create a plot with example data. Plots with total sample size of \eqn{n = 100} if \code{simulation_n} is undefined.}
+\item{plot_example_data}{Logical. Specifies whether to create a plot with example data. Plots with total sample size of \eqn{n = 100} if \code{n} is undefined.}
 
 \item{plot_design_curves}{Logical. Specifies whether to plot survival curves.}
 
-\item{parameterization}{One of: \itemize{
-\item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
-\item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item{parameterisation}{One of: \itemize{
+\item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+\item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 }
 \value{
 Returns a list with total sample sizes for each test and a test power.
@@ -112,7 +115,7 @@ Calculates the sample size given a desired test power, or simulates the test pow
 }
 \details{
 Sample size and power determination for both superiority and non-inferiority analysis are supported.
-Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterization
+Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterisation
 defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. Sample size and power
 can be determined for log rank test, RMST difference, and RMST ratio.
 }
@@ -134,7 +137,7 @@ can be determined for log rank test, RMST difference, and RMST ratio.
 # Validate by running simulation with sample size previously obtained for RMST difference
   args_sup_sim <- args_sup
   args_sup_sim$RMSTD_simulation <- TRUE
-  args_sup_sim$simulation_n <-
+  args_sup_sim$n <-
     result_sup$
     `Sample size for RMST difference determined by closed-form solution`
   result_sup_sim <- do.call(calculate_sample_size, args = args_sup_sim)
@@ -154,7 +157,7 @@ can be determined for log rank test, RMST difference, and RMST ratio.
   result_noninf <- do.call(calculate_sample_size, args = args_noninf)
   print(result_noninf)
 
-# Assume heavy loss to follow up
+# Assume heavy loss to follow-up
   args_sup_loss <- args_sup
   args_sup_loss$scale_loss <- 2
   result_sup_loss <- do.call(calculate_sample_size, args = args_sup_loss)

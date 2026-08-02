@@ -8,7 +8,7 @@ convert_contrast_ph(
   scale_trmt = NULL,
   scale_ctrl = NULL,
   shape = 1,
-  parameterization = 1,
+  parameterisation = 1,
   RMSTD = NULL,
   RMSTR = NULL,
   tau = NULL,
@@ -23,20 +23,20 @@ convert_contrast_ph(
 \arguments{
 \item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group.}
 
-\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the treatment group.}
+\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the control group.}
 
 \item{shape}{Specifies the \dfn{shape parameter} in both groups.}
 
-\item{parameterization}{One of: \itemize{
-\item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
-\item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item{parameterisation}{One of: \itemize{
+\item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+\item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
 
 \item{RMSTD}{Specifies the RMSTD between control group and treatment group. Allows for converting RMSTD to HR.}
 
-\item{RMSTR}{Specifies the RMSTR between control group and treatment group. Allows for converting RMSTD to HR.}
+\item{RMSTR}{Specifies the RMSTR between control group and treatment group. Allows for converting RMSTR to HR.}
 
-\item{tau}{Specifies the time horizon \eqn{\tau} where evaluate RMST with \eqn{\mathrm{RMST(\tau)} = \int_{0}^{\tau}S(t) \,dt}, and where to evaluate \eqn{\Delta S(\tau)}.}
+\item{tau}{Specifies the time horizon \eqn{\tau} where to evaluate RMST with \eqn{\mathrm{RMST(\tau)} = \int_{0}^{\tau}S(t) \,dt}, and where to evaluate \eqn{\Delta S(\tau)}.}
 
 \item{HR}{Specifies a hazard ratio with \eqn{\text{HR} = h(t)_{\text{trmt}} / h(t)_{\text{ctrl}}}.}
 

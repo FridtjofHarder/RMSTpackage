@@ -3,6 +3,8 @@
 export(app_convert_contrast_ph)
 export(calculate_sample_size)
 export(convert_contrast_ph)
+export(def_pexp)
+export(def_weibull)
 export(plot_surv)
 export(report_convert_contrasts_ph)
 export(simulate_data)

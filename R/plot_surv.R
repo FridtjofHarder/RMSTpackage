@@ -1,33 +1,34 @@
-#' Produces extensive surival plots
+#' Produces extensive survival plots
 #'
 #' Plots example survival data, survival functions, reverse KM plot, recruitment plot, and censoring functions differentiating causes for censoring.
 #'
-#' @param scale_ctrl Specifies the \dfn{scale parameter} in the control group.
-#' @param scale_trmt Specifies the \dfn{scale parameter} in the treatment group.
-#' @param shape_ctrl Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl} \eqn{=1}, simplifying to exponential survival.
-#' @param shape_trmt Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt} \eqn{=1}, simplifying to exponential survival.
-#' @param breakpoints_ctrl Vector of breakpoints of the piecewise weibull distribution in the control group. Must have length of \code{scale_ctrl}and \code{shape_ctrl}. First element must be \code{0}.
-#' @param breakpoints_trmt Vector of breakpoints of the piecewise weibull distribution in the treatment group. Must have length of \code{scale_trmt}and \code{shape_trmt}. First element must be \code{0}.
+#' @param scale_ctrl Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).
+#' @param scale_trmt Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).
+#' @param scale_loss Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull). No loss to follow-up is assumed if undefined.
+#' @param shape_ctrl Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival. If \code{length(shape_ctrl) = 1} and \code{length(scale_ctrl) > 1}, the same shape parameter will be assumed for each section of the survival function.
+#' @param shape_trmt Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt = 1}, simplifying to exponential survival. If \code{length(shape_trmt) = 1} and \code{length(scale_trmt) > 1}, the same shape parameter will be assumed for each section of the survival function.
+#' @param shape_loss Specifies the \dfn{shape parameter} for loss to follow-up. Defaults to \code{shape_loss = 1}, simplifying to exponential loss. If \code{length(shape_loss) = 1} and \code{length(scale_loss) > 1}, the same shape parameter will be assumed for each section of the loss distribution.
+#' @param breakpoints_ctrl Vector of breakpoints of the piecewise Weibull distribution in the control group. Must have length of \code{scale_ctrl} \eqn{-1} and \code{shape_ctrl} \eqn{-1}. First element must be \code{> 0}.
+#' @param breakpoints_trmt Vector of breakpoints of the piecewise Weibull distribution in the treatment group. Must have length of \code{scale_trmt} \eqn{-1} and \code{shape_trmt} \eqn{-1}. First element must be \code{> 0}.
+#' @param breakpoints_loss Vector of breakpoints of the piecewise Weibull distribution for loss to follow-up. Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. First element must be \code{> 0}.
 #' @param accrual_time Length of accrual period.
 #' @param follow_up_time Length of follow-up period. Set to \code{Inf} if unspecified.
 #' @param tau Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
-#' @param scale_loss Specifies the \dfn{scale parameter} of loss to follow-up. No loss to follow-up is assumed if undefined.
-#' @param shape_loss Specifies the \dfn{shape parameter} of loss to follow-up. Defaults to \eqn{=1}, simplifying to exponential loss.
 #' @param censor_beyond_tau Logical. All observations past \eqn{\tau} are censored if \code{TRUE}.
 #' @param n Specifies the total sample size. Increases to next even number if uneven. Group sample sizes are assumed to be equal.
 #' @param plot_data Logical. Will plot random-generated survival data.
 #' @param plot_HR Logical. Will plot hazard ratio instead of hazards.
-#' @param plot_reverse_KM Logical. Will plot a reverse KM curve if \code{c(TRUE)}, indicating censure-free follow-up.
+#' @param plot_reverse_KM Logical. Will plot a reverse KM curve if \code{c(TRUE)}, indicating censoring-free follow-up.
 #' @param plot_log_log Logical. Will plot a log-log plot for assessing proportionality of hazards if \code{TRUE}.
 #' @param plot_recruitment Logical. Plots recruitment plot indicating time between recruitment and last observation in study time. Will
 #' plot a representative sample of size \eqn{100} if \code{n} \eqn{> 100}.
-#' @param plot_extended Logical. Will produce extended plots differentiating causes of loss to follow up.
+#' @param plot_extended Logical. Will produce extended plots differentiating causes of loss to follow-up.
 #' @param xlim Range of plot x-axis. Defaults to \code{c(0, 1.5*tau)}.
 #' @param ylim Range of plot y-axis as survival percentages. Defaults to \code{c(0, 100)}.
-#' @param parameterization One of: \itemize{
-#' \item \code{parameterization = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
-#' \item \code{parameterization = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-#' \item \code{parameterization = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
+#' @param parameterisation One of: \itemize{
+#' \item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+#' \item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+#' \item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
 #'
 #' @export
 #'
@@ -58,15 +59,16 @@
 plot_surv <- function(
   scale_ctrl,
   scale_trmt,
+  scale_loss = NULL,
   shape_ctrl = 1,
   shape_trmt = 1,
-  breakpoints_ctrl = 0,
-  breakpoints_trmt = 0,
+  shape_loss = 1,
+  breakpoints_ctrl = NULL,
+  breakpoints_trmt = NULL,
+  breakpoints_loss = NULL,
   accrual_time = 0,
   follow_up_time = Inf,
   tau = NULL,
-  scale_loss = NULL,
-  shape_loss = 1,
   censor_beyond_tau = FALSE,
   n = NULL,
   plot_data = TRUE,
@@ -77,56 +79,67 @@ plot_surv <- function(
   plot_extended = FALSE,
   xlim = NULL,
   ylim = c(0, 100),
-  parameterization = 1
+  parameterisation = 1
 ) {
-  # reparameterize ----------------------------------------------------------
-  if (parameterization != 1) {
-    scale_ctrl <- reparameterize(
-      parameterization = parameterization,
-      scale = scale_ctrl,
-      shape = shape_ctrl
-    )
-    scale_trmt <- reparameterize(
-      parameterization = parameterization,
-      scale = scale_trmt,
-      shape = shape_trmt
-    )
-    scale_loss <- reparameterize(
-      parameterization = parameterization,
-      scale = scale_loss,
-      shape = shape_loss
-    )
-  }
 
+# error management --------------------------------------------------------
   if(length(shape_ctrl) == 1 & length(scale_ctrl) > 1){
     shape_ctrl <- rep(shape_ctrl, length(scale_ctrl))
   }
   if(length(shape_trmt) == 1 & length(scale_trmt) > 1){
     shape_trmt <- rep(shape_trmt, length(scale_trmt))
   }
+  if(length(shape_loss) == 1 & length(scale_loss) > 1){
+    shape_loss <- rep(shape_loss, length(scale_loss))
+  }
+  if(length(scale_ctrl) != length(shape_ctrl) || length(scale_trmt) != length(shape_trmt) || length(scale_loss) != length(shape_loss)){
+    stop("Scale and shape parameter must have same length in each group")
+  }
+  breakpoints_ctrl <- normalize_breakpoints(breakpoints_ctrl)
+  breakpoints_trmt <- normalize_breakpoints(breakpoints_trmt)
+  breakpoints_loss <- normalize_breakpoints(breakpoints_loss)
+  # reparameterize ----------------------------------------------------------
+  if (parameterisation != 1) {
+    scale_ctrl <- reparameterize(
+      parameterisation = parameterisation,
+      scale = scale_ctrl,
+      shape = shape_ctrl
+    )
+    scale_trmt <- reparameterize(
+      parameterisation = parameterisation,
+      scale = scale_trmt,
+      shape = shape_trmt
+    )
+    scale_loss <- reparameterize(
+      parameterisation = parameterisation,
+      scale = scale_loss,
+      shape = shape_loss
+    )
+  }
   # simulate data and create surv object ------------------------------------
   # only simulate when at least one data-dependent plot is requested
-  needs_data <- plot_data || plot_reverse_KM || plot_log_log || plot_recruitment
-  if (needs_data) {
+  if (plot_data || plot_reverse_KM || plot_log_log || plot_recruitment) {
     data_frame_ctrl <- simulate_data(
       scale = scale_ctrl,
+      scale_loss = scale_loss,
       shape = shape_ctrl,
+      shape_loss = shape_loss,
       breakpoints = breakpoints_ctrl,
+      breakpoints_loss = breakpoints_loss,
       accrual_time = accrual_time,
       follow_up_time = follow_up_time,
-      scale_loss = scale_loss,
-      shape_loss = shape_loss,
       n = round(n / 2),
       label = 0
     )
     data_frame_trmt <- simulate_data(
       scale = scale_trmt,
+      scale_loss = scale_loss,
       shape = shape_trmt,
+      shape_loss = shape_loss,
       breakpoints = breakpoints_trmt,
+      breakpoints_loss = breakpoints_loss,
       accrual_time = accrual_time,
       follow_up_time = follow_up_time,
-      scale_loss = scale_loss,
-      shape_loss = shape_loss,
       n = round(n / 2),
       label = 1
     )
@@ -199,7 +212,7 @@ plot_surv <- function(
 
   # draw design curves
   graphics::curve(
-    my_pew_surv(q = x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl),
+    ppweibull::ppweibull(q = x, alpha = shape_ctrl, rate = 1 / scale_ctrl^shape_ctrl, t = breakpoints_ctrl, lower.tail = FALSE),
     from = xlim[1],
     to = xlim[2],
     add = TRUE,
@@ -208,7 +221,7 @@ plot_surv <- function(
     lty = 2
   )
   graphics::curve(
-    my_pew_surv(q = x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt),
+    ppweibull::ppweibull(q = x, alpha = shape_trmt, rate = 1 / scale_trmt^shape_trmt, t = breakpoints_trmt, lower.tail = FALSE),
     from = xlim[1],
     to = xlim[2],
     add = TRUE,
@@ -278,7 +291,7 @@ plot_surv <- function(
 
   # reverse KM
   if (plot_reverse_KM) {
-    # reverse indicator for event and censure
+    # reverse indicator for event and censoring
     simulated_data_reverse <- simulated_data
     simulated_data_reverse$status <- as.numeric(simulated_data$status == 0) # reverse status
 
@@ -441,7 +454,7 @@ plot_surv <- function(
       graphics::abline(h = 100, col = "darkgrey", lwd = 2)
     } else {
       graphics::curve(
-        100 * my_pew_surv(q = x, scale = scale_loss, shape = shape_loss, breakpoints = 0),
+        100 * ppweibull::ppweibull(q = x, alpha = shape_loss, rate = 1 / scale_loss^shape_loss, lower.tail = FALSE),
         lwd = 2,
         col = "darkgrey",
         add = TRUE
@@ -457,7 +470,7 @@ plot_surv <- function(
           follow_up_time = follow_up_time,
           scale_loss = scale_loss,
           shape_loss = shape_loss,
-          breakpoints = 0
+          breakpoints_loss = breakpoints_loss
         ),
       lwd = 2,
       col = "black",
@@ -471,12 +484,13 @@ plot_surv <- function(
           x,
           get_p_at_risk,
           scale = scale_ctrl,
+          scale_loss = scale_loss,
           shape = shape_ctrl,
+          shape_loss = shape_loss,
           breakpoints = breakpoints_ctrl,
+          breakpoints_loss = breakpoints_loss,
           accrual_time = accrual_time,
           follow_up_time = follow_up_time,
-          scale_loss = scale_loss,
-          shape_loss = shape_loss
         ),
       lwd = 2,
       col = "#EA95BA",
@@ -490,29 +504,27 @@ plot_surv <- function(
           x,
           get_p_at_risk,
           scale = scale_trmt,
+          scale_loss = scale_loss,
           shape = shape_trmt,
+          shape_loss = shape_loss,
           breakpoints = breakpoints_trmt,
+          breakpoints_loss = breakpoints_loss,
           accrual_time = accrual_time,
           follow_up_time = follow_up_time,
-          scale_loss = scale_loss,
-          shape_loss = shape_loss
         ),
       lwd = 2,
       col = "steelblue1",
       add = TRUE
     )
-
     graphics::curve(
-      100 *
-        my_pew_surv(q = x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl),
+      100 * ppweibull::ppweibull(q = x, alpha = shape_ctrl, rate = 1 / scale_ctrl^shape_ctrl, t = breakpoints_ctrl, lower.tail = FALSE),
       add = TRUE,
       col = "red",
       lwd = 2
     )
 
     graphics::curve(
-      100 *
-        my_pew_surv(q = x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt),
+      100 * ppweibull::ppweibull(q = x, alpha = shape_trmt, rate = 1 / scale_trmt^shape_trmt, t = breakpoints_trmt, lower.tail = FALSE),
       add = TRUE,
       col = "darkblue",
       lwd = 2
@@ -540,7 +552,6 @@ plot_surv <- function(
       ),
       lty = 1:1,
       y.intersp = 1.5,
-      bty = "n",
       cex = 0.8
     )
   }

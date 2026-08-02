@@ -2,7 +2,7 @@
 #'
 #' Run using: app_convert_contrast_ph()
 #'
-#' @returns A Shiny app object. Call this function to run the app.
+#' @return A Shiny app object. Call this function to run the app.
 #' @export
 #' @examples
 #' if (interactive()) {
@@ -17,7 +17,7 @@ app_convert_contrast_ph <- function() {
         shiny::numericInput("scale_trmt", "scale trmt", value = NA_real_),
         shiny::numericInput("scale_ctrl", "scale ctrl", value = NA_real_),
         shiny::numericInput("shape", "shape", value = 1),
-        shiny::numericInput("parameterization", "parameterization", value = 1),
+        shiny::numericInput("parameterisation", "parameterisation", value = 1),
         shiny::numericInput("RMSTD", "RMSTD", value = NA_real_),
         shiny::numericInput("RMSTR", "RMSTR", value = NA_real_),
         shiny::numericInput("tau", "tau", value = NA_real_),
@@ -40,15 +40,7 @@ app_convert_contrast_ph <- function() {
 
   server <- function(input, output, session) {
     clean_input <- function(x) {
-      if (is.null(x)) {
-        return(NULL)
-      }
-      if (length(x) == 0L) {
-        return(NULL)
-      }
-      if (is.na(x)) {
-        return(NULL)
-      }
+      if (is.null(x) || length(x) == 0L || is.na(x)) return(NULL)
       x
     }
 
@@ -57,7 +49,7 @@ app_convert_contrast_ph <- function() {
         scale_trmt       = clean_input(input$scale_trmt),
         scale_ctrl       = clean_input(input$scale_ctrl),
         shape            = clean_input(input$shape),
-        parameterization = clean_input(input$parameterization),
+        parameterisation = clean_input(input$parameterisation),
         RMSTD            = clean_input(input$RMSTD),
         RMSTR            = clean_input(input$RMSTR),
         tau              = clean_input(input$tau),
@@ -105,9 +97,9 @@ app_convert_contrast_ph <- function() {
           value = out$shape
         )
       }
-      if (!is.null(out$parameterization)) {
-        shiny::updateNumericInput(session, "parameterization",
-          value = out$parameterization
+      if (!is.null(out$parameterisation)) {
+        shiny::updateNumericInput(session, "parameterisation",
+          value = out$parameterisation
         )
       }
       if (!is.null(out$RMSTD)) {

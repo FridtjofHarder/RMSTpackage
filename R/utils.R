@@ -6,10 +6,10 @@
 
 # get design parameters ---------------------------------------------------
 
-# calculate true RMST for weibull function
+# calculate true RMST for Weibull function
 get_theoretical_rmst <- function(scale, shape, breakpoints, tau) {
   stats::integrate(
-    function(y) my_pew_surv(q = y, scale = scale, shape = shape, breakpoints = breakpoints),
+    function(y) ppweibull::ppweibull(q = y, rate = 1 / scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE),
     lower = 0,
     upper = tau
   )$value
@@ -17,8 +17,8 @@ get_theoretical_rmst <- function(scale, shape, breakpoints, tau) {
 
 # calculate true hazard
 get_h <- function(x, scale, shape, breakpoints) {
-  h <- my_pew_dens(x = x, scale = scale, shape = shape, breakpoints = breakpoints) /
-    my_pew_surv(q = x, scale = scale, shape = shape, breakpoints = breakpoints)
+  h <- ppweibull::dpweibull(x = x, alpha = shape, rate = 1 / scale^shape, t = breakpoints) /
+    ppweibull::ppweibull(q = x, rate = 1 / scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE)
   return(h)
 }
 
@@ -34,14 +34,14 @@ get_p_not_lost_admin <- function(x, accrual_time, follow_up_time) {
 }
 
 # calculate p(not being censored) as product of p(not lost to admin. censoring) *
-# p (not lost to FU). Return only p(not being censored) if no loss to FU.
+# p(not lost to follow-up). Return only p(not being censored) if no loss to follow-up.
 get_p_not_censored <- function(
   x,
   accrual_time,
   follow_up_time,
   scale_loss,
   shape_loss,
-  breakpoints
+  breakpoints_loss
 ) {
   if (is.null(scale_loss) || is.null(shape_loss)) {
     return(
@@ -58,7 +58,7 @@ get_p_not_censored <- function(
         accrual_time = accrual_time,
         follow_up_time = follow_up_time
       ) *
-        my_pew_surv(q = x, scale = scale_loss, shape = shape_loss, breakpoints = 0)
+        ppweibull::ppweibull(q = x, rate = 1 / scale_loss^shape_loss, alpha = shape_loss, t = breakpoints_loss, lower.tail = FALSE)
     )
   }
 }
@@ -67,22 +67,23 @@ get_p_not_censored <- function(
 get_p_at_risk <- function(
   x,
   scale,
-  shape,
-  breakpoints,
-  accrual_time,
-  follow_up_time,
   scale_loss,
-  shape_loss
+  shape,
+  shape_loss,
+  breakpoints,
+  breakpoints_loss,
+  accrual_time,
+  follow_up_time
 ) {
   return(
-    my_pew_surv(q = x, scale = scale, shape = shape, breakpoints = breakpoints) *
+    ppweibull::ppweibull(q = x, rate = 1 / scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE) *
       get_p_not_censored(
         x = x,
         accrual_time = accrual_time,
         follow_up_time = follow_up_time,
         scale_loss = scale_loss,
         shape_loss = shape_loss,
-        breakpoints = breakpoints
+        breakpoints_loss = breakpoints_loss
       )
   )
 }
@@ -91,21 +92,22 @@ get_p_at_risk <- function(
 get_density <- function(
   x,
   scale,
-  shape,
-  breakpoints,
-  accrual_time,
-  follow_up_time,
   scale_loss,
-  shape_loss
+  shape,
+  shape_loss,
+  breakpoints,
+  breakpoints_loss,
+  accrual_time,
+  follow_up_time
 ) {
-  my_pew_dens(x = x, scale = scale, shape = shape, breakpoints = breakpoints) *
+  ppweibull::dpweibull(x = x, alpha = shape, rate = 1 / scale^shape, t = breakpoints) *
     get_p_not_censored(
       x = x,
       accrual_time = accrual_time,
       follow_up_time = follow_up_time,
       scale_loss = scale_loss,
       shape_loss = shape_loss,
-      breakpoints = breakpoints
+      breakpoints_loss = breakpoints_loss
     )
 }
 
@@ -114,18 +116,19 @@ get_density <- function(
 # calculate true sigma2 for RMST
 get_sigma2_rmst <- function(
   scale,
+  scale_loss,
   shape,
+  shape_loss,
   breakpoints,
+  breakpoints_loss,
   accrual_time,
   follow_up_time,
-  tau,
-  scale_loss,
-  shape_loss
+  tau
 ) {
   inner <- function(x) {
     sapply(x, function(x1) {
       stats::integrate(
-        function(x2) my_pew_surv(q = x2, scale = scale, shape = shape, breakpoints = breakpoints),
+        function(x2) ppweibull::ppweibull(q = x2, rate = 1 / scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE),
         lower = x1,
         upper = tau
       )$value
@@ -139,12 +142,13 @@ get_sigma2_rmst <- function(
           X = x,
           get_p_at_risk,
           scale = scale,
-          shape = shape,
-          breakpoints = breakpoints,
-          accrual_time = accrual_time,
-          follow_up_time = follow_up_time,
           scale_loss = scale_loss,
-          shape_loss = shape_loss
+          shape = shape,
+          shape_loss = shape_loss,
+          breakpoints = breakpoints,
+          breakpoints_loss = breakpoints_loss,
+          accrual_time = accrual_time,
+          follow_up_time = follow_up_time
         )
     },
     lower = 0,
@@ -155,16 +159,17 @@ get_sigma2_rmst <- function(
 # calculate true sigma2 for LRT
 get_sigma2_LRT <- function(scale_ctrl,
                            scale_trmt,
+                           scale_loss = NULL,
                            shape_ctrl = 1,
                            shape_trmt = 1,
+                           shape_loss = 1,
                            breakpoints_ctrl,
                            breakpoints_trmt,
+                           breakpoints_loss,
                            accrual_time = 0,
                            follow_up_time = NULL,
                            tau = NULL,
-                           censor_beyond_tau = FALSE,
-                           scale_loss = NULL,
-                           shape_loss = 1) {
+                           censor_beyond_tau = FALSE) {
   if (censor_beyond_tau) {
     total_time <- tau
   } else {
@@ -175,62 +180,68 @@ get_sigma2_LRT <- function(scale_ctrl,
       get_p_at_risk(
         x,
         scale = scale_ctrl,
-        shape = shape_ctrl,
-        breakpoints = breakpoints_ctrl,
-        accrual_time = accrual_time,
-        follow_up_time = follow_up_time,
         scale_loss = scale_loss,
-        shape_loss = shape_loss
+        shape = shape_ctrl,
+        shape_loss = shape_loss,
+        breakpoints = breakpoints_ctrl,
+        breakpoints_loss = breakpoints_loss,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
       ) * get_p_at_risk(
         x,
         scale = scale_trmt,
-        shape = shape_trmt,
-        breakpoints = breakpoints_trmt,
-        accrual_time = accrual_time,
-        follow_up_time = follow_up_time,
         scale_loss = scale_loss,
-        shape_loss = shape_loss
+        shape = shape_trmt,
+        shape_loss = shape_loss,
+        breakpoints = breakpoints_trmt,
+        breakpoints_loss = breakpoints_loss,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
       ) /
         (
           get_p_at_risk(
             x,
             scale = scale_ctrl,
-            shape = shape_ctrl,
-            breakpoints = breakpoints_ctrl,
-            accrual_time = accrual_time,
-            follow_up_time = follow_up_time,
             scale_loss = scale_loss,
-            shape_loss = shape_loss
+            shape = shape_ctrl,
+            shape_loss = shape_loss,
+            breakpoints = breakpoints_ctrl,
+            breakpoints_loss = breakpoints_loss,
+            accrual_time = accrual_time,
+            follow_up_time = follow_up_time
           ) + get_p_at_risk(
             x,
             scale = scale_trmt,
-            shape = shape_trmt,
-            breakpoints = breakpoints_trmt,
-            accrual_time = accrual_time,
-            follow_up_time = follow_up_time,
             scale_loss = scale_loss,
-            shape_loss = shape_loss
+            shape = shape_trmt,
+            shape_loss = shape_loss,
+            breakpoints = breakpoints_trmt,
+            breakpoints_loss = breakpoints_loss,
+            accrual_time = accrual_time,
+            follow_up_time = follow_up_time
           )
         )^2 *
         (get_density(
           x,
           scale = scale_ctrl,
-          shape = shape_ctrl,
-          breakpoints = breakpoints_ctrl,
-          accrual_time = accrual_time,
-          follow_up_time = follow_up_time,
           scale_loss = scale_loss,
-          shape_loss = shape_loss
+          shape = shape_ctrl,
+          shape_loss = shape_loss,
+          breakpoints = breakpoints_ctrl,
+          breakpoints_loss = breakpoints_loss,
+          accrual_time = accrual_time,
+          follow_up_time = follow_up_time
         ) +
           get_density(
             x,
             scale = scale_trmt,
-            shape = shape_trmt,
-            breakpoints = breakpoints_trmt,
-            accrual_time = accrual_time,
-            follow_up_time = follow_up_time,
             scale_loss = scale_loss,
-            shape_loss = shape_loss
+            shape = shape_trmt,
+            shape_loss = shape_loss,
+            breakpoints = breakpoints_trmt,
+            breakpoints_loss = breakpoints_loss,
+            accrual_time = accrual_time,
+            follow_up_time = follow_up_time
           )) / 2
     }),
     lower = 0,
@@ -239,19 +250,20 @@ get_sigma2_LRT <- function(scale_ctrl,
   return(sigma2)
 }
 
-# new delta calculation: schoenfeld instead of asymptotic npsurvSS
+# new delta calculation: Schoenfeld instead of asymptotic npsurvSS
 get_delta_LRT <- function(scale_ctrl,
                           scale_trmt,
+                          scale_loss = NULL,
                           shape_ctrl = 1,
                           shape_trmt = 1,
+                          shape_loss = 1,
                           breakpoints_ctrl,
                           breakpoints_trmt,
+                          breakpoints_loss = breakpoints_loss,
                           accrual_time = 0,
                           follow_up_time = NULL,
                           tau = NULL,
                           censor_beyond_tau = FALSE,
-                          scale_loss = NULL,
-                          shape_loss = 1,
                           margin_LRT = 1) {
   if (censor_beyond_tau) {
     total_time <- tau
@@ -265,62 +277,68 @@ get_delta_LRT <- function(scale_ctrl,
       get_p_at_risk(
         x,
         scale = scale_trmt,
-        shape = shape_trmt,
-        breakpoints = breakpoints_trmt,
-        accrual_time = accrual_time,
-        follow_up_time = follow_up_time,
         scale_loss = scale_loss,
-        shape_loss = shape_loss
+        shape = shape_trmt,
+        shape_loss = shape_loss,
+        breakpoints = breakpoints_trmt,
+        breakpoints_loss = breakpoints_loss,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
       ) *
       get_p_at_risk(
         x,
         scale = scale_ctrl,
-        shape = shape_ctrl,
-        breakpoints = breakpoints_ctrl,
-        accrual_time = accrual_time,
-        follow_up_time = follow_up_time,
         scale_loss = scale_loss,
-        shape_loss = shape_loss
+        shape = shape_ctrl,
+        shape_loss = shape_loss,
+        breakpoints = breakpoints_ctrl,
+        breakpoints_loss = breakpoints_loss,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
       ) /
       (get_p_at_risk(
         x,
         scale = scale_trmt,
-        shape = shape_trmt,
-        breakpoints = breakpoints_trmt,
-        accrual_time = accrual_time,
-        follow_up_time = follow_up_time,
         scale_loss = scale_loss,
-        shape_loss = shape_loss
+        shape = shape_trmt,
+        shape_loss = shape_loss,
+        breakpoints = breakpoints_trmt,
+        breakpoints_loss = breakpoints_loss,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
       ) +
         get_p_at_risk(
           x,
           scale = scale_ctrl,
-          shape = shape_ctrl,
-          breakpoints = breakpoints_ctrl,
-          accrual_time = accrual_time,
-          follow_up_time = follow_up_time,
           scale_loss = scale_loss,
-          shape_loss = shape_loss
+          shape = shape_ctrl,
+          shape_loss = shape_loss,
+          breakpoints = breakpoints_ctrl,
+          breakpoints_loss = breakpoints_loss,
+          accrual_time = accrual_time,
+          follow_up_time = follow_up_time
         ))^2 *
       (get_density(
         x,
         scale = scale_ctrl,
-        shape = shape_ctrl,
-        breakpoints = breakpoints_ctrl,
-        accrual_time = accrual_time,
-        follow_up_time = follow_up_time,
         scale_loss = scale_loss,
-        shape_loss = shape_loss
+        shape = shape_ctrl,
+        shape_loss = shape_loss,
+        breakpoints = breakpoints_ctrl,
+        breakpoints_loss = breakpoints_loss,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
       ) +
         get_density(
           x,
           scale = scale_trmt,
-          shape = shape_trmt,
-          breakpoints = breakpoints_trmt,
-          accrual_time = accrual_time,
-          follow_up_time = follow_up_time,
           scale_loss = scale_loss,
-          shape_loss = shape_loss
+          shape = shape_trmt,
+          shape_loss = shape_loss,
+          breakpoints = breakpoints_trmt,
+          breakpoints_loss = breakpoints_loss,
+          accrual_time = accrual_time,
+          follow_up_time = follow_up_time
         )) / 2
   }), lower = 0, upper = total_time)$value
   return(delta_LRT)
@@ -332,15 +350,16 @@ get_delta_LRT <- function(scale_ctrl,
 get_ss_cf_RMSTD <- function(
   scale_ctrl,
   scale_trmt,
+  scale_loss,
   shape_ctrl,
   shape_trmt,
+  shape_loss,
   breakpoints_ctrl,
   breakpoints_trmt,
+  breakpoints_loss,
   accrual_time,
   follow_up_time,
   tau,
-  scale_loss,
-  shape_loss,
   sides = 2,
   power = 0.8,
   alpha = 0.05,
@@ -351,53 +370,52 @@ get_ss_cf_RMSTD <- function(
 ) {
   sigma2_ctrl <- get_sigma2_rmst(
     scale = scale_ctrl,
+    scale_loss = scale_loss,
     shape = shape_ctrl,
+    shape_loss = shape_loss,
     breakpoints = breakpoints_ctrl,
+    breakpoints_loss = breakpoints_loss,
     accrual_time = accrual_time,
     follow_up_time = follow_up_time,
-    tau = tau,
-    scale_loss = scale_loss,
-    shape_loss = shape_loss
+    tau = tau
   )
   sigma2_trmt <- get_sigma2_rmst(
     scale = scale_trmt,
+    scale_loss = scale_loss,
     shape = shape_trmt,
+    shape_loss = shape_loss,
     breakpoints = breakpoints_trmt,
+    breakpoints_loss = breakpoints_loss,
     accrual_time = accrual_time,
     follow_up_time = follow_up_time,
-    tau = tau,
-    scale_loss = scale_loss,
-    shape_loss = shape_loss
+    tau = tau
   )
   sigma2 <- sigma2_ctrl / 0.5 + sigma2_trmt / 0.5
   if (!is.na(satterthwaite_n)) {
     df <- get_satterthwaite_df(
       scale_ctrl = scale_ctrl,
       scale_trmt = scale_trmt,
+      scale_loss = scale_loss,
       shape_ctrl = shape_ctrl,
       shape_trmt = shape_trmt,
+      shape_loss = shape_loss,
       breakpoints_ctrl = breakpoints_ctrl,
       breakpoints_trmt = breakpoints_trmt,
+      breakpoints_loss = breakpoints_loss,
       accrual_time = accrual_time,
       follow_up_time = follow_up_time,
       tau = tau,
-      scale_loss = scale_loss,
-      shape_loss = shape_loss,
       satterthwaite_n = satterthwaite_n,
       sigma2_ctrl = sigma2_ctrl,
       sigma2_trmt = sigma2_trmt
     )
     return(
-      (sqrt(sigma2) *
-        stats::qt(1 - alpha / sides, df) +
-        sqrt(sigma2) * stats::qt(power, df))^2 /
+      sigma2 * (stats::qt(1 - alpha / sides, df) + stats::qt(power, df))^2 /
         (RMST_trmt - RMST_ctrl - margin)^2
     )
   }
   return(
-    (sqrt(sigma2) *
-      stats::qnorm(1 - alpha / sides) +
-      sqrt(sigma2) * stats::qnorm(power))^2 /
+    sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 /
       (RMST_trmt - RMST_ctrl - margin)^2
   )
 }
@@ -406,15 +424,16 @@ get_ss_cf_RMSTD <- function(
 get_ss_cf_RMSTR <- function(
   scale_ctrl,
   scale_trmt,
+  scale_loss,
   shape_ctrl,
   shape_trmt,
+  shape_loss,
   breakpoints_ctrl,
   breakpoints_trmt,
+  breakpoints_loss,
   accrual_time,
   follow_up_time,
   tau,
-  scale_loss,
-  shape_loss,
   sides = 2,
   power = 0.8,
   alpha = 0.05,
@@ -425,23 +444,25 @@ get_ss_cf_RMSTR <- function(
 ) {
   sigma2_ctrl <- get_sigma2_rmst(
     scale = scale_ctrl,
+    scale_loss = scale_loss,
     shape = shape_ctrl,
+    shape_loss = shape_loss,
     breakpoints = breakpoints_ctrl,
+    breakpoints_loss = breakpoints_loss,
     accrual_time = accrual_time,
     follow_up_time = follow_up_time,
-    tau = tau,
-    scale_loss = scale_loss,
-    shape_loss = shape_loss
+    tau = tau
   )
   sigma2_trmt <- get_sigma2_rmst(
     scale = scale_trmt,
+    scale_loss = scale_loss,
     shape = shape_trmt,
+    shape_loss = shape_loss,
     breakpoints = breakpoints_trmt,
+    breakpoints_loss = breakpoints_loss,
     accrual_time = accrual_time,
     follow_up_time = follow_up_time,
-    tau = tau,
-    scale_loss = scale_loss,
-    shape_loss = shape_loss
+    tau = tau
   )
   sigma2 <- sigma2_ctrl / .5 / RMST_ctrl^2 +
     sigma2_trmt / .5 / RMST_trmt^2
@@ -449,30 +470,27 @@ get_ss_cf_RMSTR <- function(
     df <- get_satterthwaite_df(
       scale_ctrl = scale_ctrl,
       scale_trmt = scale_trmt,
+      scale_loss = scale_loss,
       shape_ctrl = shape_ctrl,
       shape_trmt = shape_trmt,
+      shape_loss = shape_loss,
       breakpoints_ctrl = breakpoints_ctrl,
       breakpoints_trmt = breakpoints_trmt,
+      breakpoints_loss = breakpoints_loss,
       accrual_time = accrual_time,
       follow_up_time = follow_up_time,
       tau = tau,
-      scale_loss = scale_loss,
-      shape_loss = shape_loss,
       satterthwaite_n = satterthwaite_n,
       sigma2_ctrl = sigma2_ctrl,
       sigma2_trmt = sigma2_trmt
     )
     return(
-      (sqrt(sigma2) *
-        stats::qt(1 - alpha / sides, df) +
-        sqrt(sigma2) * stats::qt(power, df))^2 /
+      sigma2 * (stats::qt(1 - alpha / sides, df) + stats::qt(power, df))^2 /
         (log(RMST_trmt / RMST_ctrl) - log(margin))^2
     )
   }
   return(
-    (sqrt(sigma2) *
-      stats::qnorm(1 - alpha / sides) +
-      sqrt(sigma2) * stats::qnorm(power))^2 /
+    sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 /
       (log(RMST_trmt / RMST_ctrl) - log(margin))^2
   )
 }
@@ -481,16 +499,17 @@ get_ss_cf_RMSTR <- function(
 get_ss_cf_LRT <- function(
   scale_ctrl,
   scale_trmt,
+  scale_loss,
   shape_ctrl,
   shape_trmt,
+  shape_loss,
   breakpoints_ctrl,
   breakpoints_trmt,
+  breakpoints_loss,
   accrual_time,
   follow_up_time,
   tau,
   censor_beyond_tau,
-  scale_loss,
-  shape_loss,
   sides = 1,
   power = 0.8,
   alpha = 0.025,
@@ -499,72 +518,77 @@ get_ss_cf_LRT <- function(
   sigma2 <- get_sigma2_LRT(
     scale_ctrl = scale_ctrl,
     scale_trmt = scale_trmt,
+    scale_loss = scale_loss,
     shape_ctrl = shape_ctrl,
     shape_trmt = shape_trmt,
+    shape_loss = shape_loss,
     breakpoints_ctrl = breakpoints_ctrl,
     breakpoints_trmt = breakpoints_trmt,
+    breakpoints_loss = breakpoints_loss,
     accrual_time = accrual_time,
     follow_up_time = follow_up_time,
     tau = tau,
-    censor_beyond_tau = censor_beyond_tau,
-    scale_loss = scale_loss,
-    shape_loss = shape_loss
+    censor_beyond_tau = censor_beyond_tau
   )
   delta <- get_delta_LRT(
     scale_ctrl = scale_ctrl,
     scale_trmt = scale_trmt,
+    scale_loss = scale_loss,
     shape_ctrl = shape_ctrl,
     shape_trmt = shape_trmt,
+    shape_loss = shape_loss,
     breakpoints_ctrl = breakpoints_ctrl,
     breakpoints_trmt = breakpoints_trmt,
+    breakpoints_loss = breakpoints_loss,
     accrual_time = accrual_time,
     follow_up_time = follow_up_time,
     tau = tau,
     censor_beyond_tau = censor_beyond_tau,
-    scale_loss = scale_loss,
-    shape_loss = shape_loss,
     margin_LRT = margin_LRT
   )
   return(
-    (sqrt(sigma2) *
-      stats::qnorm(1 - alpha / sides) +
-      sqrt(sigma2) * stats::qnorm(power))^2 /
-      (delta)^2
+    sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 /
+      delta^2
   )
 }
 
 # misc ------------------------------------------------------------------
 
-# reparameterize non-standard parameterizations
-reparameterize <- function(parameterization, scale, shape) {
+# prepend 0 to a breakpoints vector if not already present; return 0 for NULL
+normalize_breakpoints <- function(x) {
+  if (is.null(x)) return(0)
+  if (x[1] != 0) c(0, x) else x
+}
+
+reparameterize <- function(parameterisation, scale, shape) {
   if (is.null(scale)) {
     return(NULL)
   }
-  if (parameterization == 2) {
+  if (parameterisation == 2) {
     return(scale^shape)
   }
-  if (parameterization == 3) {
+  if (parameterisation == 3) {
     return(1 / scale)
   }
 }
 
-# get satterthwaite degrees of freedom
 get_satterthwaite_df <- function(scale_ctrl, scale_trmt,
-                                 shape_ctrl, shape_trmt,
-                                 breakpoints_ctrl, breakpoints_trmt,
+                                 scale_loss, shape_ctrl, shape_trmt,
+                                 shape_loss, breakpoints_ctrl, breakpoints_trmt,
+                                 breakpoints_loss,
                                  accrual_time, follow_up_time, tau,
-                                 scale_loss, shape_loss,
                                  satterthwaite_n, sigma2_ctrl, sigma2_trmt) {
   events_ctrl <- stats::integrate(
     Vectorize(function(x) get_density(
       x,
       scale = scale_ctrl,
-      shape = shape_ctrl,
-      breakpoints = breakpoints_ctrl,
-      accrual_time = accrual_time,
-      follow_up_time = follow_up_time,
       scale_loss = scale_loss,
-      shape_loss = shape_loss
+      shape = shape_ctrl,
+      shape_loss = shape_loss,
+      breakpoints = breakpoints_ctrl,
+      breakpoints_loss = breakpoints_loss,
+      accrual_time = accrual_time,
+      follow_up_time = follow_up_time
     )),
     lower = 0, upper = tau
   )$value * satterthwaite_n
@@ -572,12 +596,13 @@ get_satterthwaite_df <- function(scale_ctrl, scale_trmt,
     Vectorize(function(x) get_density(
       x,
       scale = scale_trmt,
-      shape = shape_trmt,
-      breakpoints = breakpoints_trmt,
-      accrual_time = accrual_time,
-      follow_up_time = follow_up_time,
       scale_loss = scale_loss,
-      shape_loss = shape_loss
+      shape = shape_trmt,
+      shape_loss = shape_loss,
+      breakpoints = breakpoints_trmt,
+      breakpoints_loss = breakpoints_loss,
+      accrual_time = accrual_time,
+      follow_up_time = follow_up_time
     )),
     lower = 0, upper = tau
   )$value * satterthwaite_n
@@ -586,97 +611,50 @@ get_satterthwaite_df <- function(scale_ctrl, scale_trmt,
   return(df)
 }
 
-# my weibulls -------------------------------------------------------------
-my_pew_surv <- function(q, scale, shape, breakpoints) {
-  n_intervals <- length(scale)
-  shape <- rep_len(shape, n_intervals)
-  if (n_intervals == 1) {
-    S <- exp(- (q / scale[1])^shape[1])
-  } else {
-    S <- vapply(q, function(t) {
-      H_t <- 0
-      for (i in seq_len(n_intervals)) {
-        left <- breakpoints[i]
-        if (i < n_intervals) {
-          right <- breakpoints[i + 1]
-        } else {
-          right <- Inf
-        }
-        if (t > left) {
-          time_in_interval <- min(t, right) - left
-          H_t <- H_t + (time_in_interval / scale[i])^shape[i]
-        }
-        if (t <= right) break
-      }
-      exp(-H_t)
-    }, numeric(1))
+# check inputs
+check_inputs <- function(scale_ctrl = NULL,
+                         scale_trmt = NULL,
+                         scale_loss = NULL,
+                         shape_ctrl = NULL,
+                         shape_trmt = NULL,
+                         shape_loss = NULL,
+                         breakpoints_ctrl = NULL,
+                         breakpoints_trmt = NULL,
+                         breakpoints_loss = NULL,
+                         follow_up_time = NULL,
+                         tau = NULL,
+                         sides = NULL,
+                         power = NULL,
+                         one_sided_alpha = NULL,
+                         RMSTD_closed_form = FALSE,
+                         RMSTR_closed_form = FALSE,
+                         parameterisation = NULL){
+  if (is.null(scale_ctrl) || is.null(scale_trmt)) {
+    stop(
+      "Please specify scale parameters for both treatment and survival group."
+    )
   }
-  return(S)
-}
-
-my_pew_dens <- function(x, scale, shape, breakpoints) {
-  n_intervals <- length(scale)
-  shape <- rep_len(shape, n_intervals)
-  if (n_intervals == 1) {
-    S_t <- exp(- (x / scale[1])^shape[1])
-    h_t <- (shape[1] / scale[1]) * (x / scale[1])^(shape[1] - 1)
-    f_t <- h_t * S_t
-  } else {
-    f_t <- vapply(x, function(t) {
-      H_t <- 0
-      h_t <- NA_real_
-      for (i in seq_len(n_intervals)) {
-        left <- breakpoints[i]
-        if (i < n_intervals) {
-          right <- breakpoints[i + 1]
-        } else {
-          right <- Inf
-        }
-        if (t > left) {
-          time_in_interval <- min(t, right) - left
-          H_t <- H_t + (time_in_interval / scale[i])^shape[i]
-          if (t <= right) {
-            h_t <- (shape[i] / scale[i]) * (time_in_interval / scale[i])^(shape[i] - 1)
-            break
-          }
-        }
-      }
-      S_t <- exp(-H_t)
-      h_t * S_t
-    }, numeric(1))
+  if(length(scale_ctrl) != length(shape_ctrl) || length(scale_trmt) != length(shape_trmt) || length(scale_loss) != length(shape_loss)){
+    stop("Scale and shape parameter must have same length in each group")
   }
-  return(f_t)
-}
-
-my_pew_rand <- function(n, scale, shape, breakpoints) {
-  n_intervals <- length(scale)
-  shape <- rep_len(shape, n_intervals)
-  out <- numeric(n)
-  for (j in seq_len(n)) {
-    u <- stats::runif(1)
-    target_H <- -log(u)
-    if (n_intervals == 1) {
-      out[j] <- scale[1] * target_H^(1 / shape[1])
-    } else {
-      H_cum <- 0
-      for (i in seq_len(n_intervals)) {
-        left <- breakpoints[i]
-        if (i < n_intervals) {
-          right <- breakpoints[i + 1]
-          interval_length <- right - left
-          H_next <- H_cum + (interval_length / scale[i])^shape[i]
-          if (target_H <= H_next) {
-            out[j] <- left + scale[i] * (target_H - H_cum)^(1 / shape[i])
-            break
-          } else {
-            H_cum <- H_next
-          }
-        } else {
-          out[j] <- left + scale[i] * (target_H - H_cum)^(1 / shape[i])
-          break
-        }
-      }
-    }
+  stopifnot("first element in breakpoint vectors must be larger than 0" =
+              (is.null(breakpoints_ctrl[1]) ||  breakpoints_ctrl[1] > 0) &&
+              (is.null(breakpoints_trmt[1]) ||  breakpoints_trmt[1] > 0) &&
+              (is.null(breakpoints_loss[1]) ||  breakpoints_loss[1] > 0))
+  stopifnot("breakpoints must be in increasing order" =
+              is.null(breakpoints_ctrl[1]) || all(diff(breakpoints_ctrl) > 0) &&
+              is.null(breakpoints_trmt[1]) || all(diff(breakpoints_trmt) > 0) &&
+              (is.null(breakpoints_loss[1]) ||  breakpoints_loss[1] > 0))
+  if (follow_up_time == Inf) {
+    warning("follow_up_time not specified, no administrative censoring will be applied.")
   }
-  return(out)
+  if (RMSTD_closed_form || RMSTR_closed_form) {
+    stopifnot("Please specify valid time horizon tau > 0." = tau > 0 && !is.null(tau))
+  }
+  stopifnot(
+    "Parameterization must be defined as either 1, 2, or 3." = parameterisation == 1 || parameterisation == 2 || parameterisation == 3
+  )
+  stopifnot("sides must be set to either 1 or 2" = any(sides == c(1, 2)))
+  stopifnot("one_sides_alpha must be larger than 0 and smaller than 1" = (0 < one_sided_alpha & one_sided_alpha < 1))
+  stopifnot("power must be larger than 0 and smaller than 1" = (0 < power & power < 1))
 }
