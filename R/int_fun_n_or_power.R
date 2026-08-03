@@ -57,10 +57,12 @@ int_fun_n_or_power <- function(
                n,
                parameterisation = parameterisation
   )
-  power_RMSTD_simulated <- power_RMSTR_simulated <- power_LRT_simulated <-
-    ss_closed_form_RMSTD <- ss_closed_form_RMSTR <- ss_closed_form_LRT <-
-    RMST_ctrl <- RMST_trmt <- True_RMSTD <- True_RMSTR <-
-    ss_closed_form_RMSTD_sat <- ss_closed_form_RMSTR_sat <- NA
+  ss_RMSTD_closed_form <- ss_RMSTR_closed_form <- ss_LRT_closed_form <-
+  pwr_RMSTD_closed_form <- pwr_RMSTR_closed_form <- pwr_LRT_closed_form <-
+  pwr_RMSTD_simulated <- pwr_RMSTR_simulated <- pwr_LRT_simulated <-
+  RMST_ctrl <- RMST_trmt <- True_RMSTD <- True_RMSTR <-
+  ss_RMSTD_closed_form_sat <- ss_RMSTR_closed_form_sat <-
+  pwr_RMSTD_closed_form_sat <- pwr_RMSTR_closed_form_sat <- NA
 
   breakpoints_ctrl <- normalize_breakpoints(breakpoints_ctrl)
   breakpoints_trmt <- normalize_breakpoints(breakpoints_trmt)
@@ -115,21 +117,43 @@ int_fun_n_or_power <- function(
     sides = sides, power = power, alpha = one_sided_alpha
   )
   if (RMSTD_closed_form) {
-    rmstd_args <- c(shared_args, list(margin = margin_RMSTD, RMST_ctrl = RMST_ctrl, RMST_trmt = RMST_trmt))
-    ss_closed_form_RMSTD <- do.call(get_ss_cf_RMSTD, rmstd_args)
-    if (satterthwaite_corr)
-      ss_closed_form_RMSTD_sat <- do.call(get_ss_cf_RMSTD, c(rmstd_args, list(satterthwaite_n = ss_closed_form_RMSTD)))
+    rmstd_args <- c(shared_args, list(margin = margin_RMSTD, RMST_ctrl = RMST_ctrl, RMST_trmt = RMST_trmt, contrast = "difference"))
+    if(is.null(n)){ # calculate n if unspecified
+      ss_RMSTD_closed_form <- do.call(get_ss_pwr_cf_RMST, rmstd_args)
+      if(satterthwaite_corr){ # use n from RMST closed form for df calculation
+        ss_RMSTD_closed_form_sat <- do.call(get_ss_pwr_cf_RMST, c(rmstd_args, list(satterthwaite_n = n)))
+      }
+    }
+    if(is.null(power)){ # calculate power if unspecified
+      pwr_RMSTD_closed_form <- do.call(get_ss_pwr_cf_RMST, rmstd_args)
+      if(satterthwaite_corr){ # use specified n for df calculation
+        pwr_RMSTD_closed_form_sat <- do.call(get_ss_pwr_cf_RMST, c(rmstd_args, list(satterthwaite_n = n)))
+      }
+    }
   }
   if (RMSTR_closed_form) {
-    rmstr_args <- c(shared_args, list(margin = margin_RMSTR, RMST_ctrl = RMST_ctrl, RMST_trmt = RMST_trmt))
-    ss_closed_form_RMSTR <- do.call(get_ss_cf_RMSTR, rmstr_args)
-    if (satterthwaite_corr)
-      ss_closed_form_RMSTR_sat <- do.call(get_ss_cf_RMSTR, c(rmstr_args, list(satterthwaite_n = ss_closed_form_RMSTR)))
+    rmstr_args <- c(shared_args, list(margin = margin_RMSTR, RMST_ctrl = RMST_ctrl, RMST_trmt = RMST_trmt, contrast = "ratio"))
+    if(is.null(n)){ # calculate n if unspecified
+      ss_RMSTR_closed_form <- do.call(get_ss_pwr_cf_RMST, rmstd_args)
+      if(satterthwaite_corr){ # use n from RMST closed form for df calculation
+        ss_RMSTR_closed_form_sat <- do.call(get_ss_pwr_cf_RMST, c(rmstd_args, list(satterthwaite_n = n)))
+      }
+    }
+    if(is.null(power)){ # calculate power if unspecified
+      pwr_RMSTR_closed_form <- do.call(get_ss_pwr_cf_RMST, rmstd_args)
+      if(satterthwaite_corr){ # use specified n for df calculation
+        pwr_RMSTR_closed_form_sat <- do.call(get_ss_pwr_cf_RMST, c(rmstd_args, list(satterthwaite_n = n)))
+      }
+    }
   }
-  if (LRT_closed_form) {
-    ss_closed_form_LRT <- do.call(get_ss_cf_LRT, c(shared_args, list(
-      censor_beyond_tau = censor_beyond_tau, margin_LRT = margin_LRT
-    )))
+  if (LRT_closed_form){
+    LRT_args <- c(shared_args, list(censor_beyond_tau = censor_beyond_tau, margin = margin_LRT))
+    if(is.null(n)){ # calculate n if unspecified
+      ss_LRT_closed_form <- do.call(get_ss_pwr_cf_LRT, LRT_args)
+    }
+    if(is.null(power)){ # calculate n if unspecified
+      pwr_LRT_closed_form <- do.call(get_ss_pwr_cf_LRT, LRT_args)
+    }
   }
   # simulations  ---------------------------------------------------------------
   if (RMSTD_simulation || RMSTR_simulation || LRT_simulation) {
@@ -176,9 +200,9 @@ int_fun_n_or_power <- function(
         LRT_simul_results[i] <- as.numeric(summary(fit)$conf.int[, "upper .95"] < margin_LRT)
       }
     }
-    if (RMSTD_simulation) power_RMSTD_simulated <- mean(RMSTD_simul_results)
-    if (RMSTR_simulation) power_RMSTR_simulated <- mean(RMSTR_simul_results)
-    if (LRT_simulation)   power_LRT_simulated   <- mean(LRT_simul_results)
+    if (RMSTD_simulation) pwr_RMSTD_simulated <- mean(RMSTD_simul_results)
+    if (RMSTR_simulation) pwr_RMSTR_simulated <- mean(RMSTR_simul_results)
+    if (LRT_simulation)   pwr_LRT_simulated   <- mean(LRT_simul_results)
     if (tau_changed)
       warning("tau was reduced to the minimum largest observation across groups in at least one iteration.")
   }
@@ -275,14 +299,19 @@ int_fun_n_or_power <- function(
   }
   # returns -----------------------------------------------------------------
   result <- list(
-    "Sample size for RMST difference determined by closed-form solution" = ss_closed_form_RMSTD,
-    "Satterthwaite-corrected sample size for RMST difference" = ss_closed_form_RMSTD_sat,
-    "Sample size for RMST ratio determined by closed-form solution" = ss_closed_form_RMSTR,
-    "Satterthwaite-corrected sample size for RMST ratio" = ss_closed_form_RMSTR_sat,
-    "Sample size for LRT determined by closed-form solution" = ss_closed_form_LRT,
-    "RMSTD power determined by simulation" = power_RMSTD_simulated,
-    "RMSTR power determined by simulation" = power_RMSTR_simulated,
-    "LRT power determined by simulation" = power_LRT_simulated,
+    "Sample size for RMST difference determined by closed-form solution" = ss_RMSTD_closed_form,
+    "Satterthwaite-corrected sample size for RMST difference" = ss_RMSTD_closed_form_sat,
+    "Sample size for RMST ratio determined by closed-form solution" = ss_RMSTR_closed_form,
+    "Satterthwaite-corrected sample size for RMST ratio" = ss_RMSTR_closed_form_sat,
+    "Sample size for LRT determined by closed-form solution" = ss_LRT_closed_form,
+    "Power for RMST difference determined by closed-form solution" = pwr_RMSTD_closed_form,
+    "Satterthwaite-corrected power for RMST difference" = pwr_RMSTD_closed_form_sat,
+    "Power for RMST ratio determined by closed-form solution" = pwr_RMSTR_closed_form,
+    "Satterthwaite-corrected pwoer for RMST ratio" = pwr_RMSTR_closed_form_sat,
+    "Power for LRT determined by closed-form solution" = pwr_LRT_closed_form,
+    "RMSTD power determined by simulation" = pwr_RMSTD_simulated,
+    "RMSTR power determined by simulation" = pwr_RMSTR_simulated,
+    "LRT power determined by simulation" = pwr_LRT_simulated,
     "RMST treatment group" = RMST_trmt,
     "RMST control group" = RMST_ctrl,
     "RMST difference" = True_RMSTD,

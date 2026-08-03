@@ -24,26 +24,21 @@ calculate_sample_size(
   margin_RMSTR = 1,
   margin_LRT = 1,
   RMSTD_closed_form = TRUE,
-  RMSTR_closed_form = TRUE,
+  RMSTR_closed_form = FALSE,
   LRT_closed_form = TRUE,
   satterthwaite_corr = FALSE,
-  RMSTD_simulation = FALSE,
-  RMSTR_simulation = FALSE,
-  LRT_simulation = FALSE,
   censor_beyond_tau = FALSE,
-  M = 1,
-  n = NA,
-  plot_example_data = TRUE,
-  plot_design_curves = TRUE,
+  plot_example_data = FALSE,
+  plot_design_curves = FALSE,
   parameterisation = 1
 )
 }
 \arguments{
-\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
+\item{scale_ctrl}{Required. Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
 
-\item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
+\item{scale_trmt}{Required. Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
 
-\item{scale_loss}{Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull). No loss to follow-up is assumed if undefined.}
+\item{scale_loss}{Required. Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull). No loss to follow-up is assumed if undefined.}
 
 \item{shape_ctrl}{Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival. If \code{length(shape_ctrl) = 1} and \code{length(scale_ctrl) > 1}, the same shape parameter will be assumed for each section of the survival function.}
 
@@ -86,17 +81,7 @@ calculate_sample_size(
 
 \item{satterthwaite_corr}{Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.}
 
-\item{RMSTD_simulation}{Logical. Specifies whether to determine RMST difference test power via simulation.}
-
-\item{RMSTR_simulation}{Logical. Specifies whether to determine RMST ratio test power via simulation.}
-
-\item{LRT_simulation}{Logical. Specifies whether to determine log rank test power via simulation.}
-
 \item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored for simulations and log rank test if \code{TRUE}.}
-
-\item{M}{Number of iterations when running simulation.}
-
-\item{n}{Specifies sample size for calculating power.}
 
 \item{plot_example_data}{Logical. Specifies whether to create a plot with example data. Plots with total sample size of \eqn{n = 100} if \code{n} is undefined.}
 

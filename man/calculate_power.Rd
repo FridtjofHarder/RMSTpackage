@@ -30,19 +30,19 @@ calculate_power(
   RMSTR_simulation = FALSE,
   LRT_simulation = FALSE,
   censor_beyond_tau = FALSE,
-  M = 1,
-  n = NA,
+  M = 1000,
+  n = NULL,
   plot_example_data = TRUE,
   plot_design_curves = TRUE,
   parameterisation = 1
 )
 }
 \arguments{
-\item{scale_ctrl}{Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
+\item{scale_ctrl}{Required. Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
 
-\item{scale_trmt}{Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
+\item{scale_trmt}{Required. Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
 
-\item{scale_loss}{Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull). No loss to follow-up is assumed if undefined.}
+\item{scale_loss}{Required. Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull). No loss to follow-up is assumed if undefined.}
 
 \item{shape_ctrl}{Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival. If \code{length(shape_ctrl) = 1} and \code{length(scale_ctrl) > 1}, the same shape parameter will be assumed for each section of the survival function.}
 
@@ -93,7 +93,7 @@ calculate_power(
 
 \item{M}{Number of iterations when running simulation.}
 
-\item{n}{Specifies sample size for calculating power.}
+\item{n}{Integer specifying sample size for calculating power.}
 
 \item{plot_example_data}{Logical. Specifies whether to create a plot with example data. Plots with total sample size of \eqn{n = 100} if \code{n} is undefined.}
 
@@ -103,8 +103,6 @@ calculate_power(
 \item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
 \item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
 \item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
-
-\item{power}{Test power with \code{power} \eqn{=1-\beta}.}
 }
 \value{
 Returns a list with total sample sizes for each test and a test power.

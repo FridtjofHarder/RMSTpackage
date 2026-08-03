@@ -35,7 +35,7 @@
 #' @param LRT_simulation Logical. Specifies whether to determine log rank test power via simulation.
 #' @param censor_beyond_tau Logical. All observations past \eqn{\tau} are censored for simulations and log rank test if \code{TRUE}.
 #' @param M Number of iterations when running simulation.
-#' @param n Specifies sample size for calculating power.
+#' @param n Integer specifying sample size for calculating power.
 #' @param plot_example_data Logical. Specifies whether to create a plot with example data. Plots with total sample size of \eqn{n = 100} if \code{n} is undefined.
 #' @param plot_design_curves Logical. Specifies whether to plot survival curves.
 #' @param parameterisation One of: \itemize{
@@ -92,7 +92,6 @@ calculate_power <- function(
     follow_up_time = follow_up_time,
     tau = tau,
     sides = sides,
-    power = power,
     one_sided_alpha = one_sided_alpha,
     margin_RMSTD = margin_RMSTD,
     margin_RMSTR = margin_RMSTR,

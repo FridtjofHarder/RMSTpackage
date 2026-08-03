@@ -111,7 +111,7 @@ get_density <- function(
     )
 }
 
-# get sigma2 and delta--------------------------------------------------------------
+# get sigma2 and Delta--------------------------------------------------------------
 
 # calculate true sigma2 for RMST
 get_sigma2_rmst <- function(
@@ -347,7 +347,7 @@ get_delta_LRT <- function(scale_ctrl,
 # get sample size closed form ---------------------------------------------
 
 # get sample size by closed-form for RMSTD
-get_ss_cf_RMSTD <- function(
+get_ss_pwr_cf_RMST <- function(
   scale_ctrl,
   scale_trmt,
   scale_loss,
@@ -361,12 +361,14 @@ get_ss_cf_RMSTD <- function(
   follow_up_time,
   tau,
   sides = 2,
-  power = 0.8,
+  power = NULL, # size calc when !Null
   alpha = 0.05,
-  margin = 0,
+  margin = NULL, # take care that correct margin is chosen! change to =, or 1 in
   satterthwaite_n = NA,
   RMST_ctrl,
-  RMST_trmt
+  RMST_trmt,
+  n = NULL, # power calc when !Null
+  contrast # must be passed on as "difference" or "ratio"
 ) {
   sigma2_ctrl <- get_sigma2_rmst(
     scale = scale_ctrl,
@@ -390,7 +392,16 @@ get_ss_cf_RMSTD <- function(
     follow_up_time = follow_up_time,
     tau = tau
   )
-  sigma2 <- sigma2_ctrl / 0.5 + sigma2_trmt / 0.5
+  if (contrast == "difference"){
+    if(is.null(margin)) margin <- 0
+    Delta <- RMST_trmt - RMST_ctrl - margin
+    sigma2 <- 2 * sigma2_ctrl + 2 * sigma2_trmt
+    }
+  if (contrast == "ratio"){
+    if(is.null(margin)) margin <- 1
+    Delta <- log(RMST_trmt) - log(RMST_ctrl) - log(margin)
+    sigma2 <- 2 * sigma2_ctrl / RMST_ctrl^2 + 2 * sigma2_trmt / RMST_trmt^2
+  }
   if (!is.na(satterthwaite_n)) {
     df <- get_satterthwaite_df(
       scale_ctrl = scale_ctrl,
@@ -409,94 +420,23 @@ get_ss_cf_RMSTD <- function(
       sigma2_ctrl = sigma2_ctrl,
       sigma2_trmt = sigma2_trmt
     )
-    return(
-      sigma2 * (stats::qt(1 - alpha / sides, df) + stats::qt(power, df))^2 /
-        (RMST_trmt - RMST_ctrl - margin)^2
-    )
+    if(is.null(n)){ # return Satterthwaite sample size
+      return(sigma2 * (stats::qt(1 - alpha / sides, df) + stats::qt(power, df))^2 / Delta^2)
+    }
+    if(is.null(power)){ # return Satterthwaite power
+      return(stats::pt(sqrt(n) * Delta / sqrt(sigma2) - stats::qt(1 - alpha / sides, df), df))
+    }
   }
-  return(
-    sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 /
-      (RMST_trmt - RMST_ctrl - margin)^2
-  )
-}
-
-# get sample size by closed-form for RMSTR
-get_ss_cf_RMSTR <- function(
-  scale_ctrl,
-  scale_trmt,
-  scale_loss,
-  shape_ctrl,
-  shape_trmt,
-  shape_loss,
-  breakpoints_ctrl,
-  breakpoints_trmt,
-  breakpoints_loss,
-  accrual_time,
-  follow_up_time,
-  tau,
-  sides = 2,
-  power = 0.8,
-  alpha = 0.05,
-  margin = 1,
-  satterthwaite_n = NA,
-  RMST_ctrl,
-  RMST_trmt
-) {
-  sigma2_ctrl <- get_sigma2_rmst(
-    scale = scale_ctrl,
-    scale_loss = scale_loss,
-    shape = shape_ctrl,
-    shape_loss = shape_loss,
-    breakpoints = breakpoints_ctrl,
-    breakpoints_loss = breakpoints_loss,
-    accrual_time = accrual_time,
-    follow_up_time = follow_up_time,
-    tau = tau
-  )
-  sigma2_trmt <- get_sigma2_rmst(
-    scale = scale_trmt,
-    scale_loss = scale_loss,
-    shape = shape_trmt,
-    shape_loss = shape_loss,
-    breakpoints = breakpoints_trmt,
-    breakpoints_loss = breakpoints_loss,
-    accrual_time = accrual_time,
-    follow_up_time = follow_up_time,
-    tau = tau
-  )
-  sigma2 <- sigma2_ctrl / .5 / RMST_ctrl^2 +
-    sigma2_trmt / .5 / RMST_trmt^2
-  if (!is.na(satterthwaite_n)) {
-    df <- get_satterthwaite_df(
-      scale_ctrl = scale_ctrl,
-      scale_trmt = scale_trmt,
-      scale_loss = scale_loss,
-      shape_ctrl = shape_ctrl,
-      shape_trmt = shape_trmt,
-      shape_loss = shape_loss,
-      breakpoints_ctrl = breakpoints_ctrl,
-      breakpoints_trmt = breakpoints_trmt,
-      breakpoints_loss = breakpoints_loss,
-      accrual_time = accrual_time,
-      follow_up_time = follow_up_time,
-      tau = tau,
-      satterthwaite_n = satterthwaite_n,
-      sigma2_ctrl = sigma2_ctrl,
-      sigma2_trmt = sigma2_trmt
-    )
-    return(
-      sigma2 * (stats::qt(1 - alpha / sides, df) + stats::qt(power, df))^2 /
-        (log(RMST_trmt / RMST_ctrl) - log(margin))^2
-    )
+  if(is.null(n)){ # returns n
+    return(sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 / Delta^2)
   }
-  return(
-    sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 /
-      (log(RMST_trmt / RMST_ctrl) - log(margin))^2
-  )
+  if(is.null(power)){ # returns power
+    return(stats::pnorm(sqrt(n) * Delta / sqrt(sigma2) - stats::qnorm(1 - alpha / sides)))
+  }
 }
 
 # get sample size by closed-form for LRT
-get_ss_cf_LRT <- function(
+get_ss_pwr_cf_LRT <- function(
   scale_ctrl,
   scale_trmt,
   scale_loss,
@@ -511,9 +451,10 @@ get_ss_cf_LRT <- function(
   tau,
   censor_beyond_tau,
   sides = 1,
-  power = 0.8,
+  power = NULL,
   alpha = 0.025,
-  margin_LRT = 1
+  margin_LRT = 1,
+  n = NULL
 ) {
   sigma2 <- get_sigma2_LRT(
     scale_ctrl = scale_ctrl,
@@ -530,7 +471,7 @@ get_ss_cf_LRT <- function(
     tau = tau,
     censor_beyond_tau = censor_beyond_tau
   )
-  delta <- get_delta_LRT(
+  Delta <- get_delta_LRT(
     scale_ctrl = scale_ctrl,
     scale_trmt = scale_trmt,
     scale_loss = scale_loss,
@@ -546,10 +487,12 @@ get_ss_cf_LRT <- function(
     censor_beyond_tau = censor_beyond_tau,
     margin_LRT = margin_LRT
   )
-  return(
-    sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 /
-      delta^2
-  )
+  if(is.null(n)){ # returns n
+    return(sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 / Delta^2)
+  }
+  if(is.null(power)){ # returns power
+    return(stats::pnorm(sqrt(n) * Delta / sqrt(sigma2) - stats::qnorm(1 - alpha / sides)))
+  }
 }
 
 # misc ------------------------------------------------------------------
