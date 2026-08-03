@@ -1,9 +1,9 @@
-#' Determines sample size when test power is given
+#' Determines test power when sample size is given
 #'
-#' Calculates the sample size given a desired test power. Supports tests on difference and ratio in restricted mean survival time (RMST), and log rank test (LRT). Supports superiority and non-inferiority tests.
+#' Calculates and simulates the test power given a sample size. Supports tests on difference and ratio in restricted mean survival time (RMST), and log rank test (LRT). Supports superiority and non-inferiority tests.
 #'
 #' Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterisation
-#' defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. If breakpoints in time are provided, survival and loss can be defined over piecewise exponential, or piecewise Weibull functions. Sample size
+#' defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. If breakpoints in time are provided, survival and loss can be defined over piecewise exponential, or piecewise Weibull functions. Power
 #' can be determined for log rank test, RMST difference, and RMST ratio.
 #'
 #' @param scale_ctrl Required. Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).
@@ -22,7 +22,6 @@
 #' \item \eqn{H_1\text{: } \text{RMST}_\text{difference} = \text{RMST}_\text{trmt} - \text{RMST}_\text{ctrl} > 0},
 #' \item \eqn{H_1\text{: } \text{RMST}_\text{ratio} = \text{RMST}_\text{trmt} / \text{RMST}_\text{ctrl} > 1}, or
 #' \item \eqn{H_1\text{: } \text{HR} = h(t)_\text{trmt} / h(t)_\text{ctrl} < 1}.}
-#' @param power Test power with \code{power} \eqn{=1-\beta}.
 #' @param one_sided_alpha \eqn{\alpha} level for one-sided inference test.
 #' @param margin_RMSTD Non-inferiority margin for RMST difference. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{difference} > } \code{margin_RMSTD}, with  default \code{margin_RMSTD} \eqn{=0} simplifying to superiority test.
 #' @param margin_RMSTR Non-inferiority margin for RMST ratio. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{ratio} > } \code{margin_RMSTR}, with  default \code{margin_RMSTR} \eqn{=1} simplifying to superiority test.
@@ -31,7 +30,12 @@
 #' @param RMSTR_closed_form Logical. Specifies whether to calculate sample size for RMST ratio test.
 #' @param LRT_closed_form Logical. Specifies whether to calculate sample size for log rank test.
 #' @param satterthwaite_corr Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.
+#' @param RMSTD_simulation Logical. Specifies whether to determine RMST difference test power via simulation.
+#' @param RMSTR_simulation Logical. Specifies whether to determine RMST ratio test power via simulation.
+#' @param LRT_simulation Logical. Specifies whether to determine log rank test power via simulation.
 #' @param censor_beyond_tau Logical. All observations past \eqn{\tau} are censored for simulations and log rank test if \code{TRUE}.
+#' @param M Number of iterations when running simulation.
+#' @param n Specifies sample size for calculating power.
 #' @param plot_example_data Logical. Specifies whether to create a plot with example data. Plots with total sample size of \eqn{n = 100} if \code{n} is undefined.
 #' @param plot_design_curves Logical. Specifies whether to plot survival curves.
 #' @param parameterisation One of: \itemize{
@@ -43,86 +47,37 @@
 #'
 #' @export
 #'
-#' @examples
-#'
-#' # Sample size for superiority test with Satterthwaite approximation
-#'   args_sup <- list(
-#'   scale_ctrl = 6,
-#'   scale_trmt = 10,
-#'   accrual_time = 6,
-#'   follow_up_time = 3,
-#'   tau = 4,
-#'   scale_loss = 10,
-#'   satterthwaite_corr = TRUE
-#'   )
-#'   result_sup <- do.call(calculate_sample_size, args = args_sup)
-#'   print(result_sup)
-#'
-#' # Validate by running simulation with sample size previously obtained for RMST difference
-#'   args_sup_sim <- args_sup
-#'   args_sup_sim$RMSTD_simulation <- TRUE
-#'   args_sup_sim$n <-
-#'     result_sup$
-#'     `Sample size for RMST difference determined by closed-form solution`
-#'   result_sup_sim <- do.call(calculate_sample_size, args = args_sup_sim)
-#'   print(result_sup_sim)
-#'
-#' # Sample size for non-inferiority test with margin
-#'   args_noninf <- args_sup
-#'   args_noninf$margin_LRT <- 1.3 # define noninferiority margin in terms of HR
-#' # find RMST difference and RMST ratio margins equivalent to HR margin
-#'   contrasts <- convert_contrast_ph(scale_ctrl = args_noninf$scale_ctrl,
-#'                                    tau = args_noninf$tau,
-#'                                    HR = args_noninf$margin_LRT)
-#'   print(contrasts$RMSTD) # display RMST difference margin
-#'   print(contrasts$RMSTR) # display RMST ratio margin
-#'   args_noninf$margin_RMSTD <- contrasts$RMSTD
-#'   args_noninf$margin_RMSTR <- contrasts$RMSTR
-#'   result_noninf <- do.call(calculate_sample_size, args = args_noninf)
-#'   print(result_noninf)
-#'
-#' # Assume heavy loss to follow-up
-#'   args_sup_loss <- args_sup
-#'   args_sup_loss$scale_loss <- 2
-#'   result_sup_loss <- do.call(calculate_sample_size, args = args_sup_loss)
-#'   print(result_sup_loss)
-#'
-#' # Censure all observations past tau for LRT:
-#' # eliminates information advantage of LRT over RMST based methods.
-#'   args_sup_tau_cen <- args_sup
-#'   args_sup_tau_cen$censor_beyond_tau <- TRUE
-#'   result_sup_tau_cen <- do.call(calculate_sample_size,
-#'                                 args = args_sup_tau_cen)
-#'   print(result_sup_tau_cen)
-#'
-calculate_sample_size <- function(
-  scale_ctrl,
-  scale_trmt,
-  scale_loss = NULL,
-  shape_ctrl = 1,
-  shape_trmt = 1,
-  shape_loss = 1,
-  breakpoints_ctrl = NULL,
-  breakpoints_trmt = NULL,
-  breakpoints_loss = NULL,
-  accrual_time = 0,
-  follow_up_time = Inf,
-  tau = NULL,
-  sides = 1,
-  power = 0.8,
-  one_sided_alpha = 0.025,
-  margin_RMSTD = 0,
-  margin_RMSTR = 1,
-  margin_LRT = 1,
-  RMSTD_closed_form = TRUE,
-  RMSTR_closed_form = FALSE,
-  LRT_closed_form = TRUE,
-  satterthwaite_corr = FALSE,
-  censor_beyond_tau = FALSE,
-  plot_example_data = FALSE,
-  plot_design_curves = FALSE,
-  parameterisation = 1
-) {
+calculate_power <- function(
+    scale_ctrl,
+    scale_trmt,
+    scale_loss = NULL,
+    shape_ctrl = 1,
+    shape_trmt = 1,
+    shape_loss = 1,
+    breakpoints_ctrl = NULL,
+    breakpoints_trmt = NULL,
+    breakpoints_loss = NULL,
+    accrual_time = 0,
+    follow_up_time = Inf,
+    tau = NULL,
+    sides = 1,
+    one_sided_alpha = 0.025,
+    margin_RMSTD = 0,
+    margin_RMSTR = 1,
+    margin_LRT = 1,
+    RMSTD_closed_form = TRUE,
+    RMSTR_closed_form = TRUE,
+    LRT_closed_form = TRUE,
+    satterthwaite_corr = FALSE,
+    RMSTD_simulation = FALSE, # RMSTD = RMST_trmt - RMST_ctrl = RMST_arm1 - RMST_arm0
+    RMSTR_simulation = FALSE, # RMSTR = RMST_trmt / RMST_ctrl = RMST_arm1 / RMST_arm0
+    LRT_simulation = FALSE,   # HR = h(trmt) / h(ctrl = h_arm1 / h_arm0)
+    censor_beyond_tau = FALSE,
+    M = 1000,
+    n = NULL,
+    plot_example_data = TRUE,
+    plot_design_curves = TRUE,
+    parameterisation = 1){
   int_fun_n_or_power(
     scale_ctrl = scale_ctrl,
     scale_trmt = scale_trmt,
@@ -151,5 +106,5 @@ calculate_sample_size <- function(
     plot_design_curves = plot_design_curves,
     parameterisation = parameterisation
   )
-}
 
+}

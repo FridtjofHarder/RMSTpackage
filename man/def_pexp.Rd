@@ -20,7 +20,7 @@ Returns a named list with breakpoints and hazards for each interval. Breakpoints
 The piecewise exponential curve is constructed from pairs of \eqn{t} and \eqn{S(t)}, where the time points \eqn{t} serve as the breakpoints between the piecewise functions.
 }
 \examples{
-def_weibull(time = c(1, 2), surv = c(0.9, 0.8))
+def_pexp(breakpoints = c(1, 2), surv = c(0.9, 0.8))
 }
 \seealso{
 \code{\link{def_weibull}}

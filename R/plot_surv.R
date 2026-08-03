@@ -92,9 +92,12 @@ plot_surv <- function(
   if(length(shape_loss) == 1 & length(scale_loss) > 1){
     shape_loss <- rep(shape_loss, length(scale_loss))
   }
-  if(length(scale_ctrl) != length(shape_ctrl) || length(scale_trmt) != length(shape_trmt) || length(scale_loss) != length(shape_loss)){
-    stop("Scale and shape parameter must have same length in each group")
-  }
+  stopifnot(
+    "Scale and shape parameter must have same length in each group" =
+      length(scale_ctrl) == length(shape_ctrl) &&
+      length(scale_trmt) == length(shape_trmt) &&
+      (is.null(scale_loss) || length(scale_loss) == length(shape_loss))
+  )
   breakpoints_ctrl <- normalize_breakpoints(breakpoints_ctrl)
   breakpoints_trmt <- normalize_breakpoints(breakpoints_trmt)
   breakpoints_loss <- normalize_breakpoints(breakpoints_loss)

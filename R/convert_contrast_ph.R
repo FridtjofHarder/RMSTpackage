@@ -171,20 +171,18 @@ convert_contrast_ph <- function(
     if (!is.null(scale_trmt)) {
       survival_trmt <- stats::pweibull(tau, scale = scale_trmt, shape = shape, lower.tail = FALSE)
       survival_ctrl <- survival_trmt - survival_diff
-      if (survival_ctrl <= 0) {
-        stop(
-          "survival in treatment group minus survival difference is equal to or less than zero"
-        )
-      }
+      stopifnot(
+        "survival in treatment group minus survival difference is equal to or less than zero" =
+          survival_ctrl > 0
+      )
       scale_ctrl <- tau * (-log(survival_ctrl))^(-1 / shape)
     } else {
       survival_ctrl <- stats::pweibull(tau, scale = scale_ctrl, shape = shape, lower.tail = FALSE)
       survival_trmt <- survival_ctrl + survival_diff
-      if (survival_trmt <= 0) {
-        stop(
-          "survival in control group minus survival difference is equal to or less than zero"
-        )
-      }
+      stopifnot(
+        "survival in control group plus survival difference is equal to or less than zero" =
+          survival_trmt > 0
+      )
       scale_trmt <- tau * (-log(survival_trmt))^(-1 / shape)
     }
   }

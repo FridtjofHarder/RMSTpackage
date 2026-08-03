@@ -628,23 +628,22 @@ check_inputs <- function(scale_ctrl = NULL,
                          one_sided_alpha = NULL,
                          RMSTD_closed_form = FALSE,
                          RMSTR_closed_form = FALSE,
+                         n,
                          parameterisation = NULL){
-  if (is.null(scale_ctrl) || is.null(scale_trmt)) {
-    stop(
-      "Please specify scale parameters for both treatment and survival group."
-    )
-  }
-  if(length(scale_ctrl) != length(shape_ctrl) || length(scale_trmt) != length(shape_trmt) || length(scale_loss) != length(shape_loss)){
-    stop("Scale and shape parameter must have same length in each group")
-  }
+  stopifnot(
+    "Scale and shape parameter must have same length in each group" =
+      length(scale_ctrl) == length(shape_ctrl) &&
+      length(scale_trmt) == length(shape_trmt) &&
+      (is.null(scale_loss) || length(scale_loss) == length(shape_loss))
+  )
   stopifnot("first element in breakpoint vectors must be larger than 0" =
               (is.null(breakpoints_ctrl[1]) ||  breakpoints_ctrl[1] > 0) &&
               (is.null(breakpoints_trmt[1]) ||  breakpoints_trmt[1] > 0) &&
               (is.null(breakpoints_loss[1]) ||  breakpoints_loss[1] > 0))
   stopifnot("breakpoints must be in increasing order" =
-              is.null(breakpoints_ctrl[1]) || all(diff(breakpoints_ctrl) > 0) &&
-              is.null(breakpoints_trmt[1]) || all(diff(breakpoints_trmt) > 0) &&
-              (is.null(breakpoints_loss[1]) ||  breakpoints_loss[1] > 0))
+              (is.null(breakpoints_ctrl[1]) || all(diff(breakpoints_ctrl) > 0)) &&
+              (is.null(breakpoints_trmt[1]) || all(diff(breakpoints_trmt) > 0)) &&
+              (is.null(breakpoints_loss[1]) || all(diff(breakpoints_loss) > 0)))
   if (follow_up_time == Inf) {
     warning("follow_up_time not specified, no administrative censoring will be applied.")
   }
@@ -657,4 +656,5 @@ check_inputs <- function(scale_ctrl = NULL,
   stopifnot("sides must be set to either 1 or 2" = any(sides == c(1, 2)))
   stopifnot("one_sides_alpha must be larger than 0 and smaller than 1" = (0 < one_sided_alpha & one_sided_alpha < 1))
   stopifnot("power must be larger than 0 and smaller than 1" = (0 < power & power < 1))
+  stopifnot("specify either power or n, but not both" = xor(is.null(power), is.null(n)))
 }

@@ -19,15 +19,11 @@
 #'   report_convert_contrasts_ph(results)
 #' }
 report_convert_contrasts_ph <- function(x, output_file = "report_convert_contrasts_ph.pdf", output_dir = getwd()) {
-  if (!requireNamespace("rmarkdown", quietly = TRUE)) {
-    stop("Package 'rmarkdown' must be installed.")
-  }
+  stopifnot("Package 'rmarkdown' must be installed." = requireNamespace("rmarkdown", quietly = TRUE))
 
   template <- system.file("reports", "report_convert_contrasts_ph.Rmd", package = "RMSTpackage")
 
-  if (template == "") {
-    stop("Report template not found in package.")
-  }
+  stopifnot("Report template not found in package." = template != "")
 
   rmarkdown::render(
     input = template,
