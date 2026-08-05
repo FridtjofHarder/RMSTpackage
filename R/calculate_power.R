@@ -45,8 +45,24 @@
 #'
 #' @return Returns a list with total sample sizes for each test and a test power.
 #'
-#' @export
+#' @examples
 #'
+#' # Power for superiority test by closed form solution
+#'   args_sup <- list(
+#'   scale_ctrl = 6,
+#'   scale_trmt = 10,
+#'   accrual_time = 6,
+#'   follow_up_time = 3,
+#'   tau = 4,
+#'   scale_loss = 10,
+#'   satterthwaite_corr = TRUE,
+#'   M = 1000,
+#'   n = 405
+#'   )
+#'   result_sup <- do.call(calculate_power, args = args_sup)
+#'   print(result_sup)
+#'
+#' @export
 calculate_power <- function(
     scale_ctrl,
     scale_trmt,
@@ -66,7 +82,7 @@ calculate_power <- function(
     margin_RMSTR = 1,
     margin_LRT = 1,
     RMSTD_closed_form = TRUE,
-    RMSTR_closed_form = TRUE,
+    RMSTR_closed_form = FALSE,
     LRT_closed_form = TRUE,
     satterthwaite_corr = FALSE,
     RMSTD_simulation = FALSE, # RMSTD = RMST_trmt - RMST_ctrl = RMST_arm1 - RMST_arm0
@@ -100,7 +116,12 @@ calculate_power <- function(
     RMSTR_closed_form = RMSTR_closed_form, # RMSTR = RMST_trmt / RMST_ctrl = RMST_arm1 / RMST_arm0
     LRT_closed_form = LRT_closed_form, # HR = h(trmt) / h(ctrl = h_arm1 / h_arm0)
     satterthwaite_corr = satterthwaite_corr,
+    RMSTD_simulation = RMSTD_simulation,
+    RMSTR_simulation = RMSTR_simulation,
+    LRT_simulation = LRT_simulation,
     censor_beyond_tau = censor_beyond_tau,
+    M = M,
+    n = n,
     plot_example_data = plot_example_data,
     plot_design_curves = plot_design_curves,
     parameterisation = parameterisation

@@ -121,38 +121,38 @@ int_fun_n_or_power <- function(
     if(is.null(n)){ # calculate n if unspecified
       ss_RMSTD_closed_form <- do.call(get_ss_pwr_cf_RMST, rmstd_args)
       if(satterthwaite_corr){ # use n from RMST closed form for df calculation
-        ss_RMSTD_closed_form_sat <- do.call(get_ss_pwr_cf_RMST, c(rmstd_args, list(satterthwaite_n = n)))
+        ss_RMSTD_closed_form_sat <- do.call(get_ss_pwr_cf_RMST, c(rmstd_args, list(satterthwaite_n = ss_RMSTD_closed_form)))
       }
     }
     if(is.null(power)){ # calculate power if unspecified
-      pwr_RMSTD_closed_form <- do.call(get_ss_pwr_cf_RMST, rmstd_args)
+      pwr_RMSTD_closed_form <- do.call(get_ss_pwr_cf_RMST, c(rmstd_args, list(n = n)))
       if(satterthwaite_corr){ # use specified n for df calculation
-        pwr_RMSTD_closed_form_sat <- do.call(get_ss_pwr_cf_RMST, c(rmstd_args, list(satterthwaite_n = n)))
+        pwr_RMSTD_closed_form_sat <- do.call(get_ss_pwr_cf_RMST, c(rmstd_args, list(n = n, satterthwaite_n = n)))
       }
     }
   }
   if (RMSTR_closed_form) {
     rmstr_args <- c(shared_args, list(margin = margin_RMSTR, RMST_ctrl = RMST_ctrl, RMST_trmt = RMST_trmt, contrast = "ratio"))
     if(is.null(n)){ # calculate n if unspecified
-      ss_RMSTR_closed_form <- do.call(get_ss_pwr_cf_RMST, rmstd_args)
+      ss_RMSTR_closed_form <- do.call(get_ss_pwr_cf_RMST, rmstr_args)
       if(satterthwaite_corr){ # use n from RMST closed form for df calculation
-        ss_RMSTR_closed_form_sat <- do.call(get_ss_pwr_cf_RMST, c(rmstd_args, list(satterthwaite_n = n)))
+        ss_RMSTR_closed_form_sat <- do.call(get_ss_pwr_cf_RMST, c(rmstr_args, list(satterthwaite_n = ss_RMSTR_closed_form)))
       }
     }
     if(is.null(power)){ # calculate power if unspecified
-      pwr_RMSTR_closed_form <- do.call(get_ss_pwr_cf_RMST, rmstd_args)
+      pwr_RMSTR_closed_form <- do.call(get_ss_pwr_cf_RMST, c(rmstr_args, list(n = n)))
       if(satterthwaite_corr){ # use specified n for df calculation
-        pwr_RMSTR_closed_form_sat <- do.call(get_ss_pwr_cf_RMST, c(rmstd_args, list(satterthwaite_n = n)))
+        pwr_RMSTR_closed_form_sat <- do.call(get_ss_pwr_cf_RMST, c(rmstr_args, list(n = n, satterthwaite_n = n)))
       }
     }
   }
   if (LRT_closed_form){
-    LRT_args <- c(shared_args, list(censor_beyond_tau = censor_beyond_tau, margin = margin_LRT))
+    LRT_args <- c(shared_args, list(censor_beyond_tau = censor_beyond_tau, margin_LRT = margin_LRT))
     if(is.null(n)){ # calculate n if unspecified
       ss_LRT_closed_form <- do.call(get_ss_pwr_cf_LRT, LRT_args)
     }
-    if(is.null(power)){ # calculate n if unspecified
-      pwr_LRT_closed_form <- do.call(get_ss_pwr_cf_LRT, LRT_args)
+    if(is.null(power)){ # calculate power if unspecified
+      pwr_LRT_closed_form <- do.call(get_ss_pwr_cf_LRT, c(LRT_args, list(n = n)))
     }
   }
   # simulations  ---------------------------------------------------------------

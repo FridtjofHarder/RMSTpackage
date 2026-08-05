@@ -23,7 +23,7 @@ calculate_power(
   margin_RMSTR = 1,
   margin_LRT = 1,
   RMSTD_closed_form = TRUE,
-  RMSTR_closed_form = TRUE,
+  RMSTR_closed_form = FALSE,
   LRT_closed_form = TRUE,
   satterthwaite_corr = FALSE,
   RMSTD_simulation = FALSE,
@@ -114,4 +114,22 @@ Calculates and simulates the test power given a sample size. Supports tests on d
 Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterisation
 defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. If breakpoints in time are provided, survival and loss can be defined over piecewise exponential, or piecewise Weibull functions. Power
 can be determined for log rank test, RMST difference, and RMST ratio.
+}
+\examples{
+
+# Power for superiority test by closed form solution
+  args_sup <- list(
+  scale_ctrl = 6,
+  scale_trmt = 10,
+  accrual_time = 6,
+  follow_up_time = 3,
+  tau = 4,
+  scale_loss = 10,
+  satterthwaite_corr = TRUE,
+  M = 1000,
+  n = 405
+  )
+  result_sup <- do.call(calculate_power, args = args_sup)
+  print(result_sup)
+
 }

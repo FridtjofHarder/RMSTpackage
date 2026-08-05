@@ -491,7 +491,7 @@ get_ss_pwr_cf_LRT <- function(
     return(sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 / Delta^2)
   }
   if(is.null(power)){ # returns power
-    return(stats::pnorm(sqrt(n) * Delta / sqrt(sigma2) - stats::qnorm(1 - alpha / sides)))
+    return(stats::pnorm(sqrt(n) * abs(Delta) / sqrt(sigma2) - stats::qnorm(1 - alpha / sides)))
   }
 }
 

@@ -118,14 +118,6 @@ can be determined for log rank test, RMST difference, and RMST ratio.
   result_sup <- do.call(calculate_sample_size, args = args_sup)
   print(result_sup)
 
-# Validate by running simulation with sample size previously obtained for RMST difference
-  args_sup_sim <- args_sup
-  args_sup_sim$RMSTD_simulation <- TRUE
-  args_sup_sim$n <-
-    result_sup$
-    `Sample size for RMST difference determined by closed-form solution`
-  result_sup_sim <- do.call(calculate_sample_size, args = args_sup_sim)
-  print(result_sup_sim)
 
 # Sample size for non-inferiority test with margin
   args_noninf <- args_sup

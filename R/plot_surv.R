@@ -493,7 +493,7 @@ plot_surv <- function(
           breakpoints = breakpoints_ctrl,
           breakpoints_loss = breakpoints_loss,
           accrual_time = accrual_time,
-          follow_up_time = follow_up_time,
+          follow_up_time = follow_up_time
         ),
       lwd = 2,
       col = "#EA95BA",
@@ -513,7 +513,7 @@ plot_surv <- function(
           breakpoints = breakpoints_trmt,
           breakpoints_loss = breakpoints_loss,
           accrual_time = accrual_time,
-          follow_up_time = follow_up_time,
+          follow_up_time = follow_up_time
         ),
       lwd = 2,
       col = "steelblue1",
