@@ -170,8 +170,8 @@ int_fun_n_or_power <- function(
     )
     for (i in 1:M) {
       simulated_data <- rbind(
-        simulate_data(scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt, label = 1, !!!sim_shared),
-        simulate_data(scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl, label = 0, !!!sim_shared)
+        do.call(simulate_data, c(list(scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt, label = 1), sim_shared)),
+        do.call(simulate_data, c(list(scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl, label = 0), sim_shared))
       )
       if (RMSTD_simulation || RMSTR_simulation) {
         tau_temp <- tau
