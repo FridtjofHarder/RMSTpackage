@@ -108,7 +108,7 @@ calculate_sample_size <- function(
   margin_LRT = 1,
   RMSTD_closed_form = TRUE,
   RMSTR_closed_form = FALSE,
-  LRT_closed_form = TRUE,
+  LRT_closed_form = FALSE,
   satterthwaite_corr = FALSE,
   censor_beyond_tau = FALSE,
   plot_example_data = FALSE,

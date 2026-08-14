@@ -253,7 +253,7 @@ plot_surv <- function(
     add = TRUE,
     col = "red",
     lwd = 4,
-    lty = 3
+    lty = 1
   )
   graphics::curve(
     get_h(x = x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt),
@@ -262,13 +262,13 @@ plot_surv <- function(
     add = TRUE,
     col = "darkblue",
     lwd = 4,
-    lty = 3
+    lty = 1
   )
   }
 
   # create legend
   graphics::legend(
-    "bottomleft",
+    "topright",
     legend = c(
       paste0(
         "Treatment group with \n",
@@ -344,7 +344,7 @@ plot_surv <- function(
 
     # create legend
     graphics::legend(
-      "bottomleft",
+      "topright",
       legend = c(
         "Treatment group",
         "Control group"

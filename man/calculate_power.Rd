@@ -24,7 +24,7 @@ calculate_power(
   margin_LRT = 1,
   RMSTD_closed_form = TRUE,
   RMSTR_closed_form = FALSE,
-  LRT_closed_form = TRUE,
+  LRT_closed_form = FALSE,
   satterthwaite_corr = FALSE,
   RMSTD_simulation = FALSE,
   RMSTR_simulation = FALSE,
@@ -32,8 +32,8 @@ calculate_power(
   censor_beyond_tau = FALSE,
   M = 1000,
   n = NULL,
-  plot_example_data = TRUE,
-  plot_design_curves = TRUE,
+  plot_example_data = FALSE,
+  plot_design_curves = FALSE,
   parameterisation = 1
 )
 }

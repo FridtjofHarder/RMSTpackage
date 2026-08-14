@@ -30,8 +30,6 @@ app_convert_contrast_ph <- function() {
         shiny::actionButton("go", "Update")
       ),
       shiny::mainPanel(
-        shiny::h4("Results"),
-        shiny::verbatimTextOutput("results"),
         shiny::h4("Survival curves"),
         shiny::plotOutput("surv_plot", height = "350px")
       )
@@ -39,9 +37,32 @@ app_convert_contrast_ph <- function() {
   )
 
   server <- function(input, output, session) {
+    # Tracks the last value the app wrote to each contrast field. Used by
+    # clean_contrast() to distinguish app-generated values from user-typed ones.
+    app_written <- shiny::reactiveValues(
+      RMSTD           = NA,
+      RMSTR           = NA,
+      HR              = NA,
+      median_diff     = NA,
+      percentile_diff = NA,
+      survival_diff   = NA
+    )
+
     clean_input <- function(x) {
       if (is.null(x) || length(x) == 0L || is.na(x)) return(NULL)
       x
+    }
+
+    # Like clean_input, but also returns NULL when the value matches what the
+    # app itself wrote last time (i.e. it is an output being echoed, not a
+    # fresh user entry). This prevents computed contrasts from being fed back
+    # as inputs on subsequent runs.
+    clean_contrast <- function(x, field) {
+      val <- clean_input(x)
+      if (is.null(val)) return(NULL)
+      last <- app_written[[field]]
+      if (!is.na(last) && isTRUE(all.equal(val, last))) return(NULL)
+      val
     }
 
     res <- shiny::eventReactive(input$go, {
@@ -50,23 +71,16 @@ app_convert_contrast_ph <- function() {
         scale_ctrl       = clean_input(input$scale_ctrl),
         shape            = clean_input(input$shape),
         parameterisation = clean_input(input$parameterisation),
-        RMSTD            = clean_input(input$RMSTD),
-        RMSTR            = clean_input(input$RMSTR),
+        RMSTD            = clean_contrast(input$RMSTD,           "RMSTD"),
+        RMSTR            = clean_contrast(input$RMSTR,           "RMSTR"),
         tau              = clean_input(input$tau),
-        HR               = clean_input(input$HR),
-        median_diff      = clean_input(input$median_diff),
-        percentile_diff  = clean_input(input$percentile_diff),
+        HR               = clean_contrast(input$HR,              "HR"),
+        median_diff      = clean_contrast(input$median_diff,     "median_diff"),
+        percentile_diff  = clean_contrast(input$percentile_diff, "percentile_diff"),
         percentile       = clean_input(input$percentile),
-        survival_diff    = clean_input(input$survival_diff),
+        survival_diff    = clean_contrast(input$survival_diff,   "survival_diff"),
         plot_curves      = input$plot_curves
       )
-    })
-
-    output$results <- shiny::renderPrint({
-      shiny::req(res())
-      tmp <- res()
-      if (!is.null(tmp$plot)) tmp$plot <- NULL
-      tmp
     })
 
     output$surv_plot <- shiny::renderPlot(
@@ -82,66 +96,33 @@ app_convert_contrast_ph <- function() {
     shiny::observeEvent(res(), {
       out <- res()
 
-      if (!is.null(out$`scale trmt`)) {
-        shiny::updateNumericInput(session, "scale_trmt",
-          value = out$`scale trmt`
-        )
-      }
-      if (!is.null(out$`scale ctrl`)) {
-        shiny::updateNumericInput(session, "scale_ctrl",
-          value = out$`scale ctrl`
-        )
-      }
-      if (!is.null(out$shape)) {
-        shiny::updateNumericInput(session, "shape",
-          value = out$shape
-        )
-      }
-      if (!is.null(out$parameterisation)) {
-        shiny::updateNumericInput(session, "parameterisation",
-          value = out$parameterisation
-        )
-      }
-      if (!is.null(out$RMSTD)) {
-        shiny::updateNumericInput(session, "RMSTD",
-          value = out$RMSTD
-        )
-      }
-      if (!is.null(out$RMSTR)) {
-        shiny::updateNumericInput(session, "RMSTR",
-          value = out$RMSTR
-        )
-      }
-      if (!is.null(out$tau)) {
-        shiny::updateNumericInput(session, "tau",
-          value = out$tau
-        )
-      }
-      if (!is.null(out$`hazard ratio`)) {
-        shiny::updateNumericInput(session, "HR",
-          value = out$`hazard ratio`
-        )
-      }
-      if (!is.null(out$`median difference`)) {
-        shiny::updateNumericInput(session, "median_diff",
-          value = out$`median difference`
-        )
-      }
-      if (!is.null(out$`percentile difference`)) {
-        shiny::updateNumericInput(session, "percentile_diff",
-          value = out$`percentile difference`
-        )
-      }
-      if (!is.null(out$percentile)) {
-        shiny::updateNumericInput(session, "percentile",
-          value = out$percentile
-        )
-      }
-      if (!is.null(out$`survival difference at tau`)) {
-        shiny::updateNumericInput(session, "survival_diff",
-          value = out$`survival difference at tau`
-        )
-      }
+      # Write all computed values back to the input fields so the user can see
+      # them. For contrast fields, also record the written value in app_written
+      # so clean_contrast() can treat them as non-inputs on the next run.
+      shiny::updateNumericInput(session, "scale_trmt",      value = out$`scale trmt`)
+      shiny::updateNumericInput(session, "scale_ctrl",      value = out$`scale ctrl`)
+      shiny::updateNumericInput(session, "shape",           value = out$shape)
+      shiny::updateNumericInput(session, "parameterisation",value = out$parameterisation)
+      shiny::updateNumericInput(session, "tau",             value = out$tau)
+      shiny::updateNumericInput(session, "percentile",      value = out$percentile)
+
+      shiny::updateNumericInput(session, "RMSTD",           value = out$RMSTD)
+      app_written$RMSTD           <- out$RMSTD
+
+      shiny::updateNumericInput(session, "RMSTR",           value = out$RMSTR)
+      app_written$RMSTR           <- out$RMSTR
+
+      shiny::updateNumericInput(session, "HR",              value = out$`hazard ratio`)
+      app_written$HR              <- out$`hazard ratio`
+
+      shiny::updateNumericInput(session, "median_diff",     value = out$`median difference`)
+      app_written$median_diff     <- out$`median difference`
+
+      shiny::updateNumericInput(session, "percentile_diff", value = out$`percentile difference`)
+      app_written$percentile_diff <- out$`percentile difference`
+
+      shiny::updateNumericInput(session, "survival_diff",   value = out$`survival difference at tau`)
+      app_written$survival_diff   <- out$`survival difference at tau`
     })
   }
 

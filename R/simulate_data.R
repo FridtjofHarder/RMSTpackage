@@ -79,19 +79,27 @@ simulate_data <- function(
   if (length(shape) == 1 && length(scale) > 1) {
     shape <- rep(shape, length(scale))
   }
+  if (length(shape_loss) == 1 && length(scale_loss) > 1) {
+    shape_loss <- rep(shape_loss, length(scale_loss))
+  }
+
   total_time <- accrual_time + follow_up_time
 
-  # draw event times from Weibull distribution
-  observations <- ppweibull::rpweibull(n = n, rate = 1 / scale^shape, alpha = shape, t = breakpoints)
+  # draw event times; use fast piecewise exponential sampler when shape = 1 everywhere
+  if (all(shape == 1)) {
+    observations <- int_rpexp(n = n, rates = 1 / scale, breakpoints = breakpoints)
+  } else {
+    observations <- ppweibull::rpweibull(n = n, rate = 1 / scale^shape, alpha = shape, t = breakpoints)
+  }
   status <- rep(1, n)
 
   # censor observations if loss to follow-up is defined
   if (!is.null(scale_loss)) {
-    loss_to_follow_up <- stats::rweibull(
-      n = n,
-      shape = shape_loss,
-      scale = scale_loss
-    )
+    if (all(shape_loss == 1)) {
+      loss_to_follow_up <- int_rpexp(n = n, rates = 1 / scale_loss, breakpoints = breakpoints_loss)
+    } else {
+      loss_to_follow_up <- ppweibull::rpweibull(n = n, rate = 1 / scale_loss^shape_loss, alpha = shape_loss, t = breakpoints_loss)
+    }
     status[loss_to_follow_up < observations] <- 0
     observations <- pmin(observations, loss_to_follow_up)
   }

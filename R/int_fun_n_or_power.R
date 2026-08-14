@@ -21,8 +21,8 @@ int_fun_n_or_power <- function(
     margin_RMSTR = 1,
     margin_LRT = 1,
     RMSTD_closed_form = TRUE,
-    RMSTR_closed_form = TRUE,
-    LRT_closed_form = TRUE,
+    RMSTR_closed_form = FALSE,
+    LRT_closed_form = FALSE,
     satterthwaite_corr = FALSE,
     RMSTD_simulation = FALSE, # RMSTD = RMST_trmt - RMST_ctrl = RMST_arm1 - RMST_arm0
     RMSTR_simulation = FALSE, # RMSTR = RMST_trmt / RMST_ctrl = RMST_arm1 / RMST_arm0
@@ -30,8 +30,8 @@ int_fun_n_or_power <- function(
     censor_beyond_tau = FALSE,
     M = 1,
     n = NULL,
-    plot_example_data = TRUE,
-    plot_design_curves = TRUE,
+    plot_example_data = FALSE,
+    plot_design_curves = FALSE,
     parameterisation = 1
 ) {
   # basic definitions -----------------------------------------------------------
@@ -157,10 +157,6 @@ int_fun_n_or_power <- function(
   }
   # simulations  ---------------------------------------------------------------
   if (RMSTD_simulation || RMSTR_simulation || LRT_simulation) {
-    tau_changed <- FALSE
-    if (RMSTD_simulation) RMSTD_simul_results <- rep(0, M)
-    if (RMSTR_simulation) RMSTR_simul_results <- rep(0, M)
-    if (LRT_simulation)   LRT_simul_results   <- rep(0, M)
     n_per_arm <- round(n / 2)
     sim_shared <- list(
       scale_loss = scale_loss, shape_loss = shape_loss,
@@ -168,133 +164,101 @@ int_fun_n_or_power <- function(
       accrual_time = accrual_time, follow_up_time = follow_up_time,
       n = n_per_arm
     )
-    for (i in 1:M) {
+    # bundle all per-iteration inputs so they can be sent to workers cleanly
+    worker_args <- list(
+      scale_trmt = scale_trmt, shape_trmt = shape_trmt, breakpoints_trmt = breakpoints_trmt,
+      scale_ctrl = scale_ctrl, shape_ctrl = shape_ctrl, breakpoints_ctrl = breakpoints_ctrl,
+      sim_shared = sim_shared,
+      tau = tau, one_sided_alpha = one_sided_alpha,
+      margin_RMSTD = margin_RMSTD, margin_RMSTR = margin_RMSTR, margin_LRT = margin_LRT,
+      censor_beyond_tau = censor_beyond_tau,
+      RMSTD_simulation = RMSTD_simulation,
+      RMSTR_simulation = RMSTR_simulation,
+      LRT_simulation = LRT_simulation
+    )
+    one_sim <- function(i, args) {
       simulated_data <- rbind(
-        do.call(simulate_data, c(list(scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt, label = 1), sim_shared)),
-        do.call(simulate_data, c(list(scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl, label = 0), sim_shared))
+        do.call(simulate_data, c(list(scale = args$scale_trmt, shape = args$shape_trmt,
+                                      breakpoints = args$breakpoints_trmt, label = 1), args$sim_shared)),
+        do.call(simulate_data, c(list(scale = args$scale_ctrl, shape = args$shape_ctrl,
+                                      breakpoints = args$breakpoints_ctrl, label = 0), args$sim_shared))
       )
-      if (RMSTD_simulation || RMSTR_simulation) {
-        tau_temp <- tau
+      result_i <- list(RMSTD = 0, RMSTR = 0, LRT = 0, tau_changed = FALSE)
+      if (args$RMSTD_simulation || args$RMSTR_simulation) {
+        tau_temp <- args$tau
         min_max <- min(
           max(simulated_data$observations[simulated_data$label == 0]),
           max(simulated_data$observations[simulated_data$label == 1])
         )
-        if (min_max < tau) {
+        if (min_max < args$tau) {
           tau_temp <- min_max
-          tau_changed <- TRUE
+          result_i$tau_changed <- TRUE
         }
         result <- survRM2::rmst2(
           simulated_data$observations,
           simulated_data$status,
           simulated_data$label,
           tau = tau_temp,
-          alpha = one_sided_alpha * 2
+          alpha = args$one_sided_alpha * 2
         )$unadjusted.result
-        if (RMSTD_simulation) RMSTD_simul_results[i] <- as.numeric(result[1, 2] > margin_RMSTD)
-        if (RMSTR_simulation) RMSTR_simul_results[i] <- as.numeric(result[2, 2] > margin_RMSTR)
+        if (args$RMSTD_simulation) result_i$RMSTD <- as.numeric(result[1, 2] > args$margin_RMSTD)
+        if (args$RMSTR_simulation) result_i$RMSTR <- as.numeric(result[2, 2] > args$margin_RMSTR)
       }
-      if (LRT_simulation) {
-        if (censor_beyond_tau)
-          simulated_data$status[simulated_data$observations > tau] <- 0
+      if (args$LRT_simulation) {
+        if (args$censor_beyond_tau)
+          simulated_data$status[simulated_data$observations > args$tau] <- 0
         fit <- survival::coxph(survival::Surv(observations, status) ~ label, data = simulated_data)
-        LRT_simul_results[i] <- as.numeric(summary(fit)$conf.int[, "upper .95"] < margin_LRT)
+        result_i$LRT <- as.numeric(summary(fit)$conf.int[, "upper .95"] < args$margin_LRT)
       }
+      return(result_i)
     }
-    if (RMSTD_simulation) pwr_RMSTD_simulated <- mean(RMSTD_simul_results)
-    if (RMSTR_simulation) pwr_RMSTR_simulated <- mean(RMSTR_simul_results)
-    if (LRT_simulation)   pwr_LRT_simulated   <- mean(LRT_simul_results)
-    if (tau_changed)
+    # Bind internal functions locally so clusterExport picks up the current
+    # in-memory versions (rather than a potentially stale installed version)
+    simulate_data <- simulate_data
+    normalize_breakpoints <- normalize_breakpoints
+    reparameterize <- reparameterize
+    n_cores <- min(parallel::detectCores() - 1L, M)
+    cl <- parallel::makeCluster(n_cores)
+    on.exit(parallel::stopCluster(cl), add = TRUE)
+    parallel::clusterSetRNGStream(cl)
+    parallel::clusterExport(cl,
+      varlist = c("simulate_data", "normalize_breakpoints", "reparameterize", "one_sim", "int_rpexp"),
+      envir = environment()
+    )
+    parallel::clusterEvalQ(cl, {
+      library(ppweibull)
+      library(survRM2)
+      library(survival)
+    })
+    sim_results <- parallel::parLapply(cl, seq_len(M), one_sim, args = worker_args)
+    if (RMSTD_simulation) pwr_RMSTD_simulated <- mean(sapply(sim_results, `[[`, "RMSTD"))
+    if (RMSTR_simulation) pwr_RMSTR_simulated <- mean(sapply(sim_results, `[[`, "RMSTR"))
+    if (LRT_simulation)   pwr_LRT_simulated   <- mean(sapply(sim_results, `[[`, "LRT"))
+    if (any(sapply(sim_results, `[[`, "tau_changed")))
       warning("tau was reduced to the minimum largest observation across groups in at least one iteration.")
   }
   # plot example data if requested ---------------------------------------------
 
-  if (plot_design_curves) {
-    x <- NULL
-    graphics::curve(
-      ppweibull::ppweibull(
-        x,
-        rate = 1 / scale_trmt^shape_trmt,
-        alpha = shape_trmt,
-        t = breakpoints_trmt,
-        lower.tail = FALSE
-      ),
-      col = "darkblue",
-      xlab = "t",
-      ylab = "S(t)",
-      ylim = c(0, 1),
-      xlim = c(0, 1.5 * tau),
-      lwd = 2,
-      main = "Design survival curves",
-      yaxt = "n"
-    )
-    graphics::axis(
-      2,
-      at = seq(1, 0, by = -0.2),
-      labels = paste0(seq(100, 0, by = -20), "%"),
-      las = 1
-    )
-    graphics::curve(
-      ppweibull::ppweibull(
-        x,
-        rate = 1 / scale_ctrl^shape_ctrl,
-        alpha = shape_ctrl,
-        t = breakpoints_ctrl,
-        lower.tail = FALSE
-      ),
-      col = "red",
-      lwd = 2,
-      add = TRUE
-    )
-    graphics::abline(v = tau, col = "black", lwd = 2)
-    graphics::text(
-      x = tau,
-      y = 0.1,
-      pos = 4,
-      labels = bquote("Time horizon " * tau * " = " * .(tau)),
-      cex = .8
-    )
-    graphics::legend(
-      "bottomleft",
-      legend = c(
-        paste0(
-          "Treatment group with \n",
-          "scale = ",
-          paste(round(scale_trmt, 2), collapse = ", "),
-          " and shape = ",
-          paste(round(shape_trmt, 2), collapse = ", ")
-        ),
-        paste0(
-          "Control group with \n",
-          "scale = ",
-          paste(round(scale_ctrl, 2), collapse = ", "),
-          " and shape = ",
-          paste(round(shape_ctrl, 2), collapse = ", ")
-        )
-      ),
-      col = c("darkblue", "red"),
-      lty = 1:1,
-      y.intersp = 1.5,
-      bty = "n",
-      cex = .8
-    )
-  }
-  if (plot_example_data) {
-    if (is.na(n)) n <- 200
+  if (plot_design_curves | plot_example_data) {
     plot_surv(
-      scale_ctrl = scale_ctrl,
-      scale_trmt = scale_trmt,
-      scale_loss = scale_loss,
-      shape_ctrl = shape_ctrl,
-      shape_trmt = shape_trmt,
-      shape_loss = shape_loss,
-      breakpoints_ctrl = breakpoints_ctrl,
-      breakpoints_trmt = breakpoints_trmt,
-      breakpoints_loss = breakpoints_loss,
-      accrual_time = accrual_time,
-      follow_up_time = follow_up_time,
-      tau = tau,
-      censor_beyond_tau = censor_beyond_tau,
-      n = round(n / 2)
+    scale_ctrl = scale_ctrl,
+    scale_trmt = scale_trmt,
+    scale_loss = scale_loss,
+    shape_ctrl = shape_ctrl,
+    shape_trmt = shape_trmt,
+    shape_loss = shape_loss,
+    breakpoints_ctrl = breakpoints_ctrl,
+    breakpoints_trmt = breakpoints_trmt,
+    breakpoints_loss = breakpoints_loss,
+    accrual_time = accrual_time,
+    follow_up_time = follow_up_time,
+    tau = tau,
+    censor_beyond_tau = censor_beyond_tau,
+    n = n,
+    plot_data = plot_example_data,
+    xlim = NULL,
+    ylim = c(0, 100),
+    parameterisation = parameterisation
     )
   }
   # returns -----------------------------------------------------------------
@@ -307,7 +271,7 @@ int_fun_n_or_power <- function(
     "Power for RMST difference determined by closed-form solution" = pwr_RMSTD_closed_form,
     "Satterthwaite-corrected power for RMST difference" = pwr_RMSTD_closed_form_sat,
     "Power for RMST ratio determined by closed-form solution" = pwr_RMSTR_closed_form,
-    "Satterthwaite-corrected pwoer for RMST ratio" = pwr_RMSTR_closed_form_sat,
+    "Satterthwaite-corrected power for RMST ratio" = pwr_RMSTR_closed_form_sat,
     "Power for LRT determined by closed-form solution" = pwr_LRT_closed_form,
     "RMSTD power determined by simulation" = pwr_RMSTD_simulated,
     "RMSTR power determined by simulation" = pwr_RMSTR_simulated,
@@ -317,5 +281,6 @@ int_fun_n_or_power <- function(
     "RMST difference" = True_RMSTD,
     "RMST ratio" = True_RMSTR
   )
+  result <- Filter(Negate(is.na), result)
   return(result)
 }

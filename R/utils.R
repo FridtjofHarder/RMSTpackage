@@ -495,7 +495,27 @@ get_ss_pwr_cf_LRT <- function(
   }
 }
 
+
+# # reverse design --------------------------------------------------------
+
+
 # misc ------------------------------------------------------------------
+
+# change to own function
+# Much faster than ppweibull::rpweibull when all shape parameters are 1.
+# breakpoints: normalized (first element is 0), length == length(rates).
+int_rpexp <- function(n, rates, breakpoints) {
+  k <- length(rates)
+  if (k == 1L) return(stats::rexp(n, rate = rates))
+  # Cumulative hazard at each breakpoint: H(breakpoints[j])
+  cumH <- c(0, cumsum(rates[-k] * diff(breakpoints)))
+  # Sample total cumulative hazard (Exp(1) via -log(U))
+  H <- stats::rexp(n, rate = 1)
+  # Which interval does each sample fall in?
+  piece <- findInterval(H, cumH)
+  # Invert: t = breakpoints[piece] + (H - cumH[piece]) / rates[piece]
+  breakpoints[piece] + (H - cumH[piece]) / rates[piece]
+}
 
 # prepend 0 to a breakpoints vector if not already present; return 0 for NULL
 normalize_breakpoints <- function(x) {
