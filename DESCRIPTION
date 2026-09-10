@@ -15,7 +15,8 @@ Imports:
     survRM2,
     shiny,
     rmarkdown,
-    ppweibull
+    ppweibull,
+    ggplot2
 Suggests:
     knitr,
     tinytex,
