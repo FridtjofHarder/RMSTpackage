@@ -25,7 +25,7 @@ calculate_sample_size(
   margin_LRT = 1,
   RMSTD_closed_form = TRUE,
   RMSTR_closed_form = FALSE,
-  LRT_closed_form = FALSE,
+  LRT_closed_form = TRUE,
   satterthwaite_corr = FALSE,
   censor_beyond_tau = FALSE,
   plot_example_data = FALSE,
@@ -38,7 +38,7 @@ calculate_sample_size(
 
 \item{scale_trmt}{Required. Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
 
-\item{scale_loss}{Required. Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull). No loss to follow-up is assumed if undefined.}
+\item{scale_loss}{Required. Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential loss), or a vector (piecewise Weibull). No loss to follow-up is assumed if undefined.}
 
 \item{shape_ctrl}{Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival. If \code{length(shape_ctrl) = 1} and \code{length(scale_ctrl) > 1}, the same shape parameter will be assumed for each section of the survival function.}
 

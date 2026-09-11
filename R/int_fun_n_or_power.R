@@ -22,7 +22,7 @@ int_fun_n_or_power <- function(
     margin_LRT = 1,
     RMSTD_closed_form = TRUE,
     RMSTR_closed_form = FALSE,
-    LRT_closed_form = FALSE,
+    LRT_closed_form = TRUE,
     satterthwaite_corr = FALSE,
     RMSTD_simulation = FALSE, # RMSTD = RMST_trmt - RMST_ctrl = RMST_arm1 - RMST_arm0
     RMSTR_simulation = FALSE, # RMSTR = RMST_trmt / RMST_ctrl = RMST_arm1 / RMST_arm0
@@ -212,25 +212,7 @@ int_fun_n_or_power <- function(
       }
       return(result_i)
     }
-    # Bind internal functions locally so clusterExport picks up the current
-    # in-memory versions (rather than a potentially stale installed version)
-    simulate_data <- simulate_data
-    normalize_breakpoints <- normalize_breakpoints
-    reparameterize <- reparameterize
-    n_cores <- min(parallel::detectCores() - 1L, M)
-    cl <- parallel::makeCluster(n_cores)
-    on.exit(parallel::stopCluster(cl), add = TRUE)
-    parallel::clusterSetRNGStream(cl)
-    parallel::clusterExport(cl,
-      varlist = c("simulate_data", "normalize_breakpoints", "reparameterize", "one_sim", "int_rpexp"),
-      envir = environment()
-    )
-    parallel::clusterEvalQ(cl, {
-      library(ppweibull)
-      library(survRM2)
-      library(survival)
-    })
-    sim_results <- parallel::parLapply(cl, seq_len(M), one_sim, args = worker_args)
+    sim_results <- lapply(seq_len(M), one_sim, args = worker_args)
     if (RMSTD_simulation) pwr_RMSTD_simulated <- mean(sapply(sim_results, `[[`, "RMSTD"))
     if (RMSTR_simulation) pwr_RMSTR_simulated <- mean(sapply(sim_results, `[[`, "RMSTR"))
     if (LRT_simulation)   pwr_LRT_simulated   <- mean(sapply(sim_results, `[[`, "LRT"))

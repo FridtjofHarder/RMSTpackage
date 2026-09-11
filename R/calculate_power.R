@@ -83,7 +83,7 @@ calculate_power <- function(
     margin_LRT = 1,
     RMSTD_closed_form = TRUE,
     RMSTR_closed_form = FALSE,
-    LRT_closed_form = FALSE,
+    LRT_closed_form = TRUE,
     satterthwaite_corr = FALSE,
     RMSTD_simulation = FALSE, # RMSTD = RMST_trmt - RMST_ctrl = RMST_arm1 - RMST_arm0
     RMSTR_simulation = FALSE, # RMSTR = RMST_trmt / RMST_ctrl = RMST_arm1 / RMST_arm0
@@ -126,5 +126,4 @@ calculate_power <- function(
     plot_design_curves = plot_design_curves,
     parameterisation = parameterisation
   )
-
 }
