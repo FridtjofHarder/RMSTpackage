@@ -47,6 +47,7 @@ int_fun_n_or_power <- function(
                breakpoints_ctrl = breakpoints_ctrl,
                breakpoints_trmt = breakpoints_trmt,
                breakpoints_loss = breakpoints_loss,
+               accrual_time = accrual_time,
                follow_up_time = follow_up_time,
                tau = tau,
                sides = sides,
@@ -54,7 +55,6 @@ int_fun_n_or_power <- function(
                one_sided_alpha = one_sided_alpha,
                RMSTD_closed_form = RMSTD_closed_form,
                RMSTR_closed_form = RMSTR_closed_form,
-               n,
                parameterisation = parameterisation
   )
   ss_RMSTD_closed_form <- ss_RMSTR_closed_form <- ss_LRT_closed_form <-
@@ -67,6 +67,15 @@ int_fun_n_or_power <- function(
   breakpoints_ctrl <- normalize_breakpoints(breakpoints_ctrl)
   breakpoints_trmt <- normalize_breakpoints(breakpoints_trmt)
   breakpoints_loss <- normalize_breakpoints(breakpoints_loss)
+
+  # capture scales to use later for plot function
+  original_scales <- list(scale_ctrl, scale_trmt, scale_loss)
+
+  if (parameterisation != 1) {
+    scale_ctrl <- reparameterise(parameterisation, scale_ctrl, shape_ctrl)
+    scale_trmt <- reparameterise(parameterisation, scale_trmt, shape_trmt)
+    scale_loss <- reparameterise(parameterisation, scale_loss, shape_loss)
+  }
 
   if (RMSTD_closed_form || RMSTR_closed_form) { # get RMSTD and RMSTR
     RMST_ctrl <- get_theoretical_rmst(scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl, tau = tau)
@@ -100,13 +109,6 @@ int_fun_n_or_power <- function(
         margin_LRT > true_HR
     )
   }
-  # reparameterise  --------------------------------------------------------------
-  if (parameterisation != 1) {
-    scale_ctrl <- reparameterize(parameterisation, scale_ctrl, shape_ctrl)
-    scale_trmt <- reparameterize(parameterisation, scale_trmt, shape_trmt)
-    scale_loss <- reparameterize(parameterisation, scale_loss, shape_loss)
-  }
-
   # closed form ----------------------------------------------------------------
   shared_args <- list(
     scale_ctrl = scale_ctrl, scale_trmt = scale_trmt, scale_loss = scale_loss,
@@ -223,9 +225,9 @@ int_fun_n_or_power <- function(
 
   if (plot_design_curves | plot_example_data) {
     plot_surv(
-    scale_ctrl = scale_ctrl,
-    scale_trmt = scale_trmt,
-    scale_loss = scale_loss,
+    scale_ctrl = original_scales$scale_ctrl, # since scale parameters may have been altered by reparameterise() above
+    scale_trmt = original_scales$scale_trmt,
+    scale_loss = original_scales$scale_loss,
     shape_ctrl = shape_ctrl,
     shape_trmt = shape_trmt,
     shape_loss = shape_loss,

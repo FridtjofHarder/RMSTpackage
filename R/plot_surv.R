@@ -36,12 +36,12 @@
 #'
 #' # plot full range of plots with sample size n = 1000
 #' args_plot <- list(
-#'   scale_ctrl = 6,
-#'   scale_trmt = 10,
+#'   scale_ctrl = 0.17,
+#'   scale_trmt = 0.1,
 #'   accrual_time = 6,
 #'   follow_up_time = 3,
 #'   tau = 4,
-#'   scale_loss = 10,
+#'   scale_loss = 0.1,
 #'   n = 1000,
 #'   plot_reverse_KM = TRUE,
 #'   plot_log_log = TRUE,
@@ -83,37 +83,31 @@ plot_surv <- function(
 ) {
 
 # error management --------------------------------------------------------
-  if(length(shape_ctrl) == 1 & length(scale_ctrl) > 1){
-    shape_ctrl <- rep(shape_ctrl, length(scale_ctrl))
-  }
-  if(length(shape_trmt) == 1 & length(scale_trmt) > 1){
-    shape_trmt <- rep(shape_trmt, length(scale_trmt))
-  }
-  if(length(shape_loss) == 1 & length(scale_loss) > 1){
-    shape_loss <- rep(shape_loss, length(scale_loss))
-  }
-  stopifnot(
-    "Scale and shape parameter must have same length in each group" =
-      length(scale_ctrl) == length(shape_ctrl) &&
-      length(scale_trmt) == length(shape_trmt) &&
-      (is.null(scale_loss) || length(scale_loss) == length(shape_loss))
+  check_inputs(scale_ctrl = scale_ctrl,
+               scale_trmt = scale_trmt,
+               scale_loss = scale_loss,
+               shape_ctrl = shape_ctrl,
+               shape_trmt = shape_trmt,
+               shape_loss = shape_loss,
+               breakpoints_ctrl = breakpoints_ctrl,
+               breakpoints_trmt = breakpoints_trmt,
+               breakpoints_loss = breakpoints_loss,
+               accrual_time = accrual_time,
+               follow_up_time = follow_up_time,
   )
-  breakpoints_ctrl <- normalize_breakpoints(breakpoints_ctrl)
-  breakpoints_trmt <- normalize_breakpoints(breakpoints_trmt)
-  breakpoints_loss <- normalize_breakpoints(breakpoints_loss)
-  # reparameterize ----------------------------------------------------------
+  # reparameterise ----------------------------------------------------------
   if (parameterisation != 1) {
-    scale_ctrl <- reparameterize(
+    scale_ctrl <- reparameterise(
       parameterisation = parameterisation,
       scale = scale_ctrl,
       shape = shape_ctrl
     )
-    scale_trmt <- reparameterize(
+    scale_trmt <- reparameterise(
       parameterisation = parameterisation,
       scale = scale_trmt,
       shape = shape_trmt
     )
-    scale_loss <- reparameterize(
+    scale_loss <- reparameterise(
       parameterisation = parameterisation,
       scale = scale_loss,
       shape = shape_loss

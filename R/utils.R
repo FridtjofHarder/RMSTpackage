@@ -9,7 +9,7 @@
 # calculate true RMST for Weibull function
 get_theoretical_rmst <- function(scale, shape, breakpoints, tau) {
   stats::integrate(
-    function(y) ppweibull::ppweibull(q = y, rate = 1 / scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE),
+    function(y) ppweibull::ppweibull(q = y, rate = scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE),
     lower = 0,
     upper = tau
   )$value
@@ -17,8 +17,8 @@ get_theoretical_rmst <- function(scale, shape, breakpoints, tau) {
 
 # calculate true hazard
 get_h <- function(x, scale, shape, breakpoints) {
-  h <- ppweibull::dpweibull(x = x, alpha = shape, rate = 1 / scale^shape, t = breakpoints) /
-    ppweibull::ppweibull(q = x, rate = 1 / scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE)
+  h <- ppweibull::dpweibull(x = x, alpha = shape, rate = scale^shape, t = breakpoints) /
+    ppweibull::ppweibull(q = x, rate = scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE)
   return(h)
 }
 
@@ -58,7 +58,7 @@ get_p_not_censored <- function(
         accrual_time = accrual_time,
         follow_up_time = follow_up_time
       ) *
-        ppweibull::ppweibull(q = x, rate = 1 / scale_loss^shape_loss, alpha = shape_loss, t = breakpoints_loss, lower.tail = FALSE)
+        ppweibull::ppweibull(q = x, rate = scale_loss^shape_loss, alpha = shape_loss, t = breakpoints_loss, lower.tail = FALSE)
     )
   }
 }
@@ -76,7 +76,7 @@ get_p_at_risk <- function(
   follow_up_time
 ) {
   return(
-    ppweibull::ppweibull(q = x, rate = 1 / scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE) *
+    ppweibull::ppweibull(q = x, rate = scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE) *
       get_p_not_censored(
         x = x,
         accrual_time = accrual_time,
@@ -100,7 +100,7 @@ get_density <- function(
   accrual_time,
   follow_up_time
 ) {
-  ppweibull::dpweibull(x = x, alpha = shape, rate = 1 / scale^shape, t = breakpoints) *
+  ppweibull::dpweibull(x = x, alpha = shape, rate = scale^shape, t = breakpoints) *
     get_p_not_censored(
       x = x,
       accrual_time = accrual_time,
@@ -128,7 +128,7 @@ get_sigma2_rmst <- function(
   inner <- function(x) {
     sapply(x, function(x1) {
       stats::integrate(
-        function(x2) ppweibull::ppweibull(q = x2, rate = 1 / scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE),
+        function(x2) ppweibull::ppweibull(q = x2, rate = scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE),
         lower = x1,
         upper = tau
       )$value
@@ -523,10 +523,18 @@ normalize_breakpoints <- function(x) {
   if (x[1] != 0) c(0, x) else x
 }
 
-reparameterize <- function(parameterisation, scale, shape) {
-  if (is.null(scale)) {
-    return(NULL)
+# transform input from selected parameterisation to parameterisation 1
+reparameterise <- function(parameterisation, scale, shape = 1) {
+  if (parameterisation == 2) {
+    return(scale^(1/shape))
   }
+  if (parameterisation == 3) {
+    return(1 / scale)
+  }
+}
+
+# transform input from parameteristation 1 to target parameterisation
+rereparameterise <- function(parameterisation, scale, shape = 1) {
   if (parameterisation == 2) {
     return(scale^shape)
   }
@@ -584,6 +592,7 @@ check_inputs <- function(scale_ctrl = NULL,
                          breakpoints_ctrl = NULL,
                          breakpoints_trmt = NULL,
                          breakpoints_loss = NULL,
+                         accrual_time = NULL,
                          follow_up_time = NULL,
                          tau = NULL,
                          sides = NULL,
@@ -591,13 +600,25 @@ check_inputs <- function(scale_ctrl = NULL,
                          one_sided_alpha = NULL,
                          RMSTD_closed_form = FALSE,
                          RMSTR_closed_form = FALSE,
-                         n,
                          parameterisation = NULL){
   stopifnot(
-    "Scale and shape parameter must have same length in each group" =
-      length(scale_ctrl) == length(shape_ctrl) &&
-      length(scale_trmt) == length(shape_trmt) &&
-      (is.null(scale_loss) || length(scale_loss) == length(shape_loss))
+    "shape_ctrl must be a scalar or a vector of 1s (piecewise Weibull is not supported).
+    If shape_ctrl is a vector of 1s, it must have the same length as scale_ctrl" =
+      length(shape_ctrl) == 1 || all(shape_ctrl == 1) && length(shape_ctrl) == length(scale_ctrl)
+  )
+  stopifnot(
+    "tau must not be larger than the total trial length, which is the sum of accrual period follow-up" =
+      tau <= accrual_time + follow_up_time
+  )
+  stopifnot(
+    "shape_trmt must be a scalar or a vector of 1s (piecewise Weibull is not supported)
+    If shape_trmt is a vector of 1s, it must have the same length as scale_trmt" =
+      length(shape_trmt) == 1 || all(shape_trmt == 1) && length(shape_trmt) == length(scale_trmt)
+  )
+  stopifnot(
+    "shape_loss must be a scalar or a vector of 1s (piecewise Weibull is not supported)
+    If shape_loss is a vector of 1s, it must have the same length as scale_loss" =
+      length(shape_loss) == 1 || all(shape_loss == 1) && length(shape_loss) == length(scale_loss)
   )
   stopifnot("first element in breakpoint vectors must be larger than 0" =
               (is.null(breakpoints_ctrl[1]) ||  breakpoints_ctrl[1] > 0) &&
@@ -611,13 +632,14 @@ check_inputs <- function(scale_ctrl = NULL,
     warning("follow_up_time not specified, no administrative censoring will be applied.")
   }
   if (RMSTD_closed_form || RMSTR_closed_form) {
-    stopifnot("Please specify valid time horizon tau > 0." = tau > 0 && !is.null(tau))
+    stopifnot("Please specify valid time horizon tau > 0." = tau > 0)
   }
   stopifnot(
-    "Parameterization must be defined as either 1, 2, or 3." = parameterisation == 1 || parameterisation == 2 || parameterisation == 3
+    "Parameterisation must be defined as either 1, 2, or 3." = parameterisation == 1 || parameterisation == 2 || parameterisation == 3
   )
   stopifnot("sides must be set to either 1 or 2" = any(sides == c(1, 2)))
   stopifnot("one_sides_alpha must be larger than 0 and smaller than 1" = (0 < one_sided_alpha & one_sided_alpha < 1))
   stopifnot("power must be larger than 0 and smaller than 1" = (0 < power & power < 1))
-  stopifnot("specify either power or n, but not both" = xor(is.null(power), is.null(n)))
 }
+
+# my function using either pweibull or pexp

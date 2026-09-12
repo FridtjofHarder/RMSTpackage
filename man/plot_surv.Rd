@@ -88,12 +88,12 @@ Plots example survival data, survival functions, reverse KM plot, recruitment pl
 
 # plot full range of plots with sample size n = 1000
 args_plot <- list(
-  scale_ctrl = 6,
-  scale_trmt = 10,
+  scale_ctrl = 0.17,
+  scale_trmt = 0.1,
   accrual_time = 6,
   follow_up_time = 3,
   tau = 4,
-  scale_loss = 10,
+  scale_loss = 0.1,
   n = 1000,
   plot_reverse_KM = TRUE,
   plot_log_log = TRUE,

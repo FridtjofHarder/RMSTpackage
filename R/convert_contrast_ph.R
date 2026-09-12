@@ -22,10 +22,10 @@
 #' @param scale_trmt Specifies the \dfn{scale parameter} in the treatment group.
 #' @param scale_ctrl Specifies the \dfn{scale parameter} in the control group.
 #' @param shape Specifies the \dfn{shape parameter} in both groups.
-#' @param parameterisation One of: \itemize{
-#' \item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+#' @param parameterisation Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
+#' \item \code{parameterisation = 1}: Default. Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}},
 #' \item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-#' \item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
+#' \item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}}. This is the parameterisation used for the base \R{} function \code{stats::pweibull()}.}
 #' @param RMSTD Specifies the RMSTD between control group and treatment group. Allows for converting RMSTD to HR.
 #' @param RMSTR Specifies the RMSTR between control group and treatment group. Allows for converting RMSTR to HR.
 #' @param tau Specifies the time horizon \eqn{\tau} where to evaluate RMST with \eqn{\mathrm{RMST(\tau)} = \int_{0}^{\tau}S(t) \,dt}, and where to evaluate \eqn{\Delta S(\tau)}.
@@ -48,20 +48,20 @@
 #' # Specify survival curves and obtain contrasts.
 #' # Percentile difference is calculated at S(t) = 0.8. Obtain contrasts.
 #' results <- convert_contrast_ph(
-#'   scale_trmt = 10, scale_ctrl = 6, tau = 4,
+#'   scale_trmt = 0.1, scale_ctrl = 0.17, tau = 4,
 #'   percentile = 80, plot_curves = TRUE
 #' )
 #' print(results)
 #'
 #' # Specify scale in control group and hazard ratio.
 #' # Obtain scale in treatment group and remaining contrasts.
-#' results <- convert_contrast_ph(scale_ctrl = 6, tau = 4, HR = 0.6)
+#' results <- convert_contrast_ph(scale_ctrl = 0.17, tau = 4, HR = 0.6)
 #' print(results)
 #'
 #' # Specify scale in treatment group, shape and median survival.
 #' # Obtain scale in control group and remaining contrasts.
 #' results <- convert_contrast_ph(
-#'   scale_trmt = 10, shape = 1.5,
+#'   scale_trmt = 0.1, shape = 1.5,
 #'   tau = 4, median_diff = 2
 #' )
 #' print(results)
@@ -113,7 +113,7 @@ convert_contrast_ph <- function(
   rmst_weibull <- function(scale, shape = 1, breakpoints = 0) {
     stats::integrate(
       ppweibull::ppweibull,
-      rate = 1 / scale^shape,
+      rate = scale^shape,
       alpha = shape,
       t = breakpoints,
       lower = 0,
@@ -124,66 +124,66 @@ convert_contrast_ph <- function(
 
   # convert parameters -----------------------------------------------------------
 
-  if (parameterisation == 2) {
-    if (!is.null(scale_trmt)) scale_trmt <- 1 / (scale_trmt^(1 / shape))
-    if (!is.null(scale_ctrl)) scale_ctrl <- 1 / (scale_ctrl^(1 / shape))
-  }
-  if (parameterisation == 3) {
-    if (!is.null(scale_trmt)) scale_trmt <- 1 / scale_trmt
-    if (!is.null(scale_ctrl)) scale_ctrl <- 1 / scale_ctrl
+  if (parameterisation != 1) {
+    if (!is.null(scale_ctrl)){
+      scale_ctrl <- reparameterise(parameterisation, scale_ctrl, shape)
+    }
+    if (!is.null(scale_trmt)){
+      scale_trmt <- reparameterise(parameterisation, scale_trmt, shape)
+    }
   }
 
   # obtain missing scale parameter -----------------------------------------------
 
   if (!is.null(HR)) {
     if (!is.null(scale_trmt)) {
-      scale_ctrl <- scale_trmt * HR
+      scale_ctrl <- scale_trmt / HR
     } else {
-      scale_trmt <- scale_ctrl / HR
+      scale_trmt <- scale_ctrl * HR
     }
   }
 
   if (!is.null(median_diff)) {
     if (!is.null(scale_trmt)) {
-      median_time_trmt <- (-log(0.5))^(1 / shape) * scale_trmt
+      median_time_trmt <- (-log(0.5))^(1 / shape) / scale_trmt
       median_time_ctrl <- median_time_trmt - median_diff
-      scale_ctrl <- median_time_ctrl * (-log(0.5))^(-1 / shape)
+      scale_ctrl <- (-log(0.5))^(-1 / shape) / median_time_ctrl
     } else {
-      median_time_ctrl <- (-log(0.5))^(1 / shape) * scale_ctrl
+      median_time_ctrl <- (-log(0.5))^(1 / shape) / scale_ctrl
       median_time_trmt <- median_time_ctrl + median_diff
-      scale_trmt <- median_time_trmt * (-log(0.5))^(-1 / shape)
+      scale_trmt <-  (-log(0.5))^(-1 / shape) / median_time_trmt
     }
   }
 
   if (!is.null(percentile_diff)) {
     if (!is.null(scale_trmt)) {
-      percentile_time_trmt <- (-log(percentile / 100))^(1 / shape) * scale_trmt
+      percentile_time_trmt <- (-log(percentile / 100))^(1 / shape) / scale_trmt
       percentile_time_ctrl <- percentile_time_trmt - percentile_diff
-      scale_ctrl <- percentile_time_ctrl * (-log(percentile / 100))^(-1 / shape)
+      scale_ctrl <-  (-log(percentile / 100))^(-1 / shape) / percentile_time_ctrl
     } else {
-      percentile_time_ctrl <- (-log(percentile / 100))^(1 / shape) * scale_ctrl
+      percentile_time_ctrl <- (-log(percentile / 100))^(1 / shape) / scale_ctrl
       percentile_time_trmt <- percentile_time_ctrl + percentile_diff
-      scale_trmt <- percentile_time_trmt * (-log(percentile / 100))^(-1 / shape)
+      scale_trmt <-  (-log(percentile / 100))^(-1 / shape) / percentile_time_trmt
     }
   }
 
   if (!is.null(survival_diff)) {
     if (!is.null(scale_trmt)) {
-      survival_trmt <- stats::pweibull(tau, scale = scale_trmt, shape = shape, lower.tail = FALSE)
+      survival_trmt <- stats::pweibull(tau, scale = 1 / scale_trmt, shape = shape, lower.tail = FALSE)
       survival_ctrl <- survival_trmt - survival_diff
       stopifnot(
         "survival in treatment group minus survival difference is equal to or less than zero" =
           survival_ctrl > 0
       )
-      scale_ctrl <- tau * (-log(survival_ctrl))^(-1 / shape)
+      scale_ctrl <- (-log(survival_ctrl))^(-1 / shape) / tau
     } else {
-      survival_ctrl <- stats::pweibull(tau, scale = scale_ctrl, shape = shape, lower.tail = FALSE)
+      survival_ctrl <- stats::pweibull(tau, scale = 1 / scale_ctrl, shape = shape, lower.tail = FALSE)
       survival_trmt <- survival_ctrl + survival_diff
       stopifnot(
         "survival in control group plus survival difference is equal to or less than zero" =
           survival_trmt > 0
       )
-      scale_trmt <- tau * (-log(survival_trmt))^(-1 / shape)
+      scale_trmt <- (-log(survival_trmt))^(-1 / shape) / tau
     }
   }
 
@@ -216,24 +216,24 @@ convert_contrast_ph <- function(
   # calculate missing contrasts --------------------------------------------------
 
   if (is.null(HR)) {
-    HR <- scale_ctrl / scale_trmt
+    HR <- scale_trmt / scale_ctrl
   }
 
   if (is.null(median_diff)) {
-    median_time_trmt <- (-log(0.5))^(1 / shape) * scale_trmt
-    median_time_ctrl <- (-log(0.5))^(1 / shape) * scale_ctrl
+    median_time_trmt <- (-log(0.5))^(1 / shape) / scale_trmt
+    median_time_ctrl <- (-log(0.5))^(1 / shape) / scale_ctrl
     median_diff <- median_time_trmt - median_time_ctrl
   }
 
   if (is.null(percentile_diff)) {
-    percentile_time_trmt <- (-log(percentile / 100))^(1 / shape) * scale_trmt
-    percentile_time_ctrl <- (-log(percentile / 100))^(1 / shape) * scale_ctrl
+    percentile_time_trmt <- (-log(percentile / 100))^(1 / shape) / scale_trmt
+    percentile_time_ctrl <- (-log(percentile / 100))^(1 / shape) / scale_ctrl
     percentile_diff <- percentile_time_trmt - percentile_time_ctrl
   }
 
   if (is.null(survival_diff)) {
-    survival_trmt <- stats::pweibull(tau, scale = scale_trmt, shape = shape, lower.tail = FALSE)
-    survival_ctrl <- stats::pweibull(tau, scale = scale_ctrl, shape = shape, lower.tail = FALSE)
+    survival_trmt <- stats::pweibull(tau, scale = 1 / scale_trmt, shape = shape, lower.tail = FALSE)
+    survival_ctrl <- stats::pweibull(tau, scale = 1 / scale_ctrl, shape = shape, lower.tail = FALSE)
     survival_diff <- survival_trmt - survival_ctrl
   }
 
@@ -246,7 +246,7 @@ convert_contrast_ph <- function(
   if (plot_curves) {
     x <- NULL
     graphics::curve(
-      stats::pweibull(x, scale = scale_trmt, shape = shape, lower.tail = FALSE),
+      stats::pweibull(x, scale = 1 / scale_trmt, shape = shape, lower.tail = FALSE),
       col = "darkblue",
       xlab = "t",
       ylab = "S(t)",
@@ -255,7 +255,7 @@ convert_contrast_ph <- function(
       lwd = 2
     )
     graphics::curve(
-      stats::pweibull(x, scale = scale_ctrl, shape = shape, lower.tail = FALSE),
+      stats::pweibull(x, scale = 1 / scale_ctrl, shape = shape, lower.tail = FALSE),
       col = "red",
       add = TRUE,
       lwd = 2

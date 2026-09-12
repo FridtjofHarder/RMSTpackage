@@ -7,17 +7,33 @@
 def_pexp(breakpoints = NULL, surv, plot = FALSE)
 }
 \arguments{
-\item{breakpoints}{A vector of breakpoints in increasing order between the piecewise functions. First element must be \code{> 0}.}
+\item{breakpoints}{Specifies a vector of breakpoints in increasing order, with the first
+element \code{> 0}. These define the interval boundaries \eqn{t_1, \dots, t_n}.}
 
-\item{surv}{Survival probabilities \eqn{S(t)} at each breakpoint. The final pair in \code{surv} and \code{breakpoints} will serve for extrapolation beyond the second to last pair.}
+\item{surv}{Specifies a vector of survival probabilities \eqn{S(t_1), \dots, S(t_n)} at each breakpoint.
+Must have the same length as \code{breakpoints}, with values in \eqn{(0, 1]} and strictly decreasing.}
 
-\item{plot}{Logical. Specifies whether to plot the resulting function.}
+\item{plot}{Logical. If \code{TRUE}, plots the resulting piecewise exponential survival function.}
 }
 \value{
-Returns a named list with breakpoints and hazards for each interval. Breakpoints will have length of hazard vector \eqn{-1}.
+A named list with components:
+\itemize{
+\item breakpoints: The input vector of breakpoints t1, ..., t_(n-1).
+Note that the ultimate element has been removed from the input breakpoints vector.
+\item hazards: A numeric vector of length n containing the constant hazards
+h1, ..., hn for the intervals (0, t1], (t1, t2], ..., (t_(n-1), Inf).
+}
 }
 \description{
-The piecewise exponential curve is constructed from pairs of \eqn{t} and \eqn{S(t)}, where the time points \eqn{t} serve as the breakpoints between the piecewise functions.
+The piecewise exponential survival function is constructed from \eqn{n} pairs of breakpoints
+\eqn{t_1, \dots, t_n} and survival probabilities \eqn{S(t_1), \dots, S(t_n)}.
+Let \eqn{t_0 = 0} and \eqn{S(t_0) = 1}. For each interval \eqn{(t_{i-1}, t_i]}, \eqn{i = 1, \dots, n-1},
+a constant hazard \eqn{h_i} is computed such that
+\deqn{S(t_i) = S(t_{i-1}) \exp\{-h_i (t_i - t_{i-1})\}.}
+The final hazard \eqn{h_n} is defined on \eqn{(t_{n-1}, \infty)} and is determined by the last pair
+\eqn{(t_n, S(t_n))} via
+\deqn{S(t_n) = S(t_{n-1}) \exp\{-h_n (t_n - t_{n-1})\},}
+and then held constant for all \eqn{t > t_{n-1}}.
 }
 \examples{
 def_pexp(breakpoints = c(1, 2), surv = c(0.9, 0.8))

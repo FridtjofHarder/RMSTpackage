@@ -27,18 +27,18 @@
 #'
 #' @examples
 #' ctrl_df <- simulate_data(
-#'   scale = 6,
+#'   scale = 0.17,
 #'   accrual_time = 6,
 #'   follow_up_time = 3,
-#'   scale_loss = 10,
+#'   scale_loss = 0.1,
 #'   n = 50,
 #'   label = 0,
 #' )
 #' trmt_df <- simulate_data(
-#'   scale = 10,
+#'   scale = 0.1,
 #'   accrual_time = 6,
 #'   follow_up_time = 3,
-#'   scale_loss = 10,
+#'   scale_loss = 0.1,
 #'   n = 50,
 #'   label = 1,
 #' )
@@ -63,12 +63,12 @@ simulate_data <- function(
 ) {
   # convert to standard parameterisation if needed
   if (parameterisation != 1) {
-    scale <- reparameterize(
+    scale <- reparameterise(
       parameterisation = parameterisation,
       scale = scale,
       shape = shape
     )
-    scale_loss <- reparameterize(
+    scale_loss <- reparameterise(
       parameterisation = parameterisation,
       scale = scale_loss,
       shape = shape_loss

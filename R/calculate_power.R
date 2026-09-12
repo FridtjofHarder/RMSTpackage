@@ -1,20 +1,29 @@
 #' Determines test power when sample size is given
 #'
-#' Calculates and simulates the test power given a sample size. Supports tests on difference and ratio in restricted mean survival time (RMST), and log rank test (LRT). Supports superiority and non-inferiority tests.
+#' Calculates and/or simulates test power given a sample size. Supports tests on difference and ratio in restricted mean survival time (RMST), and log rank test (LRT).
+#' Supports superiority and non-inferiority tests.
 #'
-#' Survival curves need to be defined by \dfn{scale} and \dfn{shape} parameter, in the standard parameterisation
-#' defined by \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}. If breakpoints in time are provided, survival and loss can be defined over piecewise exponential, or piecewise Weibull functions. Power
-#' can be determined for log rank test, RMST difference, and RMST ratio.
+#' Survival can be defined by either a single Weibull function, or a piecewise exponential function.
+#' Weibull survival curves need to be defined by \dfn{scale} and, optionally, \dfn{shape} parameter, in the standard parameterisation
+#' given by \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}. If breakpoints in time are provided, survival and loss can be defined by a piecewise exponential function,
+#' where the scale parameters correspond to piecewise hazard rates.
 #'
-#' @param scale_ctrl Required. Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).
-#' @param scale_trmt Required. Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).
-#' @param scale_loss Required. Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential loss), or a vector (piecewise Weibull). No loss to follow-up is assumed if undefined.
-#' @param shape_ctrl Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival. If \code{length(shape_ctrl) = 1} and \code{length(scale_ctrl) > 1}, the same shape parameter will be assumed for each section of the survival function.
-#' @param shape_trmt Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt = 1}, simplifying to exponential survival. If \code{length(shape_trmt) = 1} and \code{length(scale_trmt) > 1}, the same shape parameter will be assumed for each section of the survival function.
-#' @param shape_loss Specifies the \dfn{shape parameter} for loss to follow-up. Defaults to \code{shape_loss = 1}, simplifying to exponential loss. If \code{length(shape_loss) = 1} and \code{length(scale_loss) > 1}, the same shape parameter will be assumed for each section of the loss distribution.
-#' @param breakpoints_ctrl Vector of breakpoints of the piecewise Weibull distribution in the control group. Must have length of \code{scale_ctrl} \eqn{-1} and \code{shape_ctrl} \eqn{-1}. First element must be \code{> 0}.
-#' @param breakpoints_trmt Vector of breakpoints of the piecewise Weibull distribution in the treatment group. Must have length of \code{scale_trmt} \eqn{-1} and \code{shape_trmt} \eqn{-1}. First element must be \code{> 0}.
-#' @param breakpoints_loss Vector of breakpoints of the piecewise Weibull distribution for loss to follow-up. Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. First element must be \code{> 0}.
+#' @param scale_ctrl Required. Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise exponential).
+#' @param scale_trmt Required. Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise exponential).
+#' @param scale_loss Required. Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential loss), or a vector (piecewise exponential).
+#' No loss to follow-up is assumed if undefined.
+#' @param shape_ctrl Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival.
+#' If \code{length(shape_ctrl) = 1} and \code{length(scale_ctrl) > 1}, the same shape parameter will be assumed for each section of the survival function.
+#' @param shape_trmt Specifies the \dfn{shape parameter} in the treatment group. Defaults to \code{shape_trmt = 1}, simplifying to exponential survival.
+#' If \code{length(shape_trmt) = 1} and \code{length(scale_trmt) > 1}, the same shape parameter will be assumed for each section of the survival function.
+#' @param shape_loss Specifies the \dfn{shape parameter} for loss to follow-up. Defaults to \code{shape_loss = 1}, simplifying to exponential loss.
+#' If \code{length(shape_loss) = 1} and \code{length(scale_loss) > 1}, the same shape parameter will be assumed for each section of the loss distribution.
+#' @param breakpoints_ctrl Vector of breakpoints of the piecewise Weibull distribution in the control group.
+#' Must have length of \code{scale_ctrl} \eqn{-1} and \code{shape_ctrl} \eqn{-1}. First element must be \code{> 0}.
+#' @param breakpoints_trmt Vector of breakpoints of the piecewise Weibull distribution in the treatment group.
+#' Must have length of \code{scale_trmt} \eqn{-1} and \code{shape_trmt} \eqn{-1}. First element must be \code{> 0}.
+#' @param breakpoints_loss Vector of breakpoints of the piecewise Weibull distribution for loss to follow-up.
+#' Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. First element must be \code{> 0}.
 #' @param accrual_time Length of accrual period.
 #' @param follow_up_time Length of follow-up period. Set to \code{Inf} if unspecified.
 #' @param tau Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
@@ -38,10 +47,14 @@
 #' @param n Integer specifying sample size for calculating power.
 #' @param plot_example_data Logical. Specifies whether to create a plot with example data. Plots with total sample size of \eqn{n = 100} if \code{n} is undefined.
 #' @param plot_design_curves Logical. Specifies whether to plot survival curves.
-#' @param parameterisation One of: \itemize{
-#' \item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+#' @param parameterisation Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
+#' \item \code{parameterisation = 1}: Default. Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}},
 #' \item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-#' \item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
+#' \item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}}. This is the parameterisation used for the base \R{} function \code{stats::pweibull()}.}
+#'
+#' For \code{shape = 1}, the Weibull function simplifies to exponential survival with
+#' \eqn{\mathrm{scale} = \mathrm{hazard}} for \code{parameterisation = 1} or \code{2}, and
+#' \eqn{\mathrm{scale} = 1 / \mathrm{hazard}} for \code{parameterisation = 3}.
 #'
 #' @return Returns a list with total sample sizes for each test and a test power.
 #'
@@ -49,12 +62,12 @@
 #'
 #' # Power for superiority test by closed form solution
 #'   args_sup <- list(
-#'   scale_ctrl = 6,
-#'   scale_trmt = 10,
+#'   scale_ctrl = 0.17,
+#'   scale_trmt = 0.1,
 #'   accrual_time = 6,
 #'   follow_up_time = 3,
 #'   tau = 4,
-#'   scale_loss = 10,
+#'   scale_loss = 0.1,
 #'   satterthwaite_corr = TRUE,
 #'   M = 1000,
 #'   n = 405

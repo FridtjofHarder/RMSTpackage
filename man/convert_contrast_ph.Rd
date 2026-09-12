@@ -27,10 +27,10 @@ convert_contrast_ph(
 
 \item{shape}{Specifies the \dfn{shape parameter} in both groups.}
 
-\item{parameterisation}{One of: \itemize{
-\item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+\item{parameterisation}{Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
+\item \code{parameterisation = 1}: Default. Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}},
 \item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}}. This is the parameterisation used for the base \R{} function \code{stats::pweibull()}.}}
 
 \item{RMSTD}{Specifies the RMSTD between control group and treatment group. Allows for converting RMSTD to HR.}
 
@@ -81,20 +81,20 @@ implying the same shape parameter in treatment and control group.
 # Specify survival curves and obtain contrasts.
 # Percentile difference is calculated at S(t) = 0.8. Obtain contrasts.
 results <- convert_contrast_ph(
-  scale_trmt = 10, scale_ctrl = 6, tau = 4,
+  scale_trmt = 0.1, scale_ctrl = 0.17, tau = 4,
   percentile = 80, plot_curves = TRUE
 )
 print(results)
 
 # Specify scale in control group and hazard ratio.
 # Obtain scale in treatment group and remaining contrasts.
-results <- convert_contrast_ph(scale_ctrl = 6, tau = 4, HR = 0.6)
+results <- convert_contrast_ph(scale_ctrl = 0.17, tau = 4, HR = 0.6)
 print(results)
 
 # Specify scale in treatment group, shape and median survival.
 # Obtain scale in control group and remaining contrasts.
 results <- convert_contrast_ph(
-  scale_trmt = 10, shape = 1.5,
+  scale_trmt = 0.1, shape = 1.5,
   tau = 4, median_diff = 2
 )
 print(results)

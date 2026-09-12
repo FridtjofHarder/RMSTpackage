@@ -4,24 +4,29 @@
 \alias{def_weibull}
 \title{Defines a single global Weibull curve}
 \usage{
-def_weibull(time, surv, plot = FALSE)
+def_weibull(time, surv, plot = FALSE, parameterisation = 1)
 }
 \arguments{
-\item{time}{A vector of two time points, both \eqn{> 0}}
+\item{time}{A vector of two time points \eqn{t_1} and \eqn{t_2}, both \eqn{> 0}}
 
-\item{surv}{Two survival probabilities \eqn{S(t)} at the time points specified by \code{time}. Both survival probabilities must be \eqn{> 0} and \eqn{< 1}.}
+\item{surv}{Two survival probabilities \eqn{S_1(t_1)} and \eqn{S_2(t_2)} at the time points specified by \code{time}. Both survival probabilities must be \eqn{> 0} and \eqn{< 1}.}
 
 \item{plot}{Logical. Specifies whether to plot the resulting function.}
+
+\item{parameterisation}{Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
+\item \code{parameterisation = 1}: Default. Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}},
+\item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+\item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}}. This is the parameterisation used for the base \R{} function \code{stats::pweibull()}.}}
 }
 \value{
 Returns a named list with one shape parameter, and one scale parameter, defining a Weibull survival \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape}))}}.
 }
 \description{
-The Weibull curve is constructed from two pairs of \eqn{t} and \eqn{S(t)} on a survival curve. It has constant shape and scale over the full time range; it is not piecewise.
-Piecewise definition from given points on a survival curve is currently only supported for \code{\link[=def_pexp]{piecewise exponential function}}.
+The Weibull curve is constructed from two time points \eqn{t_1} and \eqn{t_2}, and two survival probabilities \eqn{S_1(t_1)} and \eqn{S_2(t_2)} on a survival curve. It has constant shape and scale over the full time range; it is not piecewise.
+Piecewise definition of a survival curve is currently only supported for the \code{\link[=def_pexp]{piecewise exponential function}}.
 }
 \examples{
-def_weibull(time = c(1, 2), surv = c(0.9, 0.8))
+def_weibull(time = c(1.5, 2), surv = c(0.9, 0.8))
 }
 \seealso{
 \code{\link{def_pexp}}
