@@ -35,9 +35,9 @@ int_fun_n_or_power <- function(
     parameterisation = 1
 ) {
   # basic definitions -----------------------------------------------------------
-  if (length(shape_ctrl) == 1 & length(scale_ctrl) > 1) shape_ctrl <- rep(shape_ctrl, length(scale_ctrl))
-  if (length(shape_trmt) == 1 & length(scale_trmt) > 1) shape_trmt <- rep(shape_trmt, length(scale_trmt))
-  if (length(shape_loss) == 1 & length(scale_loss) > 1) shape_loss <- rep(shape_loss, length(scale_loss))
+  if (length(shape_ctrl) == 1 & length(scale_ctrl) > 1) shape_ctrl <- rep(1, length(scale_ctrl))
+  if (length(shape_trmt) == 1 & length(scale_trmt) > 1) shape_trmt <- rep(1, length(scale_trmt))
+  if (length(shape_loss) == 1 & length(scale_loss) > 1) shape_loss <- rep(1, length(scale_loss))
   check_inputs(scale_ctrl = scale_ctrl,
                scale_trmt = scale_trmt,
                scale_loss = scale_loss,
@@ -64,12 +64,20 @@ int_fun_n_or_power <- function(
   ss_RMSTD_closed_form_sat <- ss_RMSTR_closed_form_sat <-
   pwr_RMSTD_closed_form_sat <- pwr_RMSTR_closed_form_sat <- NA
 
+  # capture scales to use later for plot function
+  original_scales <- list(scale_ctrl = scale_ctrl,
+                          scale_trmt = scale_trmt,
+                          scale_loss = scale_loss)
+  # capture breakpoints to use later for plot function
+  original_breakpoints <- list(breakpoints_ctrl = breakpoints_ctrl,
+                               breakpoints_trmt = breakpoints_trmt,
+                               breakpoints_loss = breakpoints_loss)
+
   breakpoints_ctrl <- normalize_breakpoints(breakpoints_ctrl)
   breakpoints_trmt <- normalize_breakpoints(breakpoints_trmt)
   breakpoints_loss <- normalize_breakpoints(breakpoints_loss)
 
-  # capture scales to use later for plot function
-  original_scales <- list(scale_ctrl, scale_trmt, scale_loss)
+
 
   if (parameterisation != 1) {
     scale_ctrl <- reparameterise(parameterisation, scale_ctrl, shape_ctrl)
@@ -231,18 +239,20 @@ int_fun_n_or_power <- function(
     shape_ctrl = shape_ctrl,
     shape_trmt = shape_trmt,
     shape_loss = shape_loss,
-    breakpoints_ctrl = breakpoints_ctrl,
-    breakpoints_trmt = breakpoints_trmt,
-    breakpoints_loss = breakpoints_loss,
+    breakpoints_ctrl = original_breakpoints$breakpoints_ctrl,
+    breakpoints_trmt = original_breakpoints$breakpoints_trmt,
+    breakpoints_loss = original_breakpoints$breakpoints_loss,
     accrual_time = accrual_time,
     follow_up_time = follow_up_time,
     tau = tau,
     censor_beyond_tau = censor_beyond_tau,
     n = n,
-    plot_data = plot_example_data,
-    xlim = NULL,
-    ylim = c(0, 100),
-    parameterisation = parameterisation
+    parameterisation = parameterisation,
+    plot_hazards = TRUE,
+    plot_HR = TRUE,
+    plot_reverse_KM = TRUE,
+    plot_log_log = TRUE,
+    plot_proportions = TRUE
     )
   }
   # returns -----------------------------------------------------------------

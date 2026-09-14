@@ -17,8 +17,32 @@ get_theoretical_rmst <- function(scale, shape, breakpoints, tau) {
 
 # calculate true hazard
 get_h <- function(x, scale, shape, breakpoints) {
-  h <- ppweibull::dpweibull(x = x, alpha = shape, rate = scale^shape, t = breakpoints) /
-    ppweibull::ppweibull(q = x, rate = scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE)
+  # Ensure inputs are vectors
+  x <- as.numeric(x)
+  breakpoints <- as.numeric(breakpoints)
+  scale <- as.numeric(scale)
+
+  # Case 1: piecewise-constant hazard via breakpoints
+  if (length(breakpoints) > 1) {
+    # For each x, find the index of the last breakpoint <= x
+    # findInterval returns 0 if x < breakpoints[1]
+    idx <- findInterval(x, vec = breakpoints, rightmost.closed = FALSE, all.inside = FALSE)
+
+    # If idx == 0, x is before the first breakpoint; decide what to do.
+    # Here we assume hazard is undefined or NA there; adjust if you have a rule.
+    h <- rep(NA_real_, length(x))
+
+    # For x >= first breakpoint, pick the corresponding scale
+    valid <- idx >= 1 & idx <= length(scale)
+    h[valid] <- scale[idx[valid]]
+
+    return(h)
+  }
+
+  # Case 2: Weibull hazard (vectorized already)
+  h <- stats::dweibull(x = x, shape = shape, scale = 1 / scale) /
+    stats::pweibull(q = x, shape = shape, scale = 1 / scale, lower.tail = FALSE)
+
   return(h)
 }
 
@@ -100,7 +124,8 @@ get_density <- function(
   accrual_time,
   follow_up_time
 ) {
-  ppweibull::dpweibull(x = x, alpha = shape, rate = scale^shape, t = breakpoints) *
+  if(length(breakpoints > 1)){
+  density <- msm::dpexp(x = x, rate = scale, t = breakpoints) *
     get_p_not_censored(
       x = x,
       accrual_time = accrual_time,
@@ -109,6 +134,19 @@ get_density <- function(
       shape_loss = shape_loss,
       breakpoints_loss = breakpoints_loss
     )
+  return(density)
+  } else{
+  density <- stats::dweibull(x = x, shape = shape, scale = 1 / scale) *
+    get_p_not_censored(
+      x = x,
+      accrual_time = accrual_time,
+      follow_up_time = follow_up_time,
+      scale_loss = scale_loss,
+      shape_loss = shape_loss,
+      breakpoints_loss = breakpoints_loss
+    )
+  return(density)
+  }
 }
 
 # get sigma2 and Delta--------------------------------------------------------------
@@ -501,22 +539,6 @@ get_ss_pwr_cf_LRT <- function(
 
 # misc ------------------------------------------------------------------
 
-# change to own function
-# Much faster than ppweibull::rpweibull when all shape parameters are 1.
-# breakpoints: normalized (first element is 0), length == length(rates).
-int_rpexp <- function(n, rates, breakpoints) {
-  k <- length(rates)
-  if (k == 1L) return(stats::rexp(n, rate = rates))
-  # Cumulative hazard at each breakpoint: H(breakpoints[j])
-  cumH <- c(0, cumsum(rates[-k] * diff(breakpoints)))
-  # Sample total cumulative hazard (Exp(1) via -log(U))
-  H <- stats::rexp(n, rate = 1)
-  # Which interval does each sample fall in?
-  piece <- findInterval(H, cumH)
-  # Invert: t = breakpoints[piece] + (H - cumH[piece]) / rates[piece]
-  breakpoints[piece] + (H - cumH[piece]) / rates[piece]
-}
-
 # prepend 0 to a breakpoints vector if not already present; return 0 for NULL
 normalize_breakpoints <- function(x) {
   if (is.null(x)) return(0)
@@ -607,10 +629,6 @@ check_inputs <- function(scale_ctrl = NULL,
       length(shape_ctrl) == 1 || all(shape_ctrl == 1) && length(shape_ctrl) == length(scale_ctrl)
   )
   stopifnot(
-    "tau must not be larger than the total trial length, which is the sum of accrual period follow-up" =
-      tau <= accrual_time + follow_up_time
-  )
-  stopifnot(
     "shape_trmt must be a scalar or a vector of 1s (piecewise Weibull is not supported)
     If shape_trmt is a vector of 1s, it must have the same length as scale_trmt" =
       length(shape_trmt) == 1 || all(shape_trmt == 1) && length(shape_trmt) == length(scale_trmt)
@@ -620,6 +638,11 @@ check_inputs <- function(scale_ctrl = NULL,
     If shape_loss is a vector of 1s, it must have the same length as scale_loss" =
       length(shape_loss) == 1 || all(shape_loss == 1) && length(shape_loss) == length(scale_loss)
   )
+  stopifnot(
+    "tau must not be larger than the total trial length, which is the sum of accrual period follow-up" =
+      tau <= accrual_time + follow_up_time
+  )
+
   stopifnot("first element in breakpoint vectors must be larger than 0" =
               (is.null(breakpoints_ctrl[1]) ||  breakpoints_ctrl[1] > 0) &&
               (is.null(breakpoints_trmt[1]) ||  breakpoints_trmt[1] > 0) &&

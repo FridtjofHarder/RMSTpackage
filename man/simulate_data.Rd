@@ -31,12 +31,10 @@ simulate_data(
 
 \item{breakpoints}{Vector of breakpoints of the piecewise Weibull distribution. Must have length of \code{scale} \eqn{-1} and \code{shape} \eqn{-1}. First element must be \code{> 0}.}
 
-\item{breakpoints_loss}{Vector of breakpoints of the piecewise Weibull distribution for loss to follow-up. Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. First element must be \code{> 0}.}
-
-\item{parameterisation}{One of: \itemize{
-\item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+\item{parameterisation}{Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
+\item \code{parameterisation = 1}: Default. Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}},
 \item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}}. This is the parameterisation used for the base \R{} function \code{stats::pweibull()}.}}
 
 \item{accrual_time}{Length of accrual period.}
 

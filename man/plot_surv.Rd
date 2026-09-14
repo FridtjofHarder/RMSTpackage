@@ -19,12 +19,11 @@ plot_surv(
   tau = NULL,
   censor_beyond_tau = FALSE,
   n = NULL,
-  plot_data = TRUE,
+  plot_hazards = FALSE,
   plot_HR = FALSE,
   plot_reverse_KM = FALSE,
   plot_log_log = FALSE,
-  plot_recruitment = FALSE,
-  plot_extended = FALSE,
+  plot_proportions = FALSE,
   xlim = NULL,
   ylim = c(0, 100),
   parameterisation = 1
@@ -57,29 +56,22 @@ plot_surv(
 
 \item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored if \code{TRUE}.}
 
-\item{n}{Specifies the total sample size. Increases to next even number if uneven. Group sample sizes are assumed to be equal.}
+\item{plot_hazards}{Logical. Will plot hazard rates.}
 
-\item{plot_data}{Logical. Will plot random-generated survival data.}
+\item{plot_HR}{Logical. Will plot hazard ratio.}
 
-\item{plot_HR}{Logical. Will plot hazard ratio instead of hazards.}
-
-\item{plot_reverse_KM}{Logical. Will plot a reverse KM curve if \code{c(TRUE)}, indicating censoring-free follow-up.}
+\item{plot_reverse_KM}{Logical. Will plot a reverse KM curve, indicating censoring-free follow-up.}
 
 \item{plot_log_log}{Logical. Will plot a log-log plot for assessing proportionality of hazards if \code{TRUE}.}
-
-\item{plot_recruitment}{Logical. Plots recruitment plot indicating time between recruitment and last observation in study time. Will
-plot a representative sample of size \eqn{100} if \code{n} \eqn{> 100}.}
-
-\item{plot_extended}{Logical. Will produce extended plots differentiating causes of loss to follow-up.}
 
 \item{xlim}{Range of plot x-axis. Defaults to \code{c(0, 1.5*tau)}.}
 
 \item{ylim}{Range of plot y-axis as survival percentages. Defaults to \code{c(0, 100)}.}
 
-\item{parameterisation}{One of: \itemize{
-\item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+\item{parameterisation}{Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
+\item \code{parameterisation = 1}: Default. Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}},
 \item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-\item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}}
+\item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}}. This is the parameterisation used for the base \R{} function \code{stats::pweibull()}.}}
 }
 \description{
 Plots example survival data, survival functions, reverse KM plot, recruitment plot, and censoring functions differentiating causes for censoring.
@@ -94,11 +86,11 @@ args_plot <- list(
   follow_up_time = 3,
   tau = 4,
   scale_loss = 0.1,
-  n = 1000,
+  plot_hazards = TRUE,
+  plot_HR = TRUE,
   plot_reverse_KM = TRUE,
   plot_log_log = TRUE,
-  plot_recruitment = TRUE,
-  plot_extended = TRUE
+  plot_proportions = TRUE
 )
 do.call(plot_surv, args = args_plot)
 
@@ -107,5 +99,11 @@ args_cross <- args_plot
 args_cross$shape_ctrl <- .7
 args_cross$shape_trmt <- 1.3
 do.call(plot_surv, args = args_cross)
+
+# piecewise exponential
+args_pex <- args_plot
+args_pex$scale_ctrl <- c(0.17, 0.4, 0.5)
+args_pex$breakpoints_ctrl <- c(1, 2)
+do.call(plot_surv, args = args_pex)
 
 }

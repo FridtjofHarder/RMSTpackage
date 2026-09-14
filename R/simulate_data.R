@@ -8,11 +8,10 @@
 #' @param shape Specifies the \dfn{shape parameter}. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).
 #' @param shape_loss Specifies the \dfn{shape parameter} for loss to follow-up. Defaults to \code{shape_loss = 1}, simplifying to exponential loss. If \code{length(shape_loss) = 1} and \code{length(scale_loss) > 1}, the same shape parameter will be assumed for each section of the loss distribution.
 #' @param breakpoints Vector of breakpoints of the piecewise Weibull distribution. Must have length of \code{scale} \eqn{-1} and \code{shape} \eqn{-1}. First element must be \code{> 0}.
-#' @param breakpoints_loss Vector of breakpoints of the piecewise Weibull distribution for loss to follow-up. Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. First element must be \code{> 0}.
-#' @param parameterisation One of: \itemize{
-#' \item \code{parameterisation = 1}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}},
+#' @param parameterisation Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
+#' \item \code{parameterisation = 1}: Default. Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}},
 #' \item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
-#' \item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.}
+#' \item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}}. This is the parameterisation used for the base \R{} function \code{stats::pweibull()}.}
 #' @param accrual_time Length of accrual period.
 #' @param follow_up_time Length of follow-up period. Set to \code{Inf} if unspecified.
 #' @param tau Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
@@ -87,18 +86,18 @@ simulate_data <- function(
 
   # draw event times; use fast piecewise exponential sampler when shape = 1 everywhere
   if (all(shape == 1)) {
-    observations <- int_rpexp(n = n, rates = 1 / scale, breakpoints = breakpoints)
+    observations <- msm::rpexp(n = n, rate = scale, t = breakpoints)
   } else {
-    observations <- ppweibull::rpweibull(n = n, rate = 1 / scale^shape, alpha = shape, t = breakpoints)
+    observations <- stats::rweibull(n = n, rate = 1 / scale, shape = shape)
   }
   status <- rep(1, n)
 
   # censor observations if loss to follow-up is defined
   if (!is.null(scale_loss)) {
     if (all(shape_loss == 1)) {
-      loss_to_follow_up <- int_rpexp(n = n, rates = 1 / scale_loss, breakpoints = breakpoints_loss)
+      loss_to_follow_up <- observations <- msm::rpexp(n = n, rate = scale_loss, t = breakpoints_loss)
     } else {
-      loss_to_follow_up <- ppweibull::rpweibull(n = n, rate = 1 / scale_loss^shape_loss, alpha = shape_loss, t = breakpoints_loss)
+      loss_to_follow_up <- stats::rweibull(n = n, rate = 1 / scale_loss, shape = shape_loss)
     }
     status[loss_to_follow_up < observations] <- 0
     observations <- pmin(observations, loss_to_follow_up)
