@@ -16,7 +16,7 @@
 #' @param tau Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
 #' @param censor_beyond_tau Logical. All observations past \eqn{\tau} are censored if \code{TRUE}.
 #' @param plot_hazards Logical. Will plot hazard rates.
-#' @param plot_HR Logical. Will plot hazard ratio.
+#' @param plot_HR Logical. Will plot the hazard ratio.
 #' @param plot_reverse_KM Logical. Will plot a reverse KM curve, indicating censoring-free follow-up.
 #' @param plot_log_log Logical. Will plot a log-log plot for assessing proportionality of hazards if \code{TRUE}.
 #' @param xlim Range of plot x-axis. Defaults to \code{c(0, 1.5*tau)}.
