@@ -25,7 +25,9 @@ Requires rmarkdown.
 }
 \examples{
 # convert contrasts using convert_contrast_ph() and create a report on its results
-if (requireNamespace("rmarkdown", quietly = TRUE)) {
+# (requires rmarkdown and a working LaTeX installation, e.g. via tinytex)
+if (requireNamespace("rmarkdown", quietly = TRUE) &&
+    nzchar(Sys.which("pdflatex"))) {
   results <- convert_contrast_ph(
     scale_trmt = 10, scale_ctrl = 6, tau = 4,
     percentile = 80, plot_curves = TRUE

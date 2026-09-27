@@ -19,6 +19,7 @@
 #' @param plot_HR Logical. Will plot the hazard ratio.
 #' @param plot_reverse_KM Logical. Will plot a reverse KM curve, indicating censoring-free follow-up.
 #' @param plot_log_log Logical. Will plot a log-log plot for assessing proportionality of hazards if \code{TRUE}.
+#' @param plot_proportions Logical. Will plot the proportions of participants being lost to events, censporing, or are still among the risk set.
 #' @param xlim Range of plot x-axis. Defaults to \code{c(0, 1.5*tau)}.
 #' @param ylim Range of plot y-axis as survival percentages. Defaults to \code{c(0, 100)}.
 #' @param parameterisation Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
@@ -30,7 +31,6 @@
 #'
 #' @examples
 #'
-#' # plot full range of plots with sample size n = 1000
 #' args_plot <- list(
 #'   scale_ctrl = 0.17,
 #'   scale_trmt = 0.1,
@@ -72,7 +72,6 @@ plot_surv <- function(
   follow_up_time = Inf,
   tau = NULL,
   censor_beyond_tau = FALSE,
-  n = NULL,
   plot_hazards = TRUE,
   plot_HR = TRUE,
   plot_reverse_KM = TRUE,
@@ -460,7 +459,7 @@ plot_surv <- function(
     border = NA
   )
 
-  legend(
+  graphics::legend(
     "topright",
     legend = c(
       "Under observation",
@@ -540,7 +539,7 @@ plot_surv <- function(
     border = NA
   )
 
-  legend(
+  graphics::legend(
     "topright",
     legend = c(
       "Under observation",
@@ -616,10 +615,10 @@ get_competing_risk_probs <- function(
   F_admin_grid  <- cumsum(integrand_A) * dt
 
   # Interpolate back to the requested x values
-  p_obs    <- approx(t_grid, S_all,        xout = x, rule = 2)$y
-  p_event  <- approx(t_grid, F_event_grid, xout = x, rule = 2)$y
-  p_loss   <- approx(t_grid, F_loss_grid,  xout = x, rule = 2)$y
-  p_admin  <- approx(t_grid, F_admin_grid,  xout = x, rule = 2)$y
+  p_obs    <- stats::approx(t_grid, S_all,        xout = x, rule = 2)$y
+  p_event  <- stats::approx(t_grid, F_event_grid, xout = x, rule = 2)$y
+  p_loss   <- stats::approx(t_grid, F_loss_grid,  xout = x, rule = 2)$y
+  p_admin  <- stats::approx(t_grid, F_admin_grid,  xout = x, rule = 2)$y
 
   # Small numerical correction: ensure they sum to 1
   total <- p_obs + p_event + p_loss + p_admin

@@ -246,7 +246,6 @@ int_fun_n_or_power <- function(
     follow_up_time = follow_up_time,
     tau = tau,
     censor_beyond_tau = censor_beyond_tau,
-    n = n,
     parameterisation = parameterisation,
     plot_hazards = TRUE,
     plot_HR = TRUE,

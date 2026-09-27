@@ -18,12 +18,11 @@ plot_surv(
   follow_up_time = Inf,
   tau = NULL,
   censor_beyond_tau = FALSE,
-  n = NULL,
-  plot_hazards = FALSE,
-  plot_HR = FALSE,
-  plot_reverse_KM = FALSE,
-  plot_log_log = FALSE,
-  plot_proportions = FALSE,
+  plot_hazards = TRUE,
+  plot_HR = TRUE,
+  plot_reverse_KM = TRUE,
+  plot_log_log = TRUE,
+  plot_proportions = TRUE,
   xlim = NULL,
   ylim = c(0, 100),
   parameterisation = 1
@@ -58,11 +57,13 @@ plot_surv(
 
 \item{plot_hazards}{Logical. Will plot hazard rates.}
 
-\item{plot_HR}{Logical. Will plot hazard ratio.}
+\item{plot_HR}{Logical. Will plot the hazard ratio.}
 
 \item{plot_reverse_KM}{Logical. Will plot a reverse KM curve, indicating censoring-free follow-up.}
 
 \item{plot_log_log}{Logical. Will plot a log-log plot for assessing proportionality of hazards if \code{TRUE}.}
+
+\item{plot_proportions}{Logical. Will plot the proportions of participants being lost to events, censporing, or are still among the risk set.}
 
 \item{xlim}{Range of plot x-axis. Defaults to \code{c(0, 1.5*tau)}.}
 
@@ -78,7 +79,6 @@ Plots example survival data, survival functions, reverse KM plot, recruitment pl
 }
 \examples{
 
-# plot full range of plots with sample size n = 1000
 args_plot <- list(
   scale_ctrl = 0.17,
   scale_trmt = 0.1,
