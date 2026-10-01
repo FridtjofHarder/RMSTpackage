@@ -14,7 +14,7 @@ knitr::opts_chunk$set(echo = FALSE,
 res <- params$result
 
 if (!is.null(res$plot)) {
-  grDevices::replayPlot(res$plot)
+  print(res$plot)
 }
 
 nm_all  <- names(res)

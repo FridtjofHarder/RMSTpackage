@@ -244,55 +244,54 @@ convert_contrast_ph <- function(
   if (is.null(RMSTR)) RMSTR <- RMST_trmt / RMST_ctrl
 
   if (plot_curves) {
-    x <- NULL
-    graphics::curve(
-      stats::pweibull(x, scale = 1 / scale_trmt, shape = shape, lower.tail = FALSE),
-      col = "darkblue",
-      xlab = "t",
-      ylab = "S(t)",
-      ylim = c(0, 1),
-      xlim = c(0, 1.5 * tau),
-      lwd = 2
+    trmt_label <- paste0(
+      "Treatment group with \n",
+      "scale = ", round(scale_trmt, 2),
+      " and shape = ", round(shape, 2)
     )
-    graphics::curve(
-      stats::pweibull(x, scale = 1 / scale_ctrl, shape = shape, lower.tail = FALSE),
-      col = "red",
-      add = TRUE,
-      lwd = 2
+    ctrl_label <- paste0(
+      "Control group with \n",
+      "scale = ", round(scale_ctrl, 2),
+      " and shape = ", round(shape, 2)
     )
-    graphics::abline(v = tau, col = "black", lwd = 2)
-    graphics::text(
-      x = tau,
-      y = 0.1,
-      pos = 4,
-      labels = bquote("time horizon " * tau * " = " * .(tau)),
-      cex = .8
+
+    curve_data <- data.frame(
+      t = seq(0, 1.5 * tau, length.out = 500)
     )
-    graphics::legend(
-      "bottomleft",
-      legend = c(
-        paste0(
-          "Treatment group with \n",
-          "scale = ",
-          round(scale_trmt, 2),
-          " and shape = ",
-          round(shape, 2)
-        ),
-        paste0(
-          "Control group with \n",
-          "scale = ",
-          round(scale_ctrl, 2),
-          " and shape = ",
-          round(shape, 2)
-        )
-      ),
-      col = c("darkblue", "red"),
-      lty = 1:1,
-      y.intersp = 1.5,
-      bty = "n",
-      cex = 0.8
+    curve_data$Treatment <- stats::pweibull(curve_data$t, scale = 1 / scale_trmt, shape = shape, lower.tail = FALSE)
+    curve_data$Control <- stats::pweibull(curve_data$t, scale = 1 / scale_ctrl, shape = shape, lower.tail = FALSE)
+
+    curve_data_long <- stats::reshape(
+      curve_data,
+      varying = c("Treatment", "Control"),
+      v.names = "S",
+      timevar = "group",
+      times = c(trmt_label, ctrl_label),
+      direction = "long"
     )
-    plot_obj <- grDevices::recordPlot()
+
+    plot_obj <- ggplot2::ggplot(
+      curve_data_long,
+      ggplot2::aes(x = t, y = S, color = group)
+    ) +
+      ggplot2::geom_line(linewidth = 1) +
+      ggplot2::geom_vline(xintercept = tau, color = "black", linewidth = 1) +
+      ggplot2::annotate(
+        "text",
+        x = tau,
+        y = 0.1,
+        hjust = 0,
+        label = paste0("'time horizon ' * tau * ' = ' * ", tau),
+        parse = TRUE,
+        size = 3.2
+      ) +
+      ggplot2::scale_color_manual(
+        values = c(stats::setNames("darkblue", trmt_label), stats::setNames("red", ctrl_label))
+      ) +
+      ggplot2::coord_cartesian(xlim = c(0, 1.5 * tau), ylim = c(0, 1)) +
+      ggplot2::labs(x = "t", y = "S(t)", color = NULL) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(legend.position = "bottom")
   }
 
   # prepare list of all results and return ---------------------------------------

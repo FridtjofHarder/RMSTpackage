@@ -39,42 +39,47 @@ def_pexp <- function(breakpoints = NULL, surv, plot = FALSE){
   hazards <- -log(surv_temp[-1] / surv_temp[-length(surv_temp)]) / diff(breakpoints_temp)
   breakpoints_red <- breakpoints[-length(breakpoints)]
   if(plot){
-    x <- NULL
-    graphics::curve(
-      ppweibull::ppweibull(
-        x,
-        rate = hazards,
-        alpha = rep(1, length(hazards)),
-        t = c(0, breakpoints_red),
-        lower.tail = FALSE
-      ),
-      col = "darkblue",
-      lwd = 2,
-      xlab = "t",
-      ylab = "S(t)",
-      ylim = c(0, 1),
-      xlim = c(0, 1.5 * breakpoints_red[length(breakpoints_red)]),
-      main = c(
-        paste0(
-          "Piecewise exponential survival with hazards = c(",
-          paste(round(hazards, 2), collapse = ", "),
-          ")"
-        ),
-        paste0(
-          "and breakpoints at c(",
-          paste(round(breakpoints_red, 2), collapse = ", "),
-          ")"
-        )
-      ),
-      yaxt = "n"
+    x_max <- 1.5 * breakpoints_red[length(breakpoints_red)]
+    curve_data <- data.frame(t = seq(0, x_max, length.out = 500))
+    curve_data$S <- ppweibull::ppweibull(
+      curve_data$t,
+      rate = hazards,
+      alpha = rep(1, length(hazards)),
+      t = c(0, breakpoints_red),
+      lower.tail = FALSE
     )
-    graphics::axis(
-      2,
-      at = seq(1, 0, by = -0.2),
-      labels = paste0(seq(100, 0, by = -20), "%"),
-      las = 1
+
+    segment_data <- data.frame(t = breakpoints_red, S = surv)
+
+    plot_title <- paste0(
+      "Piecewise exponential survival with hazards = c(",
+      paste(round(hazards, 2), collapse = ", "),
+      ")"
     )
-    graphics::segments(x0 = breakpoints_red, y0 = 0, y1 = surv, col = "black", lwd = 2)
+    plot_subtitle <- paste0(
+      "and breakpoints at c(",
+      paste(round(breakpoints_red, 2), collapse = ", "),
+      ")"
+    )
+
+    plot_obj <- ggplot2::ggplot(curve_data, ggplot2::aes(x = t, y = S)) +
+      ggplot2::geom_line(color = "darkblue", linewidth = 1) +
+      ggplot2::geom_segment(
+        data = segment_data,
+        ggplot2::aes(x = t, xend = t, y = 0, yend = S),
+        color = "black",
+        linewidth = 1
+      ) +
+      ggplot2::scale_y_continuous(
+        breaks = seq(0, 1, by = 0.2),
+        labels = paste0(seq(0, 100, by = 20), "%"),
+        limits = c(0, 1)
+      ) +
+      ggplot2::coord_cartesian(xlim = c(0, x_max), ylim = c(0, 1)) +
+      ggplot2::labs(x = "t", y = "S(t)", title = plot_title, subtitle = plot_subtitle) +
+      ggplot2::theme_bw()
+
+    print(plot_obj)
   }
   return(list(breakpoints = breakpoints_red,
               hazards = hazards))

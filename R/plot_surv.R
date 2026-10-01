@@ -132,248 +132,154 @@ plot_surv <- function(
     if (!is.null(tau) && is.null(xlim)) { # define xlim in relation to tau if not specified
     xlim <- c(0, 1.5 * tau)
   }
+  # shared helpers ------------------------------------------------------------
+  x_grid <- seq(xlim[1], xlim[2], length.out = 1000)
+
+  percent_y_scale <- ggplot2::scale_y_continuous(
+    breaks = seq(0, 1, by = 0.2),
+    labels = paste0(seq(0, 100, by = 20), "%")
+  )
+
+  # Adds a vertical line and label marking tau, if tau is defined.
+  tau_layers <- function(tau) {
+    if (is.null(tau)) return(NULL)
+    list(
+      ggplot2::geom_vline(xintercept = tau, color = "black", linewidth = 1),
+      ggplot2::annotate(
+        "text",
+        x = tau,
+        y = 0.1,
+        hjust = 0,
+        label = paste0("'Time horizon ' * tau * ' = ' * ", tau),
+        parse = TRUE,
+        size = 3
+      )
+    )
+  }
+
   # plot survival--------------------------------------------------------------------
 
-  graphics::par(mar = c(5, 6, 4, 1) + .1)
-    plot(
-      NA,
-      xlab = "t",
-      ylab = expression(S(t) ~ "in %"),
-      xlim = xlim,
-      ylim = c(0, 1),
-      main = "Survival functions for treatment and control group",
-      yaxt = "n"
-    )
-
-  graphics::axis(
-    2,
-    at = seq(1, 0, by = -0.2),
-    labels = paste0(seq(100, 0, by = -20), "%"),
-    las = 1
+  ctrl_label <- paste0(
+    "Control group with \n",
+    "scale = ", paste(round(original_scales$scale_ctrl, 2), collapse = ", "),
+    " and shape = ", paste(round(shape_ctrl, 2), collapse = ", ")
+  )
+  trmt_label <- paste0(
+    "Treatment group with \n",
+    "scale = ", paste(round(original_scales$scale_trmt, 2), collapse = ", "),
+    " and shape = ", paste(round(shape_trmt, 2), collapse = ", ")
   )
 
-  if (!is.null(tau)) {
-    # mark tau if defined
-    graphics::abline(v = tau, col = "black", lwd = 2)
-    graphics::text(
-      x = tau,
-      y = 0.1,
-      pos = 4,
-      labels = bquote("Time horizon " * tau * " = " * .(tau)),
-      cex = 0.8
-    )
-  }
+  surv_data <- data.frame(t = x_grid)
+  surv_data$Control <- ppweibull::ppweibull(q = x_grid, alpha = shape_ctrl, rate = scale_ctrl^shape_ctrl, t = breakpoints_ctrl, lower.tail = FALSE)
+  surv_data$Treatment <- ppweibull::ppweibull(q = x_grid, alpha = shape_trmt, rate = scale_trmt^shape_trmt, t = breakpoints_trmt, lower.tail = FALSE)
+  surv_data_long <- stats::reshape(
+    surv_data,
+    varying = c("Control", "Treatment"),
+    v.names = "S",
+    timevar = "group",
+    times = c(ctrl_label, trmt_label),
+    direction = "long"
+  )
 
-  # draw design curves
-  graphics::curve(
-    ppweibull::ppweibull(q = x, alpha = shape_ctrl, rate = scale_ctrl^shape_ctrl, t = breakpoints_ctrl, lower.tail = FALSE),
-    from = xlim[1],
-    to = xlim[2],
-    add = TRUE,
-    col = "red",
-    lwd = 2,
-    lty = 1
-  )
-  graphics::curve(
-    ppweibull::ppweibull(q = x, alpha = shape_trmt, rate = scale_trmt^shape_trmt, t = breakpoints_trmt, lower.tail = FALSE),
-    from = xlim[1],
-    to = xlim[2],
-    add = TRUE,
-    col = "darkblue",
-    lwd = 2,
-    lty = 1
-  )
-  graphics::legend(
-    "topright",
-    legend = c(
-      paste0(
-        "Control group with \n",
-        "scale = ",
-        paste(round(original_scales$scale_ctrl, 2), collapse = ", "),
-        " and shape = ",
-        paste(round(shape_ctrl, 2), collapse = ", ")
-      ),
-      paste0(
-        "Treatment group with \n",
-        "scale = ",
-        paste(round(original_scales$scale_trmt, 2), collapse = ", "),
-        " and shape = ",
-        paste(round(shape_trmt, 2), collapse = ", ")
-      )
-    ),
-    col = c("red", "darkblue"),
-    lty = 1:1,
-    y.intersp = 1.5,
-    bty = "n",
-    cex = .8
-  )
+  p_surv <- ggplot2::ggplot(surv_data_long, ggplot2::aes(x = t, y = S, color = group)) +
+    ggplot2::geom_line(linewidth = 1) +
+    tau_layers(tau) +
+    ggplot2::scale_color_manual(values = c(stats::setNames("red", ctrl_label), stats::setNames("darkblue", trmt_label))) +
+    percent_y_scale +
+    ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, 1)) +
+    ggplot2::labs(x = "t", y = "S(t) in %", color = NULL, title = "Survival functions for treatment and control group") +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "bottom")
+
+  print(p_surv)
+
   # plot HR --------------------------------------------------------------------
 
-  if(plot_HR){
-    graphics::curve(
-      get_h(x = x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt) /
-        get_h(x = x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl),
-      from = xlim[1],
-      to = xlim[2],
-      col = "black",
-      lwd = 4,
-      lty = 1,
-      ylab = "Hazard ratio",
-      xlab = "t"
+  if (plot_HR) {
+    hr_data <- data.frame(
+      t = x_grid,
+      HR = get_h(x = x_grid, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt) /
+        get_h(x = x_grid, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl)
     )
+
+    p_hr <- ggplot2::ggplot(hr_data, ggplot2::aes(x = t, y = HR)) +
+      ggplot2::geom_line(color = "black", linewidth = 1.2) +
+      ggplot2::coord_cartesian(xlim = xlim) +
+      ggplot2::labs(x = "t", y = "Hazard ratio") +
+      ggplot2::theme_bw()
+
+    print(p_hr)
   }
+
   # plot hazards--------------------------------------------------------------------
 
-  if(plot_hazards){
-    x_grid <- seq(xlim[1], xlim[2], length.out = 1000)
+  if (plot_hazards) {
+    hazard_ctrl <- get_h(x = x_grid, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl)
+    hazard_trmt <- get_h(x = x_grid, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt)
+    ylim_hazards <- range(c(hazard_ctrl, hazard_trmt), finite = TRUE)
 
-    hazard_ctrl <- get_h(
-      x = x_grid,
-      scale = scale_ctrl,
-      shape = shape_ctrl,
-      breakpoints = breakpoints_ctrl
+    hazard_data <- data.frame(t = x_grid)
+    hazard_data$Control <- hazard_ctrl
+    hazard_data$Treatment <- hazard_trmt
+    hazard_data_long <- stats::reshape(
+      hazard_data,
+      varying = c("Control", "Treatment"),
+      v.names = "hazard",
+      timevar = "group",
+      times = c("Hazard rate in control group", "Hazard rate in treatment group"),
+      direction = "long"
     )
 
-    hazard_trmt <- get_h(
-      x = x_grid,
-      scale = scale_trmt,
-      shape = shape_trmt,
-      breakpoints = breakpoints_trmt
-    )
+    p_hazard <- ggplot2::ggplot(hazard_data_long, ggplot2::aes(x = t, y = hazard, color = group)) +
+      ggplot2::geom_line(linewidth = 1.2) +
+      ggplot2::scale_color_manual(values = c(
+        "Hazard rate in control group" = "red",
+        "Hazard rate in treatment group" = "darkblue"
+      )) +
+      ggplot2::coord_cartesian(xlim = xlim, ylim = ylim_hazards) +
+      ggplot2::labs(x = "t", y = "Hazard rates", color = NULL) +
+      ggplot2::theme_bw() +
+      ggplot2::theme(legend.position = "bottom")
 
-    ylim_hazards <- range(
-      c(hazard_ctrl, hazard_trmt),
-      finite = TRUE
-    )
-
-  graphics::curve(
-    get_h(x = x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl),
-    from = xlim[1],
-    to = xlim[2],
-    ylim = ylim_hazards,
-    col = "red",
-    lwd = 4,
-    lty = 1,
-    ylab = "Hazard rates"
-  )
-  graphics::curve(
-    get_h(x = x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt),
-    from = xlim[1],
-    to = xlim[2],
-    add = TRUE,
-    col = "darkblue",
-    lwd = 4,
-    lty = 1
-  )
-
-  graphics::legend(
-    "topright",
-    legend = c("Hazard rate in control group",
-               "Hazard rate in treatment group"),
-    col = c("red", "darkblue"),
-    lty = 1:1,
-    y.intersp = 1.5,
-    bty = "n",
-    cex = .8
-  )
+    print(p_hazard)
   }
 
   # plot loglog--------------------------------------------------------------------
   if (plot_log_log) {
-
-    x_grid <- seq(xlim[1], xlim[2], length.out = 1000)
     loglog_ctrl <- -log(-log(ppweibull::ppweibull(q = x_grid, alpha = shape_ctrl, rate = scale_ctrl^shape_ctrl, t = breakpoints_ctrl, lower.tail = FALSE)))
     loglog_trmt <- -log(-log(ppweibull::ppweibull(q = x_grid, alpha = shape_trmt, rate = scale_trmt^shape_trmt, t = breakpoints_trmt, lower.tail = FALSE)))
+    ylim_loglog <- range(c(loglog_ctrl, loglog_trmt), finite = TRUE)
 
-    ylim_loglog <- range(
-      c(loglog_ctrl, loglog_trmt),
-      finite = TRUE
-    )
-    graphics::par(mar = c(5, 6, 4, 1) + .1)
-    plot(
-      NA,
-      xlab = "t",
-      ylab = "-log-log(S(t))",
-      xlim = xlim,
-      ylim = ylim_loglog,
-      main = "-log-log plot",
+    loglog_data <- data.frame(t = x_grid)
+    loglog_data$Control <- loglog_ctrl
+    loglog_data$Treatment <- loglog_trmt
+    loglog_data_long <- stats::reshape(
+      loglog_data,
+      varying = c("Control", "Treatment"),
+      v.names = "loglog",
+      timevar = "group",
+      times = c("Control group", "Treatment group"),
+      direction = "long"
     )
 
-      if (!is.null(tau)) {
-      # mark tau if defined
-      graphics::abline(v = tau, col = "black", lwd = 2)
-      graphics::text(
-        x = tau,
-        y = 0.1,
-        pos = 4,
-        labels = bquote("Time horizon " * tau * " = " * .(tau)),
-        cex = 0.8
-      )
-    }
+    p_loglog <- ggplot2::ggplot(loglog_data_long, ggplot2::aes(x = t, y = loglog, color = group)) +
+      ggplot2::geom_line(linewidth = 1) +
+      tau_layers(tau) +
+      ggplot2::scale_color_manual(values = c("Control group" = "red", "Treatment group" = "darkblue")) +
+      ggplot2::coord_cartesian(xlim = xlim, ylim = ylim_loglog) +
+      ggplot2::labs(x = "t", y = "-log-log(S(t))", color = NULL, title = "-log-log plot") +
+      ggplot2::theme_bw() +
+      ggplot2::theme(legend.position = "bottom")
 
-    # draw design curves
-    graphics::curve(
-      -log(-log(ppweibull::ppweibull(q = x, alpha = shape_ctrl, rate = scale_ctrl^shape_ctrl, t = breakpoints_ctrl, lower.tail = FALSE))),
-      from = xlim[1],
-      to = xlim[2],
-      add = TRUE,
-      col = "red",
-      lwd = 2,
-      lty = 1
-    )
-    graphics::curve(
-      -log(-log(ppweibull::ppweibull(q = x, alpha = shape_trmt, rate = scale_trmt^shape_trmt, t = breakpoints_trmt, lower.tail = FALSE))),
-      from = xlim[1],
-      to = xlim[2],
-      add = TRUE,
-      col = "darkblue",
-      lwd = 2,
-      lty = 1
-    )
-    graphics::legend(
-      "topright",
-      legend = c("Control group", "Treatment group"),
-      col = c("red", "darkblue"),
-      lty = 1:1,
-      y.intersp = 1.5,
-      bty = "n",
-      cex = .8
-    )
+    print(p_loglog)
   }
 
   # potential follow-up -----------------------------------------------------
-  graphics::par(mar = c(5, 6, 4, 1) + .1)
-  plot(
-    NA,
-    xlab = "t",
-    ylab = "Proportion under observation in %",
-    xlim = xlim,
-    ylim = c(0, 1),
-    main = "Potential follow-up",
-    yaxt = "n"
-  )
 
-  graphics::axis(
-    2,
-    at = seq(1, 0, by = -0.2),
-    labels = paste0(seq(100, 0, by = -20), "%"),
-    las = 1
-  )
-
-  if (!is.null(tau)) {
-    # mark tau if defined
-    graphics::abline(v = tau, col = "black", lwd = 2)
-    graphics::text(
-      x = tau,
-      y = 0.1,
-      pos = 4,
-      labels = bquote("Time horizon " * tau * " = " * .(tau)),
-      cex = 0.8
-    )
-  }
-  my_x <- seq(xlim[1], xlim[2], length.out = 1000)
-  my_y <- sapply(
-    my_x,
+  follow_up_data <- data.frame(t = x_grid)
+  follow_up_data$p_not_censored <- sapply(
+    x_grid,
     function(xi) get_p_not_censored(
       x = xi,
       accrual_time = accrual_time,
@@ -384,173 +290,117 @@ plot_surv <- function(
     )
   )
 
-  graphics::lines(my_x, my_y,
-    lwd = 2,
-    lty = 1
-  )
+  p_follow_up <- ggplot2::ggplot(follow_up_data, ggplot2::aes(x = t, y = p_not_censored)) +
+    ggplot2::geom_line(linewidth = 1) +
+    tau_layers(tau) +
+    percent_y_scale +
+    ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, 1)) +
+    ggplot2::labs(x = "t", y = "Proportion under observation in %", title = "Potential follow-up") +
+    ggplot2::theme_bw()
 
+  print(p_follow_up)
 
-# ctrl group: plot stacked area chart ctrl -------------------------------------------------
-  if(plot_proportions){
-  graphics::par(mar = c(5, 6, 4, 1) + .1)
-  plot(
-    NA,
-    xlab = "t",
-    ylab = "Proportion in %",
-    xlim = xlim,
-    ylim = c(0, 1),
-    main = "Control group:\nProportion of Subjects by Event and Censoring Type",
-    yaxt = "n"
-  )
+  # plot stacked area charts of proportions --------------------------------------------
 
-  graphics::axis(
-    2,
-    at = seq(1, 0, by = -0.2),
-    labels = paste0(seq(100, 0, by = -20), "%"),
-    las = 1
-  )
-  x <- seq(xlim[1], xlim[2], by = 0.001)
-  probs <- get_competing_risk_probs(
-    x = x,
-    scale_ctrl = scale_ctrl,
-    shape_ctrl = shape_ctrl,
-    breakpoints_ctrl = breakpoints_ctrl,
-    scale_loss = scale_loss,
-    shape_loss = shape_loss,
-    breakpoints_loss = breakpoints_loss,
-    accrual_time = accrual_time,
-    follow_up_time = follow_up_time
-  )
-  cum0 <- rep(0, length(x))
-  cum1 <- probs$p_obs
-  cum2 <- cum1 + probs$p_event
-  cum3 <- cum2 + probs$p_loss
-  cum4 <- cum3 + probs$p_admin
-
-  # Bottom: under observation
-  graphics::polygon(
-    x = c(x, rev(x)),
-    y = c(cum1, rev(cum0)),
-    col = "#BA1650",
-    border = NA
-  )
-
-  # Event
-  graphics::polygon(
-    x = c(x, rev(x)),
-    y = c(cum2, rev(cum1)),
-    col = "#F5C700",
-    border = NA
-  )
-
-  # Loss to follow-up
-  graphics::polygon(
-    x = c(x, rev(x)),
-    y = c(cum3, rev(cum2)),
-    col = "#FFD3F0",
-    border = NA
-  )
-
-  # Administrative censoring (will be invisible here since p_admin = 0)
-  graphics::polygon(
-    x = c(x, rev(x)),
-    y = c(cum4, rev(cum3)),
-    col = "#B7E7FC",
-    border = NA
-  )
-
-  graphics::legend(
-    "topright",
-    legend = c(
+  if (plot_proportions) {
+    band_levels <- c(
       "Under observation",
       "Lost to event",
       "Lost to follow-up",
       "Lost to administrative censoring"
-    ),
-    fill = c("#BA1650", "#F5C700", "#FFD3F0", "#B7E7FC"),
-    bty = "n"
-  )
+    )
+    band_colors <- c(
+      "Under observation" = "#BA1650",
+      "Lost to event" = "#F5C700",
+      "Lost to follow-up" = "#FFD3F0",
+      "Lost to administrative censoring" = "#B7E7FC"
+    )
 
-  # trmt group: plot stacked area chart ctrl -------------------------------------------------
-  graphics::par(mar = c(5, 6, 4, 1) + .1)
-  plot(
-    NA,
-    xlab = "t",
-    ylab = "Proportion in %",
-    xlim = xlim,
-    ylim = c(0, 1),
-    main = "Treatment group:\nProportion of Subjects by Event and Censoring Type",
-    yaxt = "n"
-  )
+    # Number of points to keep per band for plotting. The competing-risk
+    # probabilities themselves are still computed on the full, fine x_area
+    # grid for numerical accuracy; only the plotted curve is thinned, since
+    # rendering geom_ribbon() with hundreds of thousands of points per band
+    # is dramatically slower than the underlying computation (unlike base
+    # graphics::polygon(), which draws large point counts cheaply).
+    max_plot_points <- 2000
 
-  graphics::axis(
-    2,
-    at = seq(1, 0, by = -0.2),
-    labels = paste0(seq(100, 0, by = -20), "%"),
-    las = 1
-  )
-  x <- seq(xlim[1], xlim[2], by = 0.001)
-  probs <- get_competing_risk_probs(
-    x = x,
-    scale_ctrl = scale_trmt,
-    shape_ctrl = shape_trmt,
-    breakpoints_ctrl = breakpoints_trmt,
-    scale_loss = scale_loss,
-    shape_loss = shape_loss,
-    breakpoints_loss = breakpoints_loss,
-    accrual_time = accrual_time,
-    follow_up_time = follow_up_time
-  )
-  cum0 <- rep(0, length(x))
-  cum1 <- probs$p_obs
-  cum2 <- cum1 + probs$p_event
-  cum3 <- cum2 + probs$p_loss
-  cum4 <- cum3 + probs$p_admin
+    # Converts cumulative competing-risk probabilities into stacked bands,
+    # thinned to at most max_plot_points points for fast rendering.
+    build_proportion_bands <- function(x, probs) {
+      cum0 <- rep(0, length(x))
+      cum1 <- probs$p_obs
+      cum2 <- cum1 + probs$p_event
+      cum3 <- cum2 + probs$p_loss
+      cum4 <- cum3 + probs$p_admin
 
-  # Bottom: under observation
-  graphics::polygon(
-    x = c(x, rev(x)),
-    y = c(cum1, rev(cum0)),
-    col = "#BA1650",
-    border = NA
-  )
+      if (length(x) > max_plot_points) {
+        idx <- unique(c(1, round(seq(1, length(x), length.out = max_plot_points)), length(x)))
+        x <- x[idx]
+        cum0 <- cum0[idx]; cum1 <- cum1[idx]; cum2 <- cum2[idx]; cum3 <- cum3[idx]; cum4 <- cum4[idx]
+      }
 
-  # Event
-  graphics::polygon(
-    x = c(x, rev(x)),
-    y = c(cum2, rev(cum1)),
-    col = "#F5C700",
-    border = NA
-  )
+      rbind(
+        data.frame(t = x, ymin = cum0, ymax = cum1, band = band_levels[1]),
+        data.frame(t = x, ymin = cum1, ymax = cum2, band = band_levels[2]),
+        data.frame(t = x, ymin = cum2, ymax = cum3, band = band_levels[3]),
+        data.frame(t = x, ymin = cum3, ymax = cum4, band = band_levels[4])
+      )
+    }
 
-  # Loss to follow-up
-  graphics::polygon(
-    x = c(x, rev(x)),
-    y = c(cum3, rev(cum2)),
-    col = "#FFD3F0",
-    border = NA
-  )
+    plot_proportion_bands <- function(band_data, title, subtitle) {
+      band_data$band <- factor(band_data$band, levels = band_levels)
+      ggplot2::ggplot(band_data, ggplot2::aes(x = t, ymin = ymin, ymax = ymax, fill = band)) +
+        ggplot2::geom_ribbon() +
+        ggplot2::scale_fill_manual(values = band_colors, breaks = band_levels) +
+        percent_y_scale +
+        ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, 1)) +
+        ggplot2::labs(x = "t", y = "Proportion in %", fill = NULL, title = title, subtitle = subtitle) +
+        ggplot2::theme_bw() +
+        ggplot2::theme(legend.position = "bottom")
+    }
 
-  # Administrative censoring (will be invisible here since p_admin = 0)
-  graphics::polygon(
-    x = c(x, rev(x)),
-    y = c(cum4, rev(cum3)),
-    col = "#B7E7FC",
-    border = NA
-  )
+    x_area <- seq(xlim[1], xlim[2], by = 0.001)
 
-  graphics::legend(
-    "topright",
-    legend = c(
-      "Under observation",
-      "Lost to event",
-      "Lost to follow-up",
-      "Lost to administrative censoring"
-    ),
-    fill = c("#BA1650", "#F5C700", "#FFD3F0", "#B7E7FC"),
-    bty = "n"
-  )
+    # ctrl group: plot stacked area chart -------------------------------------------------
+    probs_ctrl <- get_competing_risk_probs(
+      x = x_area,
+      scale_ctrl = scale_ctrl,
+      shape_ctrl = shape_ctrl,
+      breakpoints_ctrl = breakpoints_ctrl,
+      scale_loss = scale_loss,
+      shape_loss = shape_loss,
+      breakpoints_loss = breakpoints_loss,
+      accrual_time = accrual_time,
+      follow_up_time = follow_up_time
+    )
+    p_ctrl_proportions <- plot_proportion_bands(
+      build_proportion_bands(x_area, probs_ctrl),
+      title = "Control group:",
+      subtitle = "Proportion of Subjects by Event and Censoring Type"
+    )
+    print(p_ctrl_proportions)
+
+    # trmt group: plot stacked area chart -------------------------------------------------
+    probs_trmt <- get_competing_risk_probs(
+      x = x_area,
+      scale_ctrl = scale_trmt,
+      shape_ctrl = shape_trmt,
+      breakpoints_ctrl = breakpoints_trmt,
+      scale_loss = scale_loss,
+      shape_loss = shape_loss,
+      breakpoints_loss = breakpoints_loss,
+      accrual_time = accrual_time,
+      follow_up_time = follow_up_time
+    )
+    p_trmt_proportions <- plot_proportion_bands(
+      build_proportion_bands(x_area, probs_trmt),
+      title = "Treatment group:",
+      subtitle = "Proportion of Subjects by Event and Censoring Type"
+    )
+    print(p_trmt_proportions)
   }
+
+  invisible(NULL)
 }
 
 
@@ -587,7 +437,13 @@ get_competing_risk_probs <- function(
   hA_temp <- rep(0, length(t_grid_admin_loss))
   hA_temp[(follow_up_time / dt) : ((follow_up_time + accrual_time) / dt)] <-
     1 / (accrual_time - seq(0, accrual_time, by = dt))
-  hA <- hA_temp[1:length(t_grid)]
+  # t_grid may extend beyond accrual_time + follow_up_time (e.g. when the
+  # plotting xlim exceeds the trial length); pad with 0 there instead of
+  # letting out-of-range indexing silently introduce NAs, since there is no
+  # further administrative censoring hazard once the trial has ended.
+  hA <- rep(0, length(t_grid))
+  n_copy <- min(length(hA_temp), length(t_grid))
+  hA[seq_len(n_copy)] <- hA_temp[seq_len(n_copy)]
 
   max_finite <- max(hE[is.finite(hE)]) # in case some element in h_all is Inf
   hE[is.infinite(hE)] <- max_finite
@@ -635,4 +491,4 @@ get_competing_risk_probs <- function(
   )
 }
 
-utils::globalVariables(c("x")) # prevents warnings on undefined variables when running devtools::check()
+utils::globalVariables(c("HR", "hazard", "loglog", "p_not_censored", "ymin", "ymax", "band"))

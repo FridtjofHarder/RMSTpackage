@@ -28,7 +28,6 @@ calculate_sample_size(
   LRT_closed_form = TRUE,
   satterthwaite_corr = FALSE,
   censor_beyond_tau = FALSE,
-  plot_example_data = FALSE,
   plot_design_curves = FALSE,
   parameterisation = 1
 )
@@ -78,19 +77,17 @@ Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. F
 
 \item{margin_RMSTR}{Non-inferiority margin for RMST ratio. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{ratio} > } \code{margin_RMSTR}, with  default \code{margin_RMSTR} \eqn{=1} simplifying to superiority test.}
 
-\item{margin_LRT}{Non-inferiority margin for log rank test in terms of hazard ratio \eqn{\text{HR}}. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{HR} < } \code{margin_LRT}, with  default \code{margin_LRT} \eqn{=1} simplifying to superiority test.}
+\item{margin_LRT}{Non-inferiority margin for log-rank test in terms of hazard ratio \eqn{\text{HR}}. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{HR} < } \code{margin_LRT}, with  default \code{margin_LRT} \eqn{=1} simplifying to superiority test.}
 
 \item{RMSTD_closed_form}{Logical. Specifies whether to calculate sample size for RMST difference test.}
 
 \item{RMSTR_closed_form}{Logical. Specifies whether to calculate sample size for RMST ratio test.}
 
-\item{LRT_closed_form}{Logical. Specifies whether to calculate sample size for log rank test.}
+\item{LRT_closed_form}{Logical. Specifies whether to calculate sample size for log-rank test.}
 
 \item{satterthwaite_corr}{Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.}
 
-\item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored for simulations and log rank test if \code{TRUE}.}
-
-\item{plot_example_data}{Logical. Specifies whether to create a plot with example data. Plots with total sample size of \eqn{n = 100} if \code{n} is undefined.}
+\item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored for simulations and log-rank test if \code{TRUE}.}
 
 \item{plot_design_curves}{Logical. Specifies whether to plot survival curves.}
 
@@ -104,10 +101,10 @@ For \code{shape = 1}, the Weibull function simplifies to exponential survival wi
 \eqn{\mathrm{scale} = 1 / \mathrm{hazard}} for \code{parameterisation = 3}.}
 }
 \value{
-Returns a list with total sample sizes for each test and a test power.
+Returns a list with total sample size for each test, RMST in each group, RMST difference, and RMST ratio.
 }
 \description{
-Calculates the sample size given a desired test power. Supports tests on difference and ratio in restricted mean survival time (RMST), and log rank test (LRT).
+Calculates the sample size given a desired test power. Supports tests on difference and ratio in restricted mean survival time (RMST), and log-rank test (LRT).
 Supports superiority and non-inferiority tests.
 }
 \details{

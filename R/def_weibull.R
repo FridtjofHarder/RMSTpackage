@@ -36,28 +36,29 @@ def_weibull <- function(time, surv, plot = FALSE, parameterisation = 1){
     scale_external <- rereparameterise(parameterisation, scale, shape)
   }
   if(plot){
-    x <- NULL
-    graphics::curve(
-      stats::pweibull(
-        x,
-        scale = scale,
-        shape = shape,
-        lower.tail = FALSE
-      ),
-      col = "darkblue",
-      lwd = 2,
-      xlab = "t",
-      ylab = "S(t)",
-      ylim = c(0, 1),
-      main = paste0("Weibull survival with shape = ", round(shape, 2), " and scale = ", round(scale_external, 2)),
-      yaxt = "n"
+    curve_data <- data.frame(t = seq(0, 1, length.out = 500))
+    curve_data$S <- stats::pweibull(
+      curve_data$t,
+      scale = scale,
+      shape = shape,
+      lower.tail = FALSE
     )
-    graphics::axis(
-      2,
-      at = seq(1, 0, by = -0.2),
-      labels = paste0(seq(100, 0, by = -20), "%"),
-      las = 1
-    )
+
+    plot_obj <- ggplot2::ggplot(curve_data, ggplot2::aes(x = t, y = S)) +
+      ggplot2::geom_line(color = "darkblue", linewidth = 1) +
+      ggplot2::scale_y_continuous(
+        breaks = seq(0, 1, by = 0.2),
+        labels = paste0(seq(0, 100, by = 20), "%"),
+        limits = c(0, 1)
+      ) +
+      ggplot2::labs(
+        x = "t",
+        y = "S(t)",
+        title = paste0("Weibull survival with shape = ", round(shape, 2), " and scale = ", round(scale_external, 2))
+      ) +
+      ggplot2::theme_bw()
+
+    print(plot_obj)
   }
   return(list(shape = shape, scale = scale_external))
 }

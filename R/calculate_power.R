@@ -1,6 +1,6 @@
 #' Determines test power when sample size is given
 #'
-#' Calculates and/or simulates test power given a sample size. Supports tests on difference and ratio in restricted mean survival time (RMST), and log rank test (LRT).
+#' Calculates and/or simulates test power given a sample size. Supports tests on difference and ratio in restricted mean survival time (RMST), and log-rank test (LRT).
 #' Supports superiority and non-inferiority tests.
 #'
 #' Survival can be defined by either a single Weibull function, or a piecewise exponential function.
@@ -34,18 +34,17 @@
 #' @param one_sided_alpha \eqn{\alpha} level for one-sided inference test.
 #' @param margin_RMSTD Non-inferiority margin for RMST difference. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{difference} > } \code{margin_RMSTD}, with  default \code{margin_RMSTD} \eqn{=0} simplifying to superiority test.
 #' @param margin_RMSTR Non-inferiority margin for RMST ratio. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{ratio} > } \code{margin_RMSTR}, with  default \code{margin_RMSTR} \eqn{=1} simplifying to superiority test.
-#' @param margin_LRT Non-inferiority margin for log rank test in terms of hazard ratio \eqn{\text{HR}}. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{HR} < } \code{margin_LRT}, with  default \code{margin_LRT} \eqn{=1} simplifying to superiority test.
+#' @param margin_LRT Non-inferiority margin for log-rank test in terms of hazard ratio \eqn{\text{HR}}. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{HR} < } \code{margin_LRT}, with  default \code{margin_LRT} \eqn{=1} simplifying to superiority test.
 #' @param RMSTD_closed_form Logical. Specifies whether to calculate sample size for RMST difference test.
 #' @param RMSTR_closed_form Logical. Specifies whether to calculate sample size for RMST ratio test.
-#' @param LRT_closed_form Logical. Specifies whether to calculate sample size for log rank test.
+#' @param LRT_closed_form Logical. Specifies whether to calculate sample size for log-rank test.
 #' @param satterthwaite_corr Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.
 #' @param RMSTD_simulation Logical. Specifies whether to determine RMST difference test power via simulation.
 #' @param RMSTR_simulation Logical. Specifies whether to determine RMST ratio test power via simulation.
-#' @param LRT_simulation Logical. Specifies whether to determine log rank test power via simulation.
-#' @param censor_beyond_tau Logical. All observations past \eqn{\tau} are censored for simulations and log rank test if \code{TRUE}.
+#' @param LRT_simulation Logical. Specifies whether to determine log-rank test power via simulation.
+#' @param censor_beyond_tau Logical. All observations past \eqn{\tau} are censored for simulations and log-rank test if \code{TRUE}.
 #' @param M Number of iterations when running simulation.
 #' @param n Integer specifying sample size for calculating power.
-#' @param plot_example_data Logical. Specifies whether to create a plot with example data. Plots with total sample size of \eqn{n = 100} if \code{n} is undefined.
 #' @param plot_design_curves Logical. Specifies whether to plot survival curves.
 #' @param parameterisation Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
 #' \item \code{parameterisation = 1}: Default. Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}},
@@ -56,7 +55,7 @@
 #' \eqn{\mathrm{scale} = \mathrm{hazard}} for \code{parameterisation = 1} or \code{2}, and
 #' \eqn{\mathrm{scale} = 1 / \mathrm{hazard}} for \code{parameterisation = 3}.
 #'
-#' @return Returns a list with total sample sizes for each test and a test power.
+#' @return Returns a list with power for each test, RMST in each group, RMST difference, and RMST ratio.
 #'
 #' @examples
 #'
@@ -104,7 +103,6 @@ calculate_power <- function(
     censor_beyond_tau = FALSE,
     M = 1000,
     n = NULL,
-    plot_example_data = FALSE,
     plot_design_curves = FALSE,
     parameterisation = 1){
   int_fun_n_or_power(
@@ -135,7 +133,6 @@ calculate_power <- function(
     censor_beyond_tau = censor_beyond_tau,
     M = M,
     n = n,
-    plot_example_data = plot_example_data,
     plot_design_curves = plot_design_curves,
     parameterisation = parameterisation
   )

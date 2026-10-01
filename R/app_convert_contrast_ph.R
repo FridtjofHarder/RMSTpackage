@@ -87,7 +87,7 @@ app_convert_contrast_ph <- function() {
       {
         shiny::req(res())
         if (!is.null(res()$plot)) {
-          grDevices::replayPlot(res()$plot)
+          print(res()$plot)
         }
       },
       res = 96

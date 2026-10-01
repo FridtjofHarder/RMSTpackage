@@ -30,11 +30,17 @@ int_fun_n_or_power <- function(
     censor_beyond_tau = FALSE,
     M = 1,
     n = NULL,
-    plot_example_data = FALSE,
     plot_design_curves = FALSE,
     parameterisation = 1
 ) {
   # basic definitions -----------------------------------------------------------
+  if(is.null(tau) &
+    (RMSTD_closed_form | RMSTR_closed_form | RMSTD_simulation | RMSTR_simulation | censor_beyond_tau)){
+    stopifnot("Trial length as sum of accrual_time plus follow_up_time must be defined if tau is undefined" =
+                is.finite(accrual_time + follow_up_time))
+    tau <- accrual_time + follow_up_time
+      warning("tau was not defined and has been set to trial length as sum of accrual_time plus follow_up_time.")
+  }
   if (length(shape_ctrl) == 1 & length(scale_ctrl) > 1) shape_ctrl <- rep(1, length(scale_ctrl))
   if (length(shape_trmt) == 1 & length(scale_trmt) > 1) shape_trmt <- rep(1, length(scale_trmt))
   if (length(shape_loss) == 1 & length(scale_loss) > 1) shape_loss <- rep(1, length(scale_loss))
@@ -77,12 +83,12 @@ int_fun_n_or_power <- function(
   breakpoints_trmt <- normalize_breakpoints(breakpoints_trmt)
   breakpoints_loss <- normalize_breakpoints(breakpoints_loss)
 
-
-
   if (parameterisation != 1) {
     scale_ctrl <- reparameterise(parameterisation, scale_ctrl, shape_ctrl)
     scale_trmt <- reparameterise(parameterisation, scale_trmt, shape_trmt)
+    if(!is.null(scale_loss)){
     scale_loss <- reparameterise(parameterisation, scale_loss, shape_loss)
+    }
   }
 
   if (RMSTD_closed_form || RMSTR_closed_form) { # get RMSTD and RMSTR
@@ -231,7 +237,7 @@ int_fun_n_or_power <- function(
   }
   # plot example data if requested ---------------------------------------------
 
-  if (plot_design_curves | plot_example_data) {
+  if (plot_design_curves) {
     plot_surv(
     scale_ctrl = original_scales$scale_ctrl, # since scale parameters may have been altered by reparameterise() above
     scale_trmt = original_scales$scale_trmt,
@@ -277,3 +283,4 @@ int_fun_n_or_power <- function(
   result <- Filter(Negate(is.na), result)
   return(result)
 }
+

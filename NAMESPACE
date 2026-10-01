@@ -3,6 +3,7 @@
 export(app_convert_contrast_ph)
 export(calculate_power)
 export(calculate_sample_size)
+export(calculate_tau)
 export(convert_contrast_ph)
 export(def_pexp)
 export(def_weibull)
