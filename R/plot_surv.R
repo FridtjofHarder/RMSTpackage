@@ -83,6 +83,7 @@ plot_surv <- function(
 ) {
 
 # error management --------------------------------------------------------
+  browser()
   if (length(shape_ctrl) == 1 & length(scale_ctrl) > 1) shape_ctrl <- rep(1, length(scale_ctrl))
   if (length(shape_trmt) == 1 & length(scale_trmt) > 1) shape_trmt <- rep(1, length(scale_trmt))
   if (length(shape_loss) == 1 & length(scale_loss) > 1) shape_loss <- rep(1, length(scale_loss))

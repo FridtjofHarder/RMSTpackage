@@ -86,9 +86,7 @@ int_fun_n_or_power <- function(
   if (parameterisation != 1) {
     scale_ctrl <- reparameterise(parameterisation, scale_ctrl, shape_ctrl)
     scale_trmt <- reparameterise(parameterisation, scale_trmt, shape_trmt)
-    if(!is.null(scale_loss)){
     scale_loss <- reparameterise(parameterisation, scale_loss, shape_loss)
-    }
   }
 
   if (RMSTD_closed_form || RMSTR_closed_form) { # get RMSTD and RMSTR

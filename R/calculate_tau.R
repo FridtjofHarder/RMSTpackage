@@ -130,15 +130,13 @@ calculate_tau <- function(
     LRT_closed_form = LRT_closed_form,
     satterthwaite_corr = satterthwaite_corr,
     n = n,
-    power = 0.8, # delete later!!!
+    power = power,
     parameterisation = parameterisation
   )
 
-  browser()
-
   tau_RMSTD <- uniroot(
     function(latest_tau) do.call(get_power_diff, c(list(tau = latest_tau, which_test = 1), common_args)),
-    interval = c(1, 3), check.conv = TURE
+    interval = interval
   )$root
 }
 

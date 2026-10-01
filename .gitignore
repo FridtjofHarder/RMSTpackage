@@ -5,3 +5,11 @@
 .DS_Store
 .quarto
 .posit/assistant
+RMSTpackage.Rcheck/
+RMSTpackage*.tar.gz
+RMSTpackage*.tgz
+RMSTpackage.Rcheck/
+RMSTpackage.Rcheck/
+RMSTpackage.Rcheck/
+RMSTpackage.Rcheck/
+RMSTpackage.Rcheck/

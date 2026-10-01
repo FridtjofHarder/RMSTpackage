@@ -547,6 +547,7 @@ normalize_breakpoints <- function(x) {
 
 # transform input from selected parameterisation to parameterisation 1
 reparameterise <- function(parameterisation, scale, shape = 1) {
+  if (is.null(scale)) return(NULL)
   if (parameterisation == 2) {
     return(scale^(1/shape))
   }

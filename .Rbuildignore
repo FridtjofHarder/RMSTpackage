@@ -9,3 +9,6 @@
 ^\.claude$
 ^\.lintr$
 ^\.posit/assistant$
+^RMSTpackage\.Rcheck$
+^RMSTpackage.*\.tar\.gz$
+^RMSTpackage.*\.tgz$
