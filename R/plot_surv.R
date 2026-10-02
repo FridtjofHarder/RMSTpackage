@@ -83,7 +83,6 @@ plot_surv <- function(
 ) {
 
 # error management --------------------------------------------------------
-  browser()
   if (length(shape_ctrl) == 1 & length(scale_ctrl) > 1) shape_ctrl <- rep(1, length(scale_ctrl))
   if (length(shape_trmt) == 1 & length(scale_trmt) > 1) shape_trmt <- rep(1, length(scale_trmt))
   if (length(shape_loss) == 1 & length(scale_loss) > 1) shape_loss <- rep(1, length(scale_loss))
@@ -317,28 +316,22 @@ plot_surv <- function(
       "Lost to administrative censoring" = "#B7E7FC"
     )
 
-    # Number of points to keep per band for plotting. The competing-risk
-    # probabilities themselves are still computed on the full, fine x_area
-    # grid for numerical accuracy; only the plotted curve is thinned, since
-    # rendering geom_ribbon() with hundreds of thousands of points per band
-    # is dramatically slower than the underlying computation (unlike base
-    # graphics::polygon(), which draws large point counts cheaply).
+    # Number of points used both for computing competing-risk probabilities
+    # and for plotting. get_competing_risk_probs() numerically integrates via
+    # a Riemann sum, so using a much finer grid than this for the plot would
+    # only waste computation: geom_ribbon() renders this many points quickly,
+    # while computing and then discarding ~750,000 points (as a fine
+    # integration grid would require) dominated runtime. Precision is
+    # intentionally traded for speed here.
     max_plot_points <- 2000
 
-    # Converts cumulative competing-risk probabilities into stacked bands,
-    # thinned to at most max_plot_points points for fast rendering.
+    # Converts cumulative competing-risk probabilities into stacked bands.
     build_proportion_bands <- function(x, probs) {
       cum0 <- rep(0, length(x))
       cum1 <- probs$p_obs
       cum2 <- cum1 + probs$p_event
       cum3 <- cum2 + probs$p_loss
       cum4 <- cum3 + probs$p_admin
-
-      if (length(x) > max_plot_points) {
-        idx <- unique(c(1, round(seq(1, length(x), length.out = max_plot_points)), length(x)))
-        x <- x[idx]
-        cum0 <- cum0[idx]; cum1 <- cum1[idx]; cum2 <- cum2[idx]; cum3 <- cum3[idx]; cum4 <- cum4[idx]
-      }
 
       rbind(
         data.frame(t = x, ymin = cum0, ymax = cum1, band = band_levels[1]),
@@ -360,7 +353,7 @@ plot_surv <- function(
         ggplot2::theme(legend.position = "bottom")
     }
 
-    x_area <- seq(xlim[1], xlim[2], by = 0.001)
+    x_area <- seq(xlim[1], xlim[2], length.out = max_plot_points)
 
     # ctrl group: plot stacked area chart -------------------------------------------------
     probs_ctrl <- get_competing_risk_probs(
