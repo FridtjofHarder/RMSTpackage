@@ -185,10 +185,11 @@ int_fun_n_or_power <- function(
       sim_shared = sim_shared,
       tau = tau, one_sided_alpha = one_sided_alpha,
       margin_RMSTD = margin_RMSTD, margin_RMSTR = margin_RMSTR, margin_LRT = margin_LRT,
-      censor_beyond_tau = censor_beyond_tau,
+      satterthwaite_corr = satterthwaite_corr,
       RMSTD_simulation = RMSTD_simulation,
       RMSTR_simulation = RMSTR_simulation,
-      LRT_simulation = LRT_simulation
+      LRT_simulation = LRT_simulation,
+      censor_beyond_tau = censor_beyond_tau
     )
     one_sim <- function(i, args) {
       simulated_data <- rbind(
@@ -197,7 +198,8 @@ int_fun_n_or_power <- function(
         do.call(simulate_data, c(list(scale = args$scale_ctrl, shape = args$shape_ctrl,
                                       breakpoints = args$breakpoints_ctrl, label = 0), args$sim_shared))
       )
-      result_i <- list(RMSTD = 0, RMSTR = 0, LRT = 0, tau_changed = FALSE)
+      result_i <- list(RMSTD = 0, RMSTR = 0, RMSTD_satterthwaite = 0, RMSTR_satterthwaite = 0,
+                       LRT = 0, tau_changed = FALSE)
       if (args$RMSTD_simulation || args$RMSTR_simulation) {
         tau_temp <- args$tau
         min_max <- min(
@@ -208,14 +210,26 @@ int_fun_n_or_power <- function(
           tau_temp <- min_max
           result_i$tau_changed <- TRUE
         }
-        result <- survRM2::rmst2(
+        fit <- survRM2::rmst2(
           simulated_data$observations,
           simulated_data$status,
           simulated_data$label,
           tau = tau_temp,
           alpha = args$one_sided_alpha * 2
-        )$unadjusted.result
-        if (args$RMSTD_simulation) result_i$RMSTD <- as.numeric(result[1, 2] > args$margin_RMSTD)
+        )
+        result <- fit$unadjusted.result
+        browser()
+        if (args$RMSTD_simulation) {
+          result_i$RMSTD <- as.numeric(result[1, 2] > args$margin_RMSTD)
+          if (args$satterthwaite_corr) {
+            sigma2_ctrl_sim <- fit$RMST.arm0$result[1, 2]^2# get sigma2_ctrl
+            sigma2_trmt_sim <- fit$RMST.arm1$result[1, 2]^2# get sigma2_trmt
+            events_ctrl_sim <- sum(simulated_data$status[simulated_data$label == 0])# get no of events ctrl
+            events_trmt_sim <- sum(simulated_data$status[simulated_data$label == 1])# get no of events trmt
+            df_sim <- (sigma2_ctrl_sim / events_ctrl_sim + sigma2_trmt_sim / events_trmt_sim)^2 /
+              ((sigma2_ctrl_sim / events_ctrl_sim)^2 / (events_ctrl_sim - 1) + (sigma2_trmt_sim / events_trmt_sim)^2 / (events_trmt_sim - 1))
+          }
+        }
         if (args$RMSTR_simulation) result_i$RMSTR <- as.numeric(result[2, 2] > args$margin_RMSTR)
       }
       if (args$LRT_simulation) {

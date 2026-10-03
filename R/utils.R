@@ -310,8 +310,8 @@ get_delta_LRT <- function(scale_ctrl,
   }
   delta_LRT <- stats::integrate(Vectorize(function(x) {
     (log(get_h(x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt)) -
-      log(get_h(x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl)) -
-      log(margin_LRT)) *
+       log(get_h(x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl)) -
+       log(margin_LRT)) *
       get_p_at_risk(
         x,
         scale = scale_trmt,
@@ -386,27 +386,27 @@ get_delta_LRT <- function(scale_ctrl,
 
 # get sample size by closed-form for RMSTD
 get_ss_pwr_cf_RMST <- function(
-  scale_ctrl,
-  scale_trmt,
-  scale_loss,
-  shape_ctrl,
-  shape_trmt,
-  shape_loss,
-  breakpoints_ctrl,
-  breakpoints_trmt,
-  breakpoints_loss,
-  accrual_time,
-  follow_up_time,
-  tau,
-  sides = 2,
-  power = NULL, # size calc when !Null
-  alpha = 0.05,
-  margin = NULL, # take care that correct margin is chosen! change to =, or 1 in
-  satterthwaite_n = NA,
-  RMST_ctrl,
-  RMST_trmt,
-  n = NULL, # power calc when !Null
-  contrast # must be passed on as "difference" or "ratio"
+    scale_ctrl,
+    scale_trmt,
+    scale_loss,
+    shape_ctrl,
+    shape_trmt,
+    shape_loss,
+    breakpoints_ctrl,
+    breakpoints_trmt,
+    breakpoints_loss,
+    accrual_time,
+    follow_up_time,
+    tau,
+    sides = 2,
+    power = NULL, # size calc when !Null
+    alpha = 0.05,
+    margin = NULL, # take care that correct margin is chosen! change to =, or 1 in
+    satterthwaite_n = NA,
+    RMST_ctrl,
+    RMST_trmt,
+    n = NULL, # power calc when !Null
+    contrast # must be passed on as "difference" or "ratio"
 ) {
   sigma2_ctrl <- get_sigma2_rmst(
     scale = scale_ctrl,
@@ -434,7 +434,7 @@ get_ss_pwr_cf_RMST <- function(
     if(is.null(margin)) margin <- 0
     Delta <- RMST_trmt - RMST_ctrl - margin
     sigma2 <- 2 * sigma2_ctrl + 2 * sigma2_trmt
-    }
+  }
   if (contrast == "ratio"){
     if(is.null(margin)) margin <- 1
     Delta <- log(RMST_trmt) - log(RMST_ctrl) - log(margin)
@@ -475,24 +475,24 @@ get_ss_pwr_cf_RMST <- function(
 
 # get sample size by closed-form for LRT
 get_ss_pwr_cf_LRT <- function(
-  scale_ctrl,
-  scale_trmt,
-  scale_loss,
-  shape_ctrl,
-  shape_trmt,
-  shape_loss,
-  breakpoints_ctrl,
-  breakpoints_trmt,
-  breakpoints_loss,
-  accrual_time,
-  follow_up_time,
-  tau,
-  censor_beyond_tau,
-  sides = 1,
-  power = NULL,
-  alpha = 0.025,
-  margin_LRT = 1,
-  n = NULL
+    scale_ctrl,
+    scale_trmt,
+    scale_loss,
+    shape_ctrl,
+    shape_trmt,
+    shape_loss,
+    breakpoints_ctrl,
+    breakpoints_trmt,
+    breakpoints_loss,
+    accrual_time,
+    follow_up_time,
+    tau,
+    censor_beyond_tau,
+    sides = 1,
+    power = NULL,
+    alpha = 0.025,
+    margin_LRT = 1,
+    n = NULL
 ) {
   sigma2 <- get_sigma2_LRT(
     scale_ctrl = scale_ctrl,
@@ -585,7 +585,7 @@ get_satterthwaite_df <- function(scale_ctrl, scale_trmt,
       follow_up_time = follow_up_time
     )),
     lower = 0, upper = tau
-  )$value * satterthwaite_n
+  )$value * satterthwaite_n * 0.5
   events_trmt <- stats::integrate(
     Vectorize(function(x) get_density(
       x,
@@ -599,7 +599,8 @@ get_satterthwaite_df <- function(scale_ctrl, scale_trmt,
       follow_up_time = follow_up_time
     )),
     lower = 0, upper = tau
-  )$value * satterthwaite_n
+  )$value * satterthwaite_n * 0.5
+  browser()
   df <- (sigma2_ctrl / events_ctrl + sigma2_trmt / events_trmt)^2 /
     ((sigma2_ctrl / events_ctrl)^2 / (events_ctrl - 1) + (sigma2_trmt / events_trmt)^2 / (events_trmt - 1))
   return(df)
