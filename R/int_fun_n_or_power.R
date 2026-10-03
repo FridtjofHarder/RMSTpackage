@@ -236,8 +236,9 @@ int_fun_n_or_power <- function(
         }
         if (args$RMSTR_simulation) {
           result_i$RMSTR <- as.numeric(result[2, 2] > args$margin_RMSTR)
-          if (args$satterthwaite_corr){
+          if (args$satterthwaite_corr) {
             print("satterthwaite corrected RMSTR not yet implemented")
+          }
         }
       }
       if (args$LRT_simulation) {
