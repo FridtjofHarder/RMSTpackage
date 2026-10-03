@@ -96,7 +96,7 @@ simulate_data <- function(
   # censor observations if loss to follow-up is defined
   if (!is.null(scale_loss)) {
     if (all(shape_loss == 1)) {
-      loss_to_follow_up <- observations <- msm::rpexp(n = n, rate = scale_loss, t = breakpoints_loss)
+      loss_to_follow_up <- msm::rpexp(n = n, rate = scale_loss, t = breakpoints_loss)
     } else {
       loss_to_follow_up <- stats::rweibull(n = n, rate = 1 / scale_loss, shape = shape_loss)
     }

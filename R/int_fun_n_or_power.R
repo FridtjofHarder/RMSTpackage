@@ -218,7 +218,6 @@ int_fun_n_or_power <- function(
           alpha = args$one_sided_alpha * 2
         )
         result <- fit$unadjusted.result
-        browser()
         if (args$RMSTD_simulation) {
           result_i$RMSTD <- as.numeric(result[1, 2] > args$margin_RMSTD)
           if (args$satterthwaite_corr) {
@@ -251,7 +250,7 @@ int_fun_n_or_power <- function(
     }
     sim_results <- lapply(seq_len(M), one_sim, args = worker_args)
     if (RMSTD_simulation) {pwr_RMSTD_simulated <- mean(sapply(sim_results, `[[`, "RMSTD"))
-      if (satterthwaite_corr){ pwr_RMSTD_simulated_sat
+      if (satterthwaite_corr){pwr_RMSTD_simulated_sat <- mean(sapply(sim_results, `[[`, "RMSTD_satterthwaite"))
       }
     }
     if (RMSTR_simulation) pwr_RMSTR_simulated <- mean(sapply(sim_results, `[[`, "RMSTR"))
