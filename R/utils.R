@@ -600,7 +600,6 @@ get_satterthwaite_df <- function(scale_ctrl, scale_trmt,
     )),
     lower = 0, upper = tau
   )$value * satterthwaite_n * 0.5
-  browser()
   df <- (sigma2_ctrl / events_ctrl + sigma2_trmt / events_trmt)^2 /
     ((sigma2_ctrl / events_ctrl)^2 / (events_ctrl - 1) + (sigma2_trmt / events_trmt)^2 / (events_trmt - 1))
   return(df)

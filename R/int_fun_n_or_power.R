@@ -65,7 +65,7 @@ int_fun_n_or_power <- function(
   )
   ss_RMSTD_closed_form <- ss_RMSTR_closed_form <- ss_LRT_closed_form <-
   pwr_RMSTD_closed_form <- pwr_RMSTR_closed_form <- pwr_LRT_closed_form <-
-  pwr_RMSTD_simulated <- pwr_RMSTR_simulated <- pwr_LRT_simulated <-
+  pwr_RMSTD_simulated <- pwr_RMSTD_simulated_sat <- pwr_RMSTR_simulated <- pwr_LRT_simulated <-
   RMST_ctrl <- RMST_trmt <- True_RMSTD <- True_RMSTR <-
   ss_RMSTD_closed_form_sat <- ss_RMSTR_closed_form_sat <-
   pwr_RMSTD_closed_form_sat <- pwr_RMSTR_closed_form_sat <- NA
@@ -222,15 +222,23 @@ int_fun_n_or_power <- function(
         if (args$RMSTD_simulation) {
           result_i$RMSTD <- as.numeric(result[1, 2] > args$margin_RMSTD)
           if (args$satterthwaite_corr) {
+            se_diff <- sqrt(fit$RMST.arm0$rmst.var + fit$RMST.arm1$rmst.var)
             sigma2_ctrl_sim <- fit$RMST.arm0$result[1, 2]^2# get sigma2_ctrl
             sigma2_trmt_sim <- fit$RMST.arm1$result[1, 2]^2# get sigma2_trmt
             events_ctrl_sim <- sum(simulated_data$status[simulated_data$label == 0])# get no of events ctrl
             events_trmt_sim <- sum(simulated_data$status[simulated_data$label == 1])# get no of events trmt
             df_sim <- (sigma2_ctrl_sim / events_ctrl_sim + sigma2_trmt_sim / events_trmt_sim)^2 /
               ((sigma2_ctrl_sim / events_ctrl_sim)^2 / (events_ctrl_sim - 1) + (sigma2_trmt_sim / events_trmt_sim)^2 / (events_trmt_sim - 1))
+            # get satterthwaite lower bound
+            lower_CI_satterthwaite <- result[1, 1] - se_diff * qt(1 - one_sided_alpha / sides, df = df_sim)
+            result_i$RMSTD_satterthwaite <- as.numeric(lower_CI_satterthwaite > args$margin_RMSTD)
           }
         }
-        if (args$RMSTR_simulation) result_i$RMSTR <- as.numeric(result[2, 2] > args$margin_RMSTR)
+        if (args$RMSTR_simulation) {
+          result_i$RMSTR <- as.numeric(result[2, 2] > args$margin_RMSTR)
+          if (args$satterthwaite_corr){
+            print("satterthwaite corrected RMSTR not yet implemented")
+        }
       }
       if (args$LRT_simulation) {
         if (args$censor_beyond_tau)
@@ -241,7 +249,10 @@ int_fun_n_or_power <- function(
       return(result_i)
     }
     sim_results <- lapply(seq_len(M), one_sim, args = worker_args)
-    if (RMSTD_simulation) pwr_RMSTD_simulated <- mean(sapply(sim_results, `[[`, "RMSTD"))
+    if (RMSTD_simulation) {pwr_RMSTD_simulated <- mean(sapply(sim_results, `[[`, "RMSTD"))
+      if (satterthwaite_corr){ pwr_RMSTD_simulated_sat
+      }
+    }
     if (RMSTR_simulation) pwr_RMSTR_simulated <- mean(sapply(sim_results, `[[`, "RMSTR"))
     if (LRT_simulation)   pwr_LRT_simulated   <- mean(sapply(sim_results, `[[`, "LRT"))
     if (any(sapply(sim_results, `[[`, "tau_changed")))
@@ -285,6 +296,7 @@ int_fun_n_or_power <- function(
     "Satterthwaite-corrected power for RMST ratio" = pwr_RMSTR_closed_form_sat,
     "Power for LRT determined by closed-form solution" = pwr_LRT_closed_form,
     "RMSTD power determined by simulation" = pwr_RMSTD_simulated,
+    "Satterthwaite-corrected RMSTD power determined by simulation" = pwr_RMSTD_simulated_sat,
     "RMSTR power determined by simulation" = pwr_RMSTR_simulated,
     "LRT power determined by simulation" = pwr_LRT_simulated,
     "RMST treatment group" = RMST_trmt,
