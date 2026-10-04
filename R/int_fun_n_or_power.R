@@ -95,13 +95,13 @@ int_fun_n_or_power <- function(
     True_RMSTD <- RMST_trmt - RMST_ctrl
     True_RMSTR <- RMST_trmt / RMST_ctrl
   }
-  if (margin_RMSTD != 0) {
+  if ( (RMSTD_closed_form | RMSTD_simulation) & margin_RMSTD != 0) {
     stopifnot(
       "Noninferiority margin of RMST difference must not be higher than assumed RMST difference." =
         margin_RMSTD <= True_RMSTD
     )
   }
-  if (margin_RMSTR != 1) {
+  if ( (RMSTR_closed_form | RMSTR_simulation) & margin_RMSTR != 1) {
     stopifnot(
       "Noninferiority margin of RMST ratio must not be higher than assumed RMST ratio." =
         margin_RMSTR <= True_RMSTR
