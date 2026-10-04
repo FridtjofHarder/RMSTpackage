@@ -193,23 +193,29 @@ convert_contrast_ph <- function(
 
   if (xor(!is.null(RMSTD), !is.null(RMSTR))) {
     if (!is.null(scale_trmt)) {
-      RMST_trmt <- rmst_weibull(scale_trmt)
+      RMST_trmt <- rmst_weibull(scale_trmt, shape = shape)
       RMST_ctrl <- if (!is.null(RMSTD)) RMST_trmt - RMSTD else RMST_trmt / RMSTR
-      scale_ctrl <- stats::uniroot(
-        function(s) rmst_weibull(s) - RMST_ctrl,
-        lower = 0.000001,
-        upper = 100000,
-        tol = 0.0001
-      )$root
+      # Solve on a log scale so a fixed absolute tolerance corresponds to a
+      # fixed *relative* tolerance on the recovered scale parameter,
+      # regardless of its magnitude (scale parameters can span many orders
+      # of magnitude, e.g. ~1e-4 for long time horizons vs. ~1e-1 elsewhere).
+      scale_ctrl <- exp(stats::uniroot(
+        function(log_s) rmst_weibull(exp(log_s), shape = shape) - RMST_ctrl,
+        lower = log(0.000001),
+        upper = log(100000),
+        tol = .Machine$double.eps^0.5
+      )$root)
     } else {
-      RMST_ctrl <- rmst_weibull(scale_ctrl)
+      RMST_ctrl <- rmst_weibull(scale_ctrl, shape = shape)
       RMST_trmt <- if (!is.null(RMSTD)) RMST_ctrl + RMSTD else RMST_ctrl * RMSTR
-      scale_trmt <- stats::uniroot(
-        function(s) rmst_weibull(s) - RMST_trmt,
-        lower = 0.000001,
-        upper = 100000,
-        tol = 0.0001
-      )$root
+      # See note above: solve on a log scale for magnitude-independent
+      # relative precision.
+      scale_trmt <- exp(stats::uniroot(
+        function(log_s) rmst_weibull(exp(log_s), shape = shape) - RMST_trmt,
+        lower = log(0.000001),
+        upper = log(100000),
+        tol = .Machine$double.eps^0.5
+      )$root)
     }
   }
 
@@ -237,8 +243,8 @@ convert_contrast_ph <- function(
     survival_diff <- survival_trmt - survival_ctrl
   }
 
-  if (is.null(RMST_trmt)) RMST_trmt <- rmst_weibull(scale_trmt)
-  if (is.null(RMST_ctrl)) RMST_ctrl <- rmst_weibull(scale_ctrl)
+  if (is.null(RMST_trmt)) RMST_trmt <- rmst_weibull(scale_trmt, shape = shape)
+  if (is.null(RMST_ctrl)) RMST_ctrl <- rmst_weibull(scale_ctrl, shape = shape)
 
   if (is.null(RMSTD)) RMSTD <- RMST_trmt - RMST_ctrl
   if (is.null(RMSTR)) RMSTR <- RMST_trmt / RMST_ctrl
