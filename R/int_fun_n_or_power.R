@@ -108,11 +108,10 @@ int_fun_n_or_power <- function(
     )
   }
   if (margin_LRT != 1) {
-    stopifnot(
-      "Hazard ratio is not constant since shape parameters differ between groups.
-              Noninferiority margin for hazard ratio is appropriate only when hazard ratio is constant" =
-        shape_trmt == shape_ctrl
-    )
+    if(shape_trmt != shape_ctrl){
+      warning("Hazard ratio is not constant since shape parameters differ between groups.
+              Noninferiority margin for hazard ratio is appropriate only when hazard ratio is constant")
+    }
     h_ctrl <- get_h(x = 1, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl)
     h_trmt <- get_h(x = 1, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt)
     true_HR <- h_trmt / h_ctrl
