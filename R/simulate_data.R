@@ -89,7 +89,7 @@ simulate_data <- function(
   if (all(shape == 1)) {
     observations <- msm::rpexp(n = n, rate = scale, t = breakpoints)
   } else {
-    observations <- stats::rweibull(n = n, rate = 1 / scale, shape = shape)
+    observations <- stats::rweibull(n = n, scale = 1 / scale, shape = shape)
   }
   status <- rep(1, n)
 
@@ -98,7 +98,7 @@ simulate_data <- function(
     if (all(shape_loss == 1)) {
       loss_to_follow_up <- msm::rpexp(n = n, rate = scale_loss, t = breakpoints_loss)
     } else {
-      loss_to_follow_up <- stats::rweibull(n = n, rate = 1 / scale_loss, shape = shape_loss)
+      loss_to_follow_up <- stats::rweibull(n = n, scale = 1 / scale_loss, shape = shape_loss)
     }
     status[loss_to_follow_up < observations] <- 0
     observations <- pmin(observations, loss_to_follow_up)

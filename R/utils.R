@@ -288,8 +288,63 @@ get_sigma2_LRT <- function(scale_ctrl,
   return(sigma2)
 }
 
-# new delta calculation: Schoenfeld instead of asymptotic npsurvSS
+# asymptotic
 get_delta_LRT <- function(scale_ctrl,
+                                     scale_trmt,
+                                     scale_loss = NULL,
+                                     shape_ctrl = 1,
+                                     shape_trmt = 1,
+                                     shape_loss = 1,
+                                     breakpoints_ctrl,
+                                     breakpoints_trmt,
+                                     breakpoints_loss = breakpoints_loss,
+                                     accrual_time = 0,
+                                     follow_up_time = NULL,
+                                     tau = NULL,
+                                     censor_beyond_tau = FALSE,
+                                     margin_LRT = 1) {
+  if (censor_beyond_tau) {
+    total_time <- tau
+  } else {
+    total_time <- accrual_time + follow_up_time
+  }
+  delta_LRT <- stats::integrate(Vectorize(function(x) {
+    (2 /  get_p_at_risk(
+      x,
+      scale = scale_ctrl,
+      scale_loss = scale_loss,
+      shape = shape_ctrl,
+      shape_loss = shape_loss,
+      breakpoints = breakpoints_ctrl,
+      breakpoints_loss = breakpoints_loss,
+      accrual_time = accrual_time,
+      follow_up_time = follow_up_time
+    ) +
+      2 /  get_p_at_risk(
+        x,
+        scale = scale_trmt,
+        scale_loss = scale_loss,
+        shape = shape_trmt,
+        shape_loss = shape_loss,
+        breakpoints = breakpoints_trmt,
+        breakpoints_loss = breakpoints_loss,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time
+      ))^(-1) *
+      (get_h(x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt) -
+         get_h(x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl))
+    }), lower = 0, upper = total_time)$value
+  return(delta_LRT)
+}
+
+#  asymptotic approach from npsurvSS:::delta_wlr
+#     delta <- stats::integrate(function(x)  (1/p0/prob_risk(arm0, x) +
+#     1/p1/prob_risk(arm1, x))^(-1) * (hsurv(x, arm1) -
+#     hsurv(x, arm0)), lower = 0, upper = arm0$total_time)$value
+# }
+
+# !!!DEPRECATED!!! new delta calculation: Schoenfeld instead of asymptotic npsurvSS
+get_delta_LRT_schoenfeld <- function(scale_ctrl,
                           scale_trmt,
                           scale_loss = NULL,
                           shape_ctrl = 1,
