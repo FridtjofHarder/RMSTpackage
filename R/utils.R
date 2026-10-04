@@ -301,8 +301,7 @@ get_delta_LRT <- function(scale_ctrl,
                                      accrual_time = 0,
                                      follow_up_time = NULL,
                                      tau = NULL,
-                                     censor_beyond_tau = FALSE,
-                                     margin_LRT = 1) {
+                                     censor_beyond_tau = FALSE) {
   if (censor_beyond_tau) {
     total_time <- tau
   } else {
@@ -343,7 +342,8 @@ get_delta_LRT <- function(scale_ctrl,
 #     hsurv(x, arm0)), lower = 0, upper = arm0$total_time)$value
 # }
 
-# !!!DEPRECATED!!! new delta calculation: Schoenfeld instead of asymptotic npsurvSS
+# choenfeld instead of asymptotic npsurvSS.
+# use only if margin is defined
 get_delta_LRT_schoenfeld <- function(scale_ctrl,
                           scale_trmt,
                           scale_loss = NULL,
@@ -564,22 +564,40 @@ get_ss_pwr_cf_LRT <- function(
     tau = tau,
     censor_beyond_tau = censor_beyond_tau
   )
-  Delta <- get_delta_LRT(
-    scale_ctrl = scale_ctrl,
-    scale_trmt = scale_trmt,
-    scale_loss = scale_loss,
-    shape_ctrl = shape_ctrl,
-    shape_trmt = shape_trmt,
-    shape_loss = shape_loss,
-    breakpoints_ctrl = breakpoints_ctrl,
-    breakpoints_trmt = breakpoints_trmt,
-    breakpoints_loss = breakpoints_loss,
-    accrual_time = accrual_time,
-    follow_up_time = follow_up_time,
-    tau = tau,
-    censor_beyond_tau = censor_beyond_tau,
-    margin_LRT = margin_LRT
-  )
+  if (margin_LRT == 1) {
+    Delta <- get_delta_LRT(
+      scale_ctrl = scale_ctrl,
+      scale_trmt = scale_trmt,
+      scale_loss = scale_loss,
+      shape_ctrl = shape_ctrl,
+      shape_trmt = shape_trmt,
+      shape_loss = shape_loss,
+      breakpoints_ctrl = breakpoints_ctrl,
+      breakpoints_trmt = breakpoints_trmt,
+      breakpoints_loss = breakpoints_loss,
+      accrual_time = accrual_time,
+      follow_up_time = follow_up_time,
+      tau = tau,
+      censor_beyond_tau = censor_beyond_tau
+    )
+  } else{
+    Delta <- get_delta_LRT_schoenfeld(
+      scale_ctrl = scale_ctrl,
+      scale_trmt = scale_trmt,
+      scale_loss = scale_loss,
+      shape_ctrl = shape_ctrl,
+      shape_trmt = shape_trmt,
+      shape_loss = shape_loss,
+      breakpoints_ctrl = breakpoints_ctrl,
+      breakpoints_trmt = breakpoints_trmt,
+      breakpoints_loss = breakpoints_loss,
+      accrual_time = accrual_time,
+      follow_up_time = follow_up_time,
+      tau = tau,
+      censor_beyond_tau = censor_beyond_tau,
+      margin_LRT = margin_LRT
+    )
+  }
   if(is.null(n)){ # returns n
     return(sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 / Delta^2)
   }
