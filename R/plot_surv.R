@@ -290,6 +290,12 @@ plot_surv <- function(
     )
   )
 
+  if (censor_beyond_tau && !is.null(tau)) {
+    # Everyone still under observation at tau is administratively censored
+    # at tau, so nobody remains under potential follow-up afterwards.
+    follow_up_data$p_not_censored[follow_up_data$t > tau] <- 0
+  }
+
   p_follow_up <- ggplot2::ggplot(follow_up_data, ggplot2::aes(x = t, y = p_not_censored)) +
     ggplot2::geom_line(linewidth = 1) +
     tau_layers(tau) +
@@ -324,6 +330,23 @@ plot_surv <- function(
     # integration grid would require) dominated runtime. Precision is
     # intentionally traded for speed here.
     max_plot_points <- 2000
+
+    # If censor_beyond_tau is requested, anyone still under observation at
+    # tau is administratively censored at tau: no further events or losses
+    # to follow-up can be observed past that point, since nobody remains at
+    # risk, so p_event and p_loss are frozen at their values at tau and the
+    # remaining mass moves into p_admin.
+    censor_probs_beyond_tau <- function(x, probs, tau) {
+      beyond <- x > tau
+      if (!any(beyond)) return(probs)
+      p_event_tau <- stats::approx(x, probs$p_event, xout = tau, rule = 2)$y
+      p_loss_tau  <- stats::approx(x, probs$p_loss,  xout = tau, rule = 2)$y
+      probs$p_event[beyond] <- p_event_tau
+      probs$p_loss[beyond]  <- p_loss_tau
+      probs$p_obs[beyond]   <- 0
+      probs$p_admin[beyond] <- 1 - p_event_tau - p_loss_tau
+      probs
+    }
 
     # Converts cumulative competing-risk probabilities into stacked bands.
     build_proportion_bands <- function(x, probs) {
@@ -367,6 +390,9 @@ plot_surv <- function(
       accrual_time = accrual_time,
       follow_up_time = follow_up_time
     )
+    if (censor_beyond_tau && !is.null(tau)) {
+      probs_ctrl <- censor_probs_beyond_tau(x_area, probs_ctrl, tau)
+    }
     p_ctrl_proportions <- plot_proportion_bands(
       build_proportion_bands(x_area, probs_ctrl),
       title = "Control group:",
@@ -386,6 +412,9 @@ plot_surv <- function(
       accrual_time = accrual_time,
       follow_up_time = follow_up_time
     )
+    if (censor_beyond_tau && !is.null(tau)) {
+      probs_trmt <- censor_probs_beyond_tau(x_area, probs_trmt, tau)
+    }
     p_trmt_proportions <- plot_proportion_bands(
       build_proportion_bands(x_area, probs_trmt),
       title = "Treatment group:",
