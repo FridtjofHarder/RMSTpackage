@@ -28,7 +28,8 @@ calculate_tau(
   satterthwaite_corr = FALSE,
   n = NULL,
   plot_design_curves = FALSE,
-  parameterisation = 1
+  parameterisation = 1,
+  interval = c(1, accrual_time + follow_up_time)
 )
 }
 \arguments{

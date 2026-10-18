@@ -68,7 +68,7 @@ Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. F
 
 \item{tau}{Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
 
-\item{sides}{Sidedness of inference test, either \code{1} or \code{2}. \code{sides = 1} assumes alternative hypothesis of: \itemize{
+\item{sides}{Sidedness of inference test, either \code{1} or \code{2}. \code{sides = 1} assumes treatment being superior to control, operationalized as alternative hypotheses of: \itemize{
 \item \eqn{H_1\text{: } \text{RMST}_\text{difference} = \text{RMST}_\text{trmt} - \text{RMST}_\text{ctrl} > 0},
 \item \eqn{H_1\text{: } \text{RMST}_\text{ratio} = \text{RMST}_\text{trmt} / \text{RMST}_\text{ctrl} > 1}, or
 \item \eqn{H_1\text{: } \text{HR} = h(t)_\text{trmt} / h(t)_\text{ctrl} < 1}.}}

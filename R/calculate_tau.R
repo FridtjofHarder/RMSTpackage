@@ -26,12 +26,12 @@
 #' Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. First element must be \code{> 0}.
 #' @param accrual_time Length of accrual period.
 #' @param follow_up_time Length of follow-up period. Set to \code{Inf} if unspecified.
-#' @param sides Sidedness of inference test, either \code{1} or \code{2}. \code{sides = 1} assumes alternative hypothesis of: \itemize{
+#' @param sides Sidedness of inference test, either \code{1} or \code{2}. \code{sides = 1} assumes treatment being superior to control, operationalized as alternative hypotheses of: \itemize{
 #' \item \eqn{H_1\text{: } \text{RMST}_\text{difference} = \text{RMST}_\text{trmt} - \text{RMST}_\text{ctrl} > 0},
 #' \item \eqn{H_1\text{: } \text{RMST}_\text{ratio} = \text{RMST}_\text{trmt} / \text{RMST}_\text{ctrl} > 1}, or
 #' \item \eqn{H_1\text{: } \text{HR} = h(t)_\text{trmt} / h(t)_\text{ctrl} < 1}.}
 #' @param power Test power with \code{power} \eqn{=1-\beta}.
-#' @param one_sided_alpha \eqn{\alpha} level for one-sided inference test.
+#' @param alpha \eqn{\alpha} level of inference test.
 #' @param margin_RMSTD Non-inferiority margin for RMST difference. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{difference} > } \code{margin_RMSTD}, with  default \code{margin_RMSTD} \eqn{=0} simplifying to superiority test.
 #' @param margin_RMSTR Non-inferiority margin for RMST ratio. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{ratio} > } \code{margin_RMSTR}, with  default \code{margin_RMSTR} \eqn{=1} simplifying to superiority test.
 #' @param margin_LRT Non-inferiority margin for log-rank test in terms of hazard ratio \eqn{\text{HR}}. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{HR} < } \code{margin_LRT}, with  default \code{margin_LRT} \eqn{=1} simplifying to superiority test.
@@ -90,7 +90,7 @@ calculate_tau <- function(
     follow_up_time = Inf,
     sides = 1,
     power = 0.8,
-    one_sided_alpha = 0.025,
+    alpha = 0.025 * sides,
     margin_RMSTD = 0,
     margin_RMSTR = 1,
     margin_LRT = 1,
@@ -121,7 +121,7 @@ calculate_tau <- function(
     accrual_time = accrual_time,
     follow_up_time = follow_up_time,
     sides = sides,
-    one_sided_alpha = one_sided_alpha,
+    alpha = alpha,
     margin_RMSTD = margin_RMSTD,
     margin_RMSTR = margin_RMSTR,
     margin_LRT = margin_LRT,
@@ -155,7 +155,7 @@ get_power_diff <- function(
     tau,
     sides,
     power,
-    one_sided_alpha,
+    alpha,
     margin_RMSTD,
     margin_RMSTR,
     margin_LRT,
@@ -182,7 +182,7 @@ get_power_diff <- function(
     follow_up_time = follow_up_time,
     tau = tau,
     sides = sides,
-    one_sided_alpha = one_sided_alpha,
+    alpha = alpha,
     margin_RMSTD = margin_RMSTD,
     margin_RMSTR = margin_RMSTR,
     margin_LRT = margin_LRT,

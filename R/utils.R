@@ -693,7 +693,10 @@ check_inputs <- function(scale_ctrl = NULL,
                          tau = NULL,
                          sides = NULL,
                          power = NULL,
-                         one_sided_alpha = NULL,
+                         alpha = NULL,
+                         margin_RMSTD = 0,
+                         margin_RMSTR = 1,
+                         margin_LRT = 1,
                          RMSTD_closed_form = FALSE,
                          RMSTR_closed_form = FALSE,
                          parameterisation = NULL){
@@ -708,7 +711,7 @@ check_inputs <- function(scale_ctrl = NULL,
       length(shape_trmt) == 1 || all(shape_trmt == 1) && length(shape_trmt) == length(scale_trmt)
   )
   stopifnot(
-    "shape_loss must be a scalar or a vector of 1s (piecewise Weibull is not supported)
+    "sShape_loss must be a scalar or a vector of 1s (piecewise Weibull is not supported)
     If shape_loss is a vector of 1s, it must have the same length as scale_loss" =
       length(shape_loss) == 1 || all(shape_loss == 1) && length(shape_loss) == length(scale_loss)
   )
@@ -717,11 +720,11 @@ check_inputs <- function(scale_ctrl = NULL,
       tau <= accrual_time + follow_up_time
   )
 
-  stopifnot("first element in breakpoint vectors must be larger than 0" =
+  stopifnot("First element in breakpoint vectors must be larger than 0" =
               (is.null(breakpoints_ctrl[1]) ||  breakpoints_ctrl[1] > 0) &&
               (is.null(breakpoints_trmt[1]) ||  breakpoints_trmt[1] > 0) &&
               (is.null(breakpoints_loss[1]) ||  breakpoints_loss[1] > 0))
-  stopifnot("breakpoints must be in increasing order" =
+  stopifnot("Breakpoints must be in increasing order" =
               (is.null(breakpoints_ctrl[1]) || all(diff(breakpoints_ctrl) > 0)) &&
               (is.null(breakpoints_trmt[1]) || all(diff(breakpoints_trmt) > 0)) &&
               (is.null(breakpoints_loss[1]) || all(diff(breakpoints_loss) > 0)))
@@ -735,8 +738,9 @@ check_inputs <- function(scale_ctrl = NULL,
     "Parameterisation must be defined as either 1, 2, or 3." = parameterisation == 1 || parameterisation == 2 || parameterisation == 3
   )
   stopifnot("sides must be set to either 1 or 2" = any(sides == c(1, 2)))
-  stopifnot("one_sides_alpha must be larger than 0 and smaller than 1" = (0 < one_sided_alpha & one_sided_alpha < 1))
+  stopifnot("alpha must be larger than 0 and smaller than 1" = (0 < alpha & alpha < 1))
   stopifnot("power must be larger than 0 and smaller than 1" = (0 < power & power < 1))
+  stopifnot("Noninferiority required one-sided test: Please set sides = 1" =
+              sides == 1 |  (margin_RMSTD == 0 & margin_RMSTR == 1 & margin_LRT == 1)
+  )
 }
-
-# my function using either pweibull or pexp

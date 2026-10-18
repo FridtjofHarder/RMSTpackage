@@ -16,7 +16,7 @@ int_fun_n_or_power <- function(
     tau = NULL,
     sides = 1,
     power = NULL,
-    one_sided_alpha = 0.025,
+    alpha = 0.025 * sides,
     margin_RMSTD = 0,
     margin_RMSTR = 1,
     margin_LRT = 1,
@@ -58,7 +58,10 @@ int_fun_n_or_power <- function(
                tau = tau,
                sides = sides,
                power = power,
-               one_sided_alpha = one_sided_alpha,
+               alpha = alpha,
+               margin_RMSTD = margin_RMSTD,
+               margin_RMSTR = margin_RMSTR,
+               margin_LRT = margin_LRT,
                RMSTD_closed_form = RMSTD_closed_form,
                RMSTR_closed_form = RMSTR_closed_form,
                parameterisation = parameterisation
@@ -127,7 +130,7 @@ int_fun_n_or_power <- function(
     breakpoints_ctrl = breakpoints_ctrl, breakpoints_trmt = breakpoints_trmt,
     breakpoints_loss = breakpoints_loss,
     accrual_time = accrual_time, follow_up_time = follow_up_time, tau = tau,
-    sides = sides, power = power, alpha = one_sided_alpha
+    sides = sides, power = power, alpha = alpha
   )
   if (RMSTD_closed_form) {
     rmstd_args <- c(shared_args, list(margin = margin_RMSTD, RMST_ctrl = RMST_ctrl, RMST_trmt = RMST_trmt, contrast = "difference"))
@@ -182,7 +185,7 @@ int_fun_n_or_power <- function(
       scale_trmt = scale_trmt, shape_trmt = shape_trmt, breakpoints_trmt = breakpoints_trmt,
       scale_ctrl = scale_ctrl, shape_ctrl = shape_ctrl, breakpoints_ctrl = breakpoints_ctrl,
       sim_shared = sim_shared,
-      tau = tau, one_sided_alpha = one_sided_alpha,
+      tau = tau, alpha = alpha,
       margin_RMSTD = margin_RMSTD, margin_RMSTR = margin_RMSTR, margin_LRT = margin_LRT,
       satterthwaite_corr = satterthwaite_corr,
       RMSTD_simulation = RMSTD_simulation,
@@ -214,28 +217,57 @@ int_fun_n_or_power <- function(
           simulated_data$status,
           simulated_data$label,
           tau = tau_temp,
-          alpha = args$one_sided_alpha * 2
+          alpha = args$alpha * (2 / sides) # keep alpha unchanged for sides = 2, double for sides = 1
         )
         result <- fit$unadjusted.result
         if (args$RMSTD_simulation) {
-          result_i$RMSTD <- as.numeric(result[1, 2] > args$margin_RMSTD)
-          if (args$satterthwaite_corr) {
-            se_diff <- sqrt(fit$RMST.arm0$rmst.var + fit$RMST.arm1$rmst.var)
-            sigma2_ctrl_sim <- fit$RMST.arm0$result[1, 2]^2# get sigma2_ctrl
-            sigma2_trmt_sim <- fit$RMST.arm1$result[1, 2]^2# get sigma2_trmt
-            events_ctrl_sim <- sum(simulated_data$status[simulated_data$label == 0])# get no of events ctrl
-            events_trmt_sim <- sum(simulated_data$status[simulated_data$label == 1])# get no of events trmt
-            df_sim <- (sigma2_ctrl_sim / events_ctrl_sim + sigma2_trmt_sim / events_trmt_sim)^2 /
-              ((sigma2_ctrl_sim / events_ctrl_sim)^2 / (events_ctrl_sim - 1) + (sigma2_trmt_sim / events_trmt_sim)^2 / (events_trmt_sim - 1))
-            # get satterthwaite lower bound
-            lower_CI_satterthwaite <- result[1, 1] - se_diff * qt(1 - one_sided_alpha / sides, df = df_sim)
-            result_i$RMSTD_satterthwaite <- as.numeric(lower_CI_satterthwaite > args$margin_RMSTD)
+          if (sides == 1) {
+            result_i$RMSTD <- as.numeric(result[1, 2] > args$margin_RMSTD)
+            if (args$satterthwaite_corr) {
+              se_diff <- sqrt(fit$RMST.arm0$rmst.var + fit$RMST.arm1$rmst.var)
+              sigma2_ctrl_sim <- fit$RMST.arm0$result[1, 2]^2# get sigma2_ctrl
+              sigma2_trmt_sim <- fit$RMST.arm1$result[1, 2]^2# get sigma2_trmt
+              events_ctrl_sim <- sum(simulated_data$status[simulated_data$label == 0])# get no of events ctrl
+              events_trmt_sim <- sum(simulated_data$status[simulated_data$label == 1])# get no of events trmt
+              df_sim <- (sigma2_ctrl_sim / events_ctrl_sim + sigma2_trmt_sim / events_trmt_sim)^2 /
+                ((sigma2_ctrl_sim / events_ctrl_sim)^2 / (events_ctrl_sim - 1) + (sigma2_trmt_sim / events_trmt_sim)^2 / (events_trmt_sim - 1)
+                )
+              # get satterthwaite lower bound
+              lower_CI_satterthwaite <- result[1, 1] - se_diff * qt(1 - alpha / sides, df = df_sim)
+              result_i$RMSTD_satterthwaite <- as.numeric(lower_CI_satterthwaite > args$margin_RMSTD)
+            }
+          }
+          if (sides == 2) {
+            result_i$RMSTD <- as.numeric(result[1, 4] < alpha)
+            if (args$satterthwaite_corr) {
+              se_diff <- sqrt(fit$RMST.arm0$rmst.var + fit$RMST.arm1$rmst.var)
+              sigma2_ctrl_sim <- fit$RMST.arm0$result[1, 2]^2# get sigma2_ctrl
+              sigma2_trmt_sim <- fit$RMST.arm1$result[1, 2]^2# get sigma2_trmt
+              events_ctrl_sim <- sum(simulated_data$status[simulated_data$label == 0])# get no of events ctrl
+              events_trmt_sim <- sum(simulated_data$status[simulated_data$label == 1])# get no of events trmt
+              df_sim <- (sigma2_ctrl_sim / events_ctrl_sim + sigma2_trmt_sim / events_trmt_sim)^2 /
+                ((sigma2_ctrl_sim / events_ctrl_sim)^2 / (events_ctrl_sim - 1) + (sigma2_trmt_sim / events_trmt_sim)^2 / (events_trmt_sim - 1)
+                )
+              # get satterthwaite lower bound
+              lower_CI_satterthwaite <- result[1, 1] - se_diff * qt(1 - alpha / sides, df = df_sim)
+              upper_CI_satterthwaite <- result[1, 1] + se_diff * qt(1 - alpha / sides, df = df_sim)
+              result_i$RMSTD_satterthwaite <- as.numeric(lower_CI_satterthwaite > 0 |
+                                                           upper_CI_satterthwaite < 0)
+            }
           }
         }
         if (args$RMSTR_simulation) {
-          result_i$RMSTR <- as.numeric(result[2, 2] > args$margin_RMSTR)
-          if (args$satterthwaite_corr) {
-            print("satterthwaite corrected RMSTR not yet implemented")
+          if (sides == 1) {
+            result_i$RMSTR <- as.numeric(result[2, 2] > args$margin_RMSTR)
+            if (args$satterthwaite_corr) {
+              print("satterthwaite corrected RMSTR not yet implemented")
+            }
+          }
+          if (sides == 2) {
+            result_i$RMSTR <- as.numeric(result[2, 4] < alpha)
+            if (args$satterthwaite_corr) {
+              print("satterthwaite corrected RMSTR not yet implemented")
+            }
           }
         }
       }
