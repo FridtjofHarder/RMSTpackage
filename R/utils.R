@@ -437,9 +437,9 @@ get_delta_LRT_schoenfeld <- function(scale_ctrl,
   return(delta_LRT)
 }
 
-# get sample size closed form ---------------------------------------------
+# get sample size or power closed form ---------------------------------------------
 
-# get sample size by closed-form for RMSTD
+# get sample size or power by closed-form for RMSTD
 get_ss_pwr_cf_RMST <- function(
     scale_ctrl,
     scale_trmt,
@@ -517,14 +517,33 @@ get_ss_pwr_cf_RMST <- function(
       return(sigma2 * (stats::qt(1 - alpha / sides, df) + stats::qt(power, df))^2 / Delta^2)
     }
     if(is.null(power)){ # return Satterthwaite power
-      return(stats::pt(sqrt(n) * Delta / sqrt(sigma2) - stats::qt(1 - alpha / sides, df), df))
+      if(sides == 1){
+      return(stats::pt(sqrt(n) * Delta / sqrt(sigma2) - stats::qt(1 - alpha, df), df))
+      }
+      if(sides == 2){
+      return( # take care of this later
+        stats::pnorm((sigma2) * stats::qnorm(1 -alpha/sides) + sqrt(n) * design$delta)/sqrt(design$tsigma2),
+                     lower.tail = F) + (sides == 2) * stats::pnorm((sqrt(design$sigma2) *
+                                                                      stats::qnorm(1 - alpha/sides) - sqrt(n) * design$delta)/sqrt(design$tsigma2),
+                                                                   lower.tail = F))
+      }
     }
   }
   if(is.null(n)){ # returns n
     return(sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 / Delta^2)
   }
-  if(is.null(power)){ # returns power
-    return(stats::pnorm(sqrt(n) * Delta / sqrt(sigma2) - stats::qnorm(1 - alpha / sides)))
+  if (is.null(power)) {
+    # returns power
+    if (sides == 1) {
+      power <- stats::pnorm(sqrt(n) * Delta / sqrt(sigma2) - stats::qnorm(1 - alpha))
+      return(power)
+    }
+    if(sides == 2){
+      power <- stats::pnorm(sqrt(n) * Delta / sqrt(sigma2) + stats::qnorm(1 - alpha/2), lower.tail = F) +
+         stats::pnorm((sqrt(sigma2) * stats::qnorm(1 - alpha/2) - sqrt(n) * Delta)/sqrt(sigma2),
+                                                                          lower.tail = F)
+      return(power)
+    }
   }
 }
 
@@ -607,7 +626,7 @@ get_ss_pwr_cf_LRT <- function(
 }
 
 
-# # reverse design --------------------------------------------------------
+# reverse design --------------------------------------------------------
 
 
 # misc ------------------------------------------------------------------
@@ -676,6 +695,28 @@ get_satterthwaite_df <- function(scale_ctrl, scale_trmt,
   df <- (sigma2_ctrl / events_ctrl + sigma2_trmt / events_trmt)^2 /
     ((sigma2_ctrl / events_ctrl)^2 / (events_ctrl - 1) + (sigma2_trmt / events_trmt)^2 / (events_trmt - 1))
   return(df)
+}
+
+get_satterthwaite_df_simulation <- function(fit_object, simulated_data, contrast) {
+  events_ctrl_sim <- sum(simulated_data$status[simulated_data$label == 0])# get no of events ctrl
+  events_trmt_sim <- sum(simulated_data$status[simulated_data$label == 1])# get no of events trmt
+  if (contrast == "diff") {
+    df_sim <- (
+      fit$RMST.arm0$rmst.var / events_ctrl_sim + fit$RMST.arm1$rmst.var / events_trmt_sim
+    )^2 /
+      ((fit$RMST.arm0$rmst.var / events_ctrl_sim)^2 / (events_ctrl_sim - 1) + (fit$RMST.arm1$rmst.var / events_trmt_sim)^2 / (events_trmt_sim - 1)
+      )
+  }
+  if (contrast == "ratio") {
+    v_log_ctrl <- fit$RMST.arm0$rmst.var / fit$RMST.arm0$rmst[["Est."]]^2
+    v_log_trmt <- fit$RMST.arm1$rmst.var / fit$RMST.arm1$rmst[["Est."]]^2
+    df_sim <- (v_log_ctrl / events_ctrl_sim +
+                 v_log_trmt / events_trmt_sim)^2 /
+      ((v_log_ctrl / events_ctrl_sim)^2 / (events_ctrl_sim - 1) +
+         (v_log_trmt / events_trmt_sim)^2 / (events_trmt_sim - 1)
+      )
+  }
+  return(df_sim)
 }
 
 # check inputs

@@ -69,7 +69,7 @@ int_fun_n_or_power <- function(
   ss_RMSTD_closed_form <- ss_RMSTR_closed_form <- ss_LRT_closed_form <-
   pwr_RMSTD_closed_form <- pwr_RMSTR_closed_form <- pwr_LRT_closed_form <-
   pwr_RMSTD_simulated <- pwr_RMSTD_simulated_sat <- pwr_RMSTR_simulated <- pwr_LRT_simulated <-
-  RMST_ctrl <- RMST_trmt <- True_RMSTD <- True_RMSTR <-
+  RMST_ctrl <- RMST_trmt <- True_RMSTD <- True_RMSTR <- pwr_RMSTR_simulated_sat <-
   ss_RMSTD_closed_form_sat <- ss_RMSTR_closed_form_sat <-
   pwr_RMSTD_closed_form_sat <- pwr_RMSTR_closed_form_sat <- NA
 
@@ -222,35 +222,22 @@ int_fun_n_or_power <- function(
         result <- fit$unadjusted.result
         if (args$RMSTD_simulation) {
           if (sides == 1) {
-            result_i$RMSTD <- as.numeric(result[1, 2] > args$margin_RMSTD)
+            result_i$RMSTD <- as.numeric(result[1, 2] > args$margin_RMSTD) # result[1, 2] is lower limit of CI for RMSTD
             if (args$satterthwaite_corr) {
               se_diff <- sqrt(fit$RMST.arm0$rmst.var + fit$RMST.arm1$rmst.var)
-              sigma2_ctrl_sim <- fit$RMST.arm0$result[1, 2]^2# get sigma2_ctrl
-              sigma2_trmt_sim <- fit$RMST.arm1$result[1, 2]^2# get sigma2_trmt
-              events_ctrl_sim <- sum(simulated_data$status[simulated_data$label == 0])# get no of events ctrl
-              events_trmt_sim <- sum(simulated_data$status[simulated_data$label == 1])# get no of events trmt
-              df_sim <- (sigma2_ctrl_sim / events_ctrl_sim + sigma2_trmt_sim / events_trmt_sim)^2 /
-                ((sigma2_ctrl_sim / events_ctrl_sim)^2 / (events_ctrl_sim - 1) + (sigma2_trmt_sim / events_trmt_sim)^2 / (events_trmt_sim - 1)
-                )
-              # get satterthwaite lower bound
-              lower_CI_satterthwaite <- result[1, 1] - se_diff * qt(1 - alpha / sides, df = df_sim)
+              df_sim <- get_satterthwaite_df_simulation(fit_object = fit, simulated_data = simulated_data, contrast = "diff")
+              lower_CI_satterthwaite <- result[1, 1] - se_diff * qt(1 - alpha / sides, df = df_sim) # result[1, 1] is estimate of RMSTD
               result_i$RMSTD_satterthwaite <- as.numeric(lower_CI_satterthwaite > args$margin_RMSTD)
             }
           }
           if (sides == 2) {
-            result_i$RMSTD <- as.numeric(result[1, 4] < alpha)
+            result_i$RMSTD <- as.numeric(result[1, 4] < alpha) # result[1, 4] is p value for RMSTD
             if (args$satterthwaite_corr) {
               se_diff <- sqrt(fit$RMST.arm0$rmst.var + fit$RMST.arm1$rmst.var)
-              sigma2_ctrl_sim <- fit$RMST.arm0$result[1, 2]^2# get sigma2_ctrl
-              sigma2_trmt_sim <- fit$RMST.arm1$result[1, 2]^2# get sigma2_trmt
-              events_ctrl_sim <- sum(simulated_data$status[simulated_data$label == 0])# get no of events ctrl
-              events_trmt_sim <- sum(simulated_data$status[simulated_data$label == 1])# get no of events trmt
-              df_sim <- (sigma2_ctrl_sim / events_ctrl_sim + sigma2_trmt_sim / events_trmt_sim)^2 /
-                ((sigma2_ctrl_sim / events_ctrl_sim)^2 / (events_ctrl_sim - 1) + (sigma2_trmt_sim / events_trmt_sim)^2 / (events_trmt_sim - 1)
-                )
+              df_sim <- get_satterthwaite_df_simulation(fit_object = fit, simulated_data = simulated_data, contrast = "diff")
               # get satterthwaite lower bound
-              lower_CI_satterthwaite <- result[1, 1] - se_diff * qt(1 - alpha / sides, df = df_sim)
-              upper_CI_satterthwaite <- result[1, 1] + se_diff * qt(1 - alpha / sides, df = df_sim)
+              lower_CI_satterthwaite <- result[1, 1] - se_diff * qt(1 - alpha / sides, df = df_sim) # result[1, 1] is estimate of RMSTD
+              upper_CI_satterthwaite <- result[1, 1] + se_diff * qt(1 - alpha / sides, df = df_sim) # result[1, 1] is estimate of RMSTD
               result_i$RMSTD_satterthwaite <- as.numeric(lower_CI_satterthwaite > 0 |
                                                            upper_CI_satterthwaite < 0)
             }
@@ -258,15 +245,29 @@ int_fun_n_or_power <- function(
         }
         if (args$RMSTR_simulation) {
           if (sides == 1) {
-            result_i$RMSTR <- as.numeric(result[2, 2] > args$margin_RMSTR)
+            result_i$RMSTR <- as.numeric(result[2, 2] > args$margin_RMSTR) # result[2, 2] is lower limit of CI for RMSTR
             if (args$satterthwaite_corr) {
-              print("satterthwaite corrected RMSTR not yet implemented")
+              se_log_ratio <- sqrt(
+                fit$RMST.arm0$rmst.var / fit$RMST.arm0$rmst[["Est."]]^2 +
+                fit$RMST.arm0$rmst.var / fit$RMST.arm1$rmst[["Est."]]^2
+              )
+              df_sim <- get_satterthwaite_df_simulation(fit_object = fit, simulated_data = simulated_data, contrast = "ratio")
+              log_lower_CI_satterthwaite <- log(result[2, 1]) - se_log_ratio * qt(1 - alpha / sides, df = df_sim) # result[1, 1] is estimate of RMSTR
+              result_i$RMSTR_satterthwaite <- as.numeric(log_lower_CI_satterthwaite > log(args$margin_RMSTR))
             }
           }
           if (sides == 2) {
-            result_i$RMSTR <- as.numeric(result[2, 4] < alpha)
+            result_i$RMSTR <- as.numeric(result[2, 4] < alpha) # result[2, 4] is p value for RMSTR
             if (args$satterthwaite_corr) {
-              print("satterthwaite corrected RMSTR not yet implemented")
+              se_log_ratio <- sqrt(
+                fit$RMST.arm0$rmst.var / fit$RMST.arm0$rmst[["Est."]]^2 +
+                  fit$RMST.arm0$rmst.var / fit$RMST.arm1$rmst[["Est."]]^2
+              )
+              df_sim <- get_satterthwaite_df_simulation(fit_object = fit, simulated_data = simulated_data, contrast = "ratio")
+              log_lower_CI_satterthwaite <- log(result[2, 1]) - se_log_ratio * qt(1 - alpha / sides, df = df_sim) # result[1, 1] is estimate of RMSTR
+              log_upper_CI_satterthwaite <- log(result[2, 1]) + se_log_ratio * qt(1 - alpha / sides, df = df_sim) # result[1, 1] is estimate of RMSTR
+              result_i$RMSTR_satterthwaite <- as.numeric(log_lower_CI_satterthwaite > 0 |
+                                                           log_upper_CI_satterthwaite < 0)
             }
           }
         }
@@ -280,11 +281,18 @@ int_fun_n_or_power <- function(
       return(result_i)
     }
     sim_results <- lapply(seq_len(M), one_sim, args = worker_args)
-    if (RMSTD_simulation) {pwr_RMSTD_simulated <- mean(sapply(sim_results, `[[`, "RMSTD"))
-      if (satterthwaite_corr){pwr_RMSTD_simulated_sat <- mean(sapply(sim_results, `[[`, "RMSTD_satterthwaite"))
+    if (RMSTD_simulation) {
+      pwr_RMSTD_simulated <- mean(sapply(sim_results, `[[`, "RMSTD"))
+      if (satterthwaite_corr) {
+        pwr_RMSTD_simulated_sat <- mean(sapply(sim_results, `[[`, "RMSTD_satterthwaite"))
       }
     }
-    if (RMSTR_simulation) pwr_RMSTR_simulated <- mean(sapply(sim_results, `[[`, "RMSTR"))
+    if (RMSTR_simulation) {
+      pwr_RMSTR_simulated <- mean(sapply(sim_results, `[[`, "RMSTR"))
+      if (satterthwaite_corr) {
+        pwr_RMSTR_simulated_sat <- mean(sapply(sim_results, `[[`, "RMSTR_satterthwaite"))
+      }
+    }
     if (LRT_simulation)   pwr_LRT_simulated   <- mean(sapply(sim_results, `[[`, "LRT"))
     if (any(sapply(sim_results, `[[`, "tau_changed")))
       warning("tau was reduced to the minimum largest observation across groups in at least one iteration.")
@@ -329,6 +337,7 @@ int_fun_n_or_power <- function(
     "RMSTD power determined by simulation" = pwr_RMSTD_simulated,
     "Satterthwaite-corrected RMSTD power determined by simulation" = pwr_RMSTD_simulated_sat,
     "RMSTR power determined by simulation" = pwr_RMSTR_simulated,
+    "Satterthwaite-corrected RMSTR power determined by simulation" = pwr_RMSTR_simulated_sat,
     "LRT power determined by simulation" = pwr_LRT_simulated,
     "RMST treatment group" = RMST_trmt,
     "RMST control group" = RMST_ctrl,
