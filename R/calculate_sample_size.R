@@ -10,7 +10,7 @@
 #'
 #' @param scale_ctrl Required. Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).
 #' @param scale_trmt Required. Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).
-#' @param scale_loss Required. Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential loss), or a vector (piecewise Weibull).
+#' @param scale_loss Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential loss), or a vector (piecewise Weibull).
 #' No loss to follow-up is assumed if undefined.
 #' @param shape_ctrl Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival.
 #' If \code{length(shape_ctrl) = 1} and \code{length(scale_ctrl) > 1}, the same shape parameter will be assumed for each section of the survival function.
@@ -39,8 +39,8 @@
 #' @param RMSTD_closed_form Logical. Specifies whether to calculate sample size for RMST difference test.
 #' @param RMSTR_closed_form Logical. Specifies whether to calculate sample size for RMST ratio test.
 #' @param LRT_closed_form Logical. Specifies whether to calculate sample size for log-rank test.
-#' @param satterthwaite_corr Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.
-#' @param censor_beyond_tau Logical. All observations past \eqn{\tau} are censored for simulations and log-rank test if \code{TRUE}.
+#' @param satter_corr Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.
+#' @param censor_beyond_tau Logical. All observations past \eqn{\tau} are censored for log-rank test if \code{TRUE}.
 #' @param plot_design_curves Logical. Specifies whether to plot survival curves.
 #' @param parameterisation Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
 #' \item \code{parameterisation = 1}: Default. Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}},
@@ -65,7 +65,7 @@
 #'   follow_up_time = 3,
 #'   tau = 4,
 #'   scale_loss = 0.1,
-#'   satterthwaite_corr = TRUE
+#'   satter_corr = TRUE
 #'   )
 #'   result_sup <- do.call(calculate_sample_size, args = args_sup)
 #'   print(result_sup)
@@ -121,7 +121,7 @@ calculate_sample_size <- function(
   RMSTD_closed_form = TRUE,
   RMSTR_closed_form = FALSE,
   LRT_closed_form = TRUE,
-  satterthwaite_corr = FALSE,
+  satter_corr = FALSE,
   censor_beyond_tau = FALSE,
   plot_design_curves = FALSE,
   parameterisation = 1
@@ -148,10 +148,11 @@ calculate_sample_size <- function(
     RMSTD_closed_form = RMSTD_closed_form, # RMSTD = RMST_trmt - RMST_ctrl = RMST_arm1 - RMST_arm0
     RMSTR_closed_form = RMSTR_closed_form, # RMSTR = RMST_trmt / RMST_ctrl = RMST_arm1 / RMST_arm0
     LRT_closed_form = LRT_closed_form, # HR = h(trmt) / h(ctrl = h_arm1 / h_arm0)
-    satterthwaite_corr = satterthwaite_corr,
+    satter_corr = satter_corr,
     censor_beyond_tau = censor_beyond_tau,
     plot_design_curves = plot_design_curves,
-    parameterisation = parameterisation
+    parameterisation = parameterisation,
+    output = "n"
   )
 }
 

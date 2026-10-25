@@ -1,0 +1,205 @@
+#' Determines the effect size in terms of the HR test power and sample size are given
+#'
+#' Given the scale and shape parameter of the control group, along with other design parameters, the function determines the smallest required effect size in terms of the hazard ratio given a desired test power and assumed sample size, using the closed form solution.
+#' Survival in both control and treatment group is assumed to follow an exponential distribution, or a Weibull distribution with identical shape parameter in both groups. Piecewise definition of survival function is not supported.
+#' Supports tests on difference and ratio in restricted mean survival time (RMST), and log-rank test (LRT). Supports superiority and non-inferiority tests.
+#'
+#' Survival can be defined by either a single Weibull function, or a single exponential function.
+#' Weibull survival curves need to be defined by \dfn{scale} and, optionally, \dfn{shape} parameter, in the standard parameterisation
+#' given by \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}}.
+#'
+#' @param scale_ctrl Required. Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).
+#' @param scale_loss Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential loss), or a vector (piecewise Weibull).
+#' No loss to follow-up is assumed if undefined.
+#' @param shape_ctrl Specifies the \dfn{shape parameter} in both the controland the treatment group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival.
+#' @param shape_loss Specifies the \dfn{shape parameter} for loss to follow-up. Defaults to \code{shape_loss = 1}, simplifying to exponential loss.
+#' If \code{length(shape_loss) = 1} and \code{length(scale_loss) > 1}, the same shape parameter will be assumed for each section of the loss distribution.
+#' @param breakpoints_loss Vector of breakpoints of the piecewise Weibull distribution for loss to follow-up.
+#' Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. First element must be \code{> 0}.
+#' @param accrual_time Length of accrual period.
+#' @param follow_up_time Length of follow-up period. Set to \code{Inf} if unspecified.
+#' @param tau Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.
+#' @param sides Sidedness of inference test, either \code{1} or \code{2}. \code{sides = 1} assumes treatment being superior to control, operationalized as alternative hypotheses of: \itemize{
+#' \item \eqn{H_1\text{: } \text{RMST}_\text{difference} = \text{RMST}_\text{trmt} - \text{RMST}_\text{ctrl} > 0},
+#' \item \eqn{H_1\text{: } \text{RMST}_\text{ratio} = \text{RMST}_\text{trmt} / \text{RMST}_\text{ctrl} > 1}, or
+#' \item \eqn{H_1\text{: } \text{HR} = h(t)_\text{trmt} / h(t)_\text{ctrl} < 1}.}
+#' @param power Test power with \code{power} \eqn{=1-\beta}.
+#' @param alpha \eqn{\alpha} level of inference test.
+#' @param margin_RMSTD Non-inferiority margin for RMST difference. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{difference} > } \code{margin_RMSTD}, with  default \code{margin_RMSTD} \eqn{=0} simplifying to superiority test.
+#' @param margin_RMSTR Non-inferiority margin for RMST ratio. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{ratio} > } \code{margin_RMSTR}, with  default \code{margin_RMSTR} \eqn{=1} simplifying to superiority test.
+#' @param margin_LRT Non-inferiority margin for log-rank test in terms of hazard ratio \eqn{\text{HR}}. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{HR} < } \code{margin_LRT}, with  default \code{margin_LRT} \eqn{=1} simplifying to superiority test.
+#' @param RMSTD_closed_form Logical. Specifies whether to calculate sample size for RMST difference test.
+#' @param RMSTR_closed_form Logical. Specifies whether to calculate sample size for RMST ratio test.
+#' @param LRT_closed_form Logical. Specifies whether to calculate sample size for log-rank test.
+#' @param satter_corr Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.
+#' @param n Integer specifying sample size for calculating power.
+#' @param parameterisation Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
+#' \item \code{parameterisation = 1}: Default. Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}},
+#' \item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
+#' \item \code{parameterisation = 3}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(t/\mathrm{scale})^\mathrm{shape})}}. This is the parameterisation used for the base \R{} function \code{stats::pweibull()}.}
+#'
+#' For \code{shape = 1}, the Weibull function simplifies to exponential survival with
+#' \eqn{\mathrm{scale} = \mathrm{hazard}} for \code{parameterisation = 1} or \code{2}, and
+#' \eqn{\mathrm{scale} = 1 / \mathrm{hazard}} for \code{parameterisation = 3}.
+#'
+#' @param interval Interval over which the function searches for the smallest
+#'   \eqn{\tau} to achieve the desired test power. Defaults to
+#'   \eqn{[1,\ \mathtt{accrual\_time} + \mathtt{follow\_up\_time}]}{[1, accrual_time + follow_up_time]}.
+#'
+#' @return Returns a list with \eqn{\tau} required for each test to achieve the
+#' desired test power with the specified sample size given the assumed design parameters,
+#' and returns RMST in each group, RMST difference, and RMST ratio. Assumes all participants
+#' to be censored beyond tau for log-rank test. Returns \code{NA}
+#' when no \eqn{\tau} can be found between \eqn{0} and total trial time.
+#'
+#' @export
+#'
+#' @examples
+#'
+#' # HR for range of different tests
+#'   args_sup <- list(
+#'   scale_ctrl = 0.17,
+#'   accrual_time = 6,
+#'   follow_up_time = 3,
+#'   tau = 4,
+#'   scale_loss = 0.1,
+#'   satter_corr = TRUE,
+#'   RMSTR_closed_form = TRUE,
+#'   n = 405)
+#'   result_HR <- do.call(calculate_HR, args = args_sup)
+#'   print(result_HR)
+
+calculate_HR <- function(
+    scale_ctrl,
+    scale_loss = NULL,
+    shape_ctrl = 1,
+    shape_loss = 1,
+    breakpoints_loss = NULL,
+    accrual_time = 0,
+    follow_up_time = Inf,
+    tau = NULL,
+    sides = 1,
+    power = 0.8,
+    alpha = 0.025 * sides,
+    margin_RMSTD = 0,
+    margin_RMSTR = 1,
+    margin_LRT = 1,
+    RMSTD_closed_form = TRUE,
+    RMSTR_closed_form = FALSE,
+    LRT_closed_form = TRUE,
+    satter_corr = FALSE,
+    n = NULL,
+    parameterisation = 1,
+    interval = c(scale_ctrl * 0.99, scale_ctrl * 0.05)
+) {
+  HR_RMSTD_closed_form = NA
+  HR_RMSTD_closed_form_satter = NA
+  HR_RMSTR_closed_form = NA
+  HR_RMSTR_closed_form_satter = NA
+  HR_LRT_closed_form  = NA
+  common_args <- list(
+    scale_ctrl = scale_ctrl,
+    scale_loss = scale_loss,
+    shape_ctrl = shape_ctrl,
+    shape_trmt = shape_ctrl,
+    shape_loss = shape_loss,
+    accrual_time = accrual_time,
+    follow_up_time = follow_up_time,
+    tau = tau,
+    sides = sides,
+    alpha = alpha,
+    margin_RMSTD = margin_RMSTD,
+    margin_RMSTR = margin_RMSTR,
+    margin_LRT = margin_LRT,
+    RMSTD_closed_form = RMSTD_closed_form,
+    RMSTR_closed_form = RMSTR_closed_form,
+    LRT_closed_form = LRT_closed_form,
+    satter_corr = satter_corr,
+    n = n,
+    power = power,
+    parameterisation = parameterisation
+  )
+
+  solve_HR <- function(which_test) {
+    stats::uniroot(
+      function(min_scale_trmt) do.call(get_HR, c(list(scale_trmt = min_scale_trmt, which_test = which_test), common_args)),
+      interval = interval
+    )$root
+  }
+  if (RMSTD_closed_form) {
+    HR_RMSTD_closed_form <- solve_HR("Power.for.RMST.difference.determined.by.closed.form.solution") / scale_ctrl
+    if (satter_corr) {
+      HR_RMSTD_closed_form_satter <- solve_HR("Satterthwaite.corrected.power.for.RMST.difference") / scale_ctrl
+    }
+  }
+  if (RMSTR_closed_form) {
+    HR_RMSTR_closed_form <- solve_HR("Power.for.RMST.ratio.determined.by.closed.form.solution") / scale_ctrl
+    if (satter_corr) {
+      HR_RMSTR_closed_form_satter <- solve_HR("Satterthwaite.corrected.power.for.RMST.ratio") / scale_ctrl
+    }
+  }
+  if (LRT_closed_form) {
+    HR_LRT_closed_form <- solve_HR("Power.for.LRT.determined.by.closed.form.solution") / scale_ctrl
+  }
+  result <- list(
+    "HR required for RMSTD test" = HR_RMSTD_closed_form,
+    "HR required for satterthwaite corrected RMSTD test" = HR_RMSTD_closed_form_satter,
+    "HR required for RMSTR test" = HR_RMSTR_closed_form,
+    "HR required for satterthwaite corrected RMSTR test" = HR_RMSTR_closed_form_satter,
+    "HR required for Cox regression" = HR_LRT_closed_form
+  )
+  result <- Filter(Negate(is.na), result)
+  return(result)
+}
+
+get_HR <- function(
+    scale_ctrl,
+    scale_trmt,
+    scale_loss,
+    shape_ctrl,
+    shape_trmt,
+    shape_loss,
+    accrual_time,
+    follow_up_time,
+    tau,
+    sides,
+    power,
+    alpha,
+    margin_RMSTD,
+    margin_RMSTR,
+    margin_LRT,
+    RMSTD_closed_form,
+    RMSTR_closed_form,
+    LRT_closed_form,
+    satter_corr,
+    n,
+    parameterisation,
+    which_test
+){
+  HR_res <- calculate_power(
+    scale_ctrl = scale_ctrl,
+    scale_trmt = scale_trmt,
+    scale_loss = scale_loss,
+    shape_ctrl = shape_ctrl,
+    shape_trmt = shape_trmt,
+    shape_loss = shape_loss,
+    accrual_time = accrual_time,
+    follow_up_time = follow_up_time,
+    tau = tau,
+    sides = sides,
+    alpha = alpha,
+    margin_RMSTD = margin_RMSTD,
+    margin_RMSTR = margin_RMSTR,
+    margin_LRT = margin_LRT,
+    RMSTD_closed_form = RMSTD_closed_form, # RMSTD = RMST_trmt - RMST_ctrl = RMST_arm1 - RMST_arm0
+    RMSTR_closed_form = TRUE, # RMSTR = RMST_trmt / RMST_ctrl = RMST_arm1 / RMST_arm0
+    LRT_closed_form = LRT_closed_form, # HR = h(trmt) / h(ctrl = h_arm1 / h_arm0)
+    satter_corr = satter_corr,
+    censor_beyond_tau = TRUE,
+    n = n,
+    plot_design_curves = FALSE,
+    parameterisation = parameterisation)
+  power_diff <- as.data.frame(HR_res) - power
+  return(as.numeric(power_diff[which_test]))
+}
+

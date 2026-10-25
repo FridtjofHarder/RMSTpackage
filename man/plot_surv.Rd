@@ -63,7 +63,7 @@ plot_surv(
 
 \item{plot_log_log}{Logical. Will plot a log-log plot for assessing proportionality of hazards if \code{TRUE}.}
 
-\item{plot_proportions}{Logical. Will plot the proportions of participants being lost to events, censporing, or are still among the risk set.}
+\item{plot_proportions}{Logical. Will plot the proportions of participants being lost to events, censored, or are still among the risk set.}
 
 \item{xlim}{Range of plot x-axis. Defaults to \code{c(0, 1.5*tau)}.}
 

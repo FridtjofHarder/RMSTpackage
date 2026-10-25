@@ -12,3 +12,4 @@
 ^RMSTpackage\.Rcheck$
 ^RMSTpackage.*\.tar\.gz$
 ^RMSTpackage.*\.tgz$
+^AGENTS\.md$

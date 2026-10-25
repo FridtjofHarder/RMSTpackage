@@ -19,7 +19,7 @@
 #' @param plot_HR Logical. Will plot the hazard ratio.
 #' @param plot_reverse_KM Logical. Will plot a reverse KM curve, indicating censoring-free follow-up.
 #' @param plot_log_log Logical. Will plot a log-log plot for assessing proportionality of hazards if \code{TRUE}.
-#' @param plot_proportions Logical. Will plot the proportions of participants being lost to events, censporing, or are still among the risk set.
+#' @param plot_proportions Logical. Will plot the proportions of participants being lost to events, censored, or are still among the risk set.
 #' @param xlim Range of plot x-axis. Defaults to \code{c(0, 1.5*tau)}.
 #' @param ylim Range of plot y-axis as survival percentages. Defaults to \code{c(0, 100)}.
 #' @param parameterisation Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
@@ -309,9 +309,10 @@ plot_surv <- function(
   # plot stacked area charts of proportions --------------------------------------------
 
   if (plot_proportions) {
+    # Order of band_levels = order in the legend and, top to bottom, in the plot
     band_levels <- c(
-      "Under observation",
       "Lost to event",
+      "Under observation",
       "Lost to follow-up",
       "Lost to administrative censoring"
     )
@@ -350,17 +351,19 @@ plot_surv <- function(
 
     # Converts cumulative competing-risk probabilities into stacked bands.
     build_proportion_bands <- function(x, probs) {
+      # Stacked from the bottom up: administrative censoring, loss to
+      # follow-up, under observation, event (top)
       cum0 <- rep(0, length(x))
-      cum1 <- probs$p_obs
-      cum2 <- cum1 + probs$p_event
-      cum3 <- cum2 + probs$p_loss
-      cum4 <- cum3 + probs$p_admin
+      cum1 <- probs$p_admin
+      cum2 <- cum1 + probs$p_loss
+      cum3 <- cum2 + probs$p_obs
+      cum4 <- cum3 + probs$p_event
 
       rbind(
-        data.frame(t = x, ymin = cum0, ymax = cum1, band = band_levels[1]),
-        data.frame(t = x, ymin = cum1, ymax = cum2, band = band_levels[2]),
-        data.frame(t = x, ymin = cum2, ymax = cum3, band = band_levels[3]),
-        data.frame(t = x, ymin = cum3, ymax = cum4, band = band_levels[4])
+        data.frame(t = x, ymin = cum0, ymax = cum1, band = "Lost to administrative censoring"),
+        data.frame(t = x, ymin = cum1, ymax = cum2, band = "Lost to follow-up"),
+        data.frame(t = x, ymin = cum2, ymax = cum3, band = "Under observation"),
+        data.frame(t = x, ymin = cum3, ymax = cum4, band = "Lost to event")
       )
     }
 

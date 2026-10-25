@@ -439,7 +439,7 @@ get_delta_LRT_schoenfeld <- function(scale_ctrl,
 
 # get sample size or power closed form ---------------------------------------------
 
-# get sample size or power by closed-form for RMSTD
+# get sample size or power by closed-form for RMST
 get_ss_pwr_cf_RMST <- function(
     scale_ctrl,
     scale_trmt,
@@ -457,11 +457,13 @@ get_ss_pwr_cf_RMST <- function(
     power = NULL, # size calc when !Null
     alpha = 0.05,
     margin = NULL, # take care that correct margin is chosen! change to =, or 1 in
-    satterthwaite_n = NA,
     RMST_ctrl,
     RMST_trmt,
-    n = NULL, # power calc when !Null
-    contrast # must be passed on as "difference" or "ratio"
+    n = NULL,
+    contrast, # must be passed on as "difference" or "ratio"
+    satter_df_from = NULL,
+    satter_corr = FALSE,
+    output = NULL # either power or sample size
 ) {
   sigma2_ctrl <- get_sigma2_rmst(
     scale = scale_ctrl,
@@ -488,66 +490,61 @@ get_ss_pwr_cf_RMST <- function(
   if (contrast == "difference"){
     if(is.null(margin)) margin <- 0
     Delta <- RMST_trmt - RMST_ctrl - margin
-    sigma2 <- 2 * sigma2_ctrl + 2 * sigma2_trmt
+    sigma2 <- 2 * (sigma2_ctrl + sigma2_trmt)
   }
   if (contrast == "ratio"){
     if(is.null(margin)) margin <- 1
     Delta <- log(RMST_trmt) - log(RMST_ctrl) - log(margin)
-    sigma2 <- 2 * sigma2_ctrl / RMST_ctrl^2 + 2 * sigma2_trmt / RMST_trmt^2
+    sigma2 <- 2 * (sigma2_ctrl / RMST_ctrl^2 + sigma2_trmt / RMST_trmt^2)
   }
-  if (!is.na(satterthwaite_n)) {
-    df <- get_satterthwaite_df(
-      scale_ctrl = scale_ctrl,
-      scale_trmt = scale_trmt,
-      scale_loss = scale_loss,
-      shape_ctrl = shape_ctrl,
-      shape_trmt = shape_trmt,
-      shape_loss = shape_loss,
-      breakpoints_ctrl = breakpoints_ctrl,
-      breakpoints_trmt = breakpoints_trmt,
-      breakpoints_loss = breakpoints_loss,
-      accrual_time = accrual_time,
-      follow_up_time = follow_up_time,
-      tau = tau,
-      satterthwaite_n = satterthwaite_n,
-      sigma2_ctrl = sigma2_ctrl,
-      sigma2_trmt = sigma2_trmt
-    )
-    if(is.null(n)){ # return Satterthwaite sample size
-      return(sigma2 * (stats::qt(1 - alpha / sides, df) + stats::qt(power, df))^2 / Delta^2)
-    }
-    if(is.null(power)){ # return Satterthwaite power
-      if(sides == 1){
-      return(stats::pt(sqrt(n) * Delta / sqrt(sigma2) - stats::qt(1 - alpha, df), df))
-      }
-      if(sides == 2){
-      return( # take care of this later
-        stats::pnorm((sigma2) * stats::qnorm(1 -alpha/sides) + sqrt(n) * design$delta)/sqrt(design$tsigma2),
-                     lower.tail = F) + (sides == 2) * stats::pnorm((sqrt(design$sigma2) *
-                                                                      stats::qnorm(1 - alpha/sides) - sqrt(n) * design$delta)/sqrt(design$tsigma2),
-                                                                   lower.tail = F))
-      }
-    }
+  satter_df <- NULL # gets filled only if satter_corr == TRUE
+  if (satter_corr) {
+      satter_df <- get_satter_df(
+        scale_ctrl = scale_ctrl,
+        scale_trmt = scale_trmt,
+        scale_loss = scale_loss,
+        shape_ctrl = shape_ctrl,
+        shape_trmt = shape_trmt,
+        shape_loss = shape_loss,
+        breakpoints_ctrl = breakpoints_ctrl,
+        breakpoints_trmt = breakpoints_trmt,
+        breakpoints_loss = breakpoints_loss,
+        accrual_time = accrual_time,
+        follow_up_time = follow_up_time,
+        tau = tau,
+        n = n,
+        sigma2_ctrl = sigma2_ctrl,
+        sigma2_trmt = sigma2_trmt,
+        satter_df_from = satter_df_from)
   }
-  if(is.null(n)){ # returns n
-    return(sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 / Delta^2)
-  }
-  if (is.null(power)) {
-    # returns power
-    if (sides == 1) {
-      power <- stats::pnorm(sqrt(n) * Delta / sqrt(sigma2) - stats::qnorm(1 - alpha))
-      return(power)
+    if (output == "n") {
+      n <- get_n(
+        sigma2 = sigma2,
+        Delta = Delta,
+        alpha = alpha,
+        sides = sides,
+        power = power,
+        satter_df = satter_df,
+        satter_corr = satter_corr
+      )
+      return(n)
     }
-    if(sides == 2){
-      power <- stats::pnorm(sqrt(n) * Delta / sqrt(sigma2) + stats::qnorm(1 - alpha/2), lower.tail = F) +
-         stats::pnorm((sqrt(sigma2) * stats::qnorm(1 - alpha/2) - sqrt(n) * Delta)/sqrt(sigma2),
-                                                                          lower.tail = F)
+    if (output == "power") {
+      # return Satterthwaite power with df = #e
+      power <- get_power(
+        sigma2 = sigma2,
+        Delta = Delta,
+        alpha = alpha,
+        sides = sides,
+        n = n,
+        satter_df = satter_df,
+        satter_corr = satter_corr
+      )
       return(power)
     }
   }
-}
 
-# get sample size by closed-form for LRT
+# get sample size or power by closed-form for LRT
 get_ss_pwr_cf_LRT <- function(
     scale_ctrl,
     scale_trmt,
@@ -566,7 +563,9 @@ get_ss_pwr_cf_LRT <- function(
     power = NULL,
     alpha = 0.025,
     margin_LRT = 1,
-    n = NULL
+    n = NULL,
+    output = NULL,
+    ...
 ) {
   sigma2 <- get_sigma2_LRT(
     scale_ctrl = scale_ctrl,
@@ -617,13 +616,67 @@ get_ss_pwr_cf_LRT <- function(
       margin_LRT = margin_LRT
     )
   }
-  if(is.null(n)){ # returns n
-    return(sigma2 * (stats::qnorm(1 - alpha / sides) + stats::qnorm(power))^2 / Delta^2)
+  if(output == "n"){ # returns n
+    n <- get_n(sigma2 = sigma2, Delta = -Delta, alpha = alpha, sides = sides, power = power)
+    return(n)
   }
-  if(is.null(power)){ # returns power
-    return(stats::pnorm(sqrt(n) * abs(Delta) / sqrt(sigma2) - stats::qnorm(1 - alpha / sides)))
+  if(output == "power"){ # returns power. Option for satterthwaite still missing.
+    power <- get_power(sigma2 = sigma2, Delta = -Delta, alpha = alpha, sides = sides, n = n) # Delta sign changed since Delta < 0 indicates treatment superiority, different in RMST.
+    return(power)
   }
 }
+
+get_power <- function(sigma2, Delta, alpha, sides, n, satter_df = NULL, satter_corr = FALSE) {
+  if (!satter_corr) {
+    # by z distribution if no satterthwaite correction requested
+    power <- stats::pnorm((sqrt(sigma2) * stats::qnorm(1 - alpha / sides) - sqrt(n) * Delta) / # -sqrt(n)Delta since Delta has opposite sign as in npsurvSS
+                            sqrt(sigma2),
+                          lower.tail = F
+    ) + (sides == 2) * stats::pnorm((sqrt(sigma2) *
+                                       stats::qnorm(1 - alpha /
+                                                      sides) + sqrt(n) * Delta) / sqrt(sigma2),
+                                    # +sqrt(n)Delta since Delta has opposite sign as in npsurvSS
+                                    lower.tail = F
+    )
+  }
+  if (satter_corr) {
+    # by satterthwaite corrected t distribution
+    power <- stats::pt((sqrt(sigma2) * stats::qt(1 - alpha / sides, satter_df) - sqrt(n) * Delta) / # -sqrt(n)Delta since Delta has opposite sign as in npsurvSS
+                            sqrt(sigma2), satter_df,
+                          lower.tail = F
+    ) + (sides == 2) * stats::pt((sqrt(sigma2) *
+                                       stats::qt(1 - alpha /
+                                                      sides, satter_df) + sqrt(n) * Delta) / sqrt(sigma2), satter_df,
+                                    # +sqrt(n)Delta since Delta has opposite sign as in npsurvSS
+                                    lower.tail = F
+    )
+
+  }
+  return(power)
+}
+
+# have to change to n, is still (partially) copy from power!!!
+get_n <- function(sigma2, Delta, alpha, sides, power, satter_df = NULL, satter_corr = FALSE) {
+  if(sides == 1 & Delta < 0){
+    warning("Warning: Control group is superior to treatment group and test is one-sided. n = Inf has been returned for at least one test.
+            Either choose two-sided test, or redefine group parameters to obtain a finite sample size.")
+    return(Inf)
+  }
+  if (!satter_corr) {
+    # by z distribution if no satterthwaite correction requested
+    n <- (sqrt(sigma2) * stats::qnorm(1 - alpha/sides) +
+       sqrt(sigma2) * stats::qnorm(power))^2/Delta^2
+    return(n)
+  }
+  if (satter_corr) {
+    # by satterthwaite corrected t distribution
+    n <- (sqrt(sigma2) * stats::qt(1 - alpha/sides, satter_df) +
+            sqrt(sigma2) * stats::qt(power, satter_df))^2/Delta^2
+    return(n)
+  }
+  return(power)
+}
+
 
 
 # reverse design --------------------------------------------------------
@@ -658,65 +711,81 @@ rereparameterise <- function(parameterisation, scale, shape = 1) {
   }
 }
 
-get_satterthwaite_df <- function(scale_ctrl, scale_trmt,
+get_satter_df <- function(scale_ctrl, scale_trmt,
                                  scale_loss, shape_ctrl, shape_trmt,
                                  shape_loss, breakpoints_ctrl, breakpoints_trmt,
                                  breakpoints_loss,
                                  accrual_time, follow_up_time, tau,
-                                 satterthwaite_n, sigma2_ctrl, sigma2_trmt) {
-  events_ctrl <- stats::integrate(
-    Vectorize(function(x) get_density(
-      x,
-      scale = scale_ctrl,
-      scale_loss = scale_loss,
-      shape = shape_ctrl,
-      shape_loss = shape_loss,
-      breakpoints = breakpoints_ctrl,
-      breakpoints_loss = breakpoints_loss,
-      accrual_time = accrual_time,
-      follow_up_time = follow_up_time
-    )),
-    lower = 0, upper = tau
-  )$value * satterthwaite_n * 0.5
-  events_trmt <- stats::integrate(
-    Vectorize(function(x) get_density(
-      x,
-      scale = scale_trmt,
-      scale_loss = scale_loss,
-      shape = shape_trmt,
-      shape_loss = shape_loss,
-      breakpoints = breakpoints_trmt,
-      breakpoints_loss = breakpoints_loss,
-      accrual_time = accrual_time,
-      follow_up_time = follow_up_time
-    )),
-    lower = 0, upper = tau
-  )$value * satterthwaite_n * 0.5
-  df <- (sigma2_ctrl / events_ctrl + sigma2_trmt / events_trmt)^2 /
-    ((sigma2_ctrl / events_ctrl)^2 / (events_ctrl - 1) + (sigma2_trmt / events_trmt)^2 / (events_trmt - 1))
-  return(df)
+                                 n, sigma2_ctrl, sigma2_trmt, satter_df_from = "events") {
+  if (satter_df_from == "events") {
+    units_ctrl <- stats::integrate(Vectorize(
+      function(x)
+        get_density(
+          x,
+          scale = scale_ctrl,
+          scale_loss = scale_loss,
+          shape = shape_ctrl,
+          shape_loss = shape_loss,
+          breakpoints = breakpoints_ctrl,
+          breakpoints_loss = breakpoints_loss,
+          accrual_time = accrual_time,
+          follow_up_time = follow_up_time
+        )
+    ),
+    lower = 0,
+    upper = tau)$value * n * 0.5
+    units_trmt <- stats::integrate(Vectorize(
+      function(x)
+        get_density(
+          x,
+          scale = scale_trmt,
+          scale_loss = scale_loss,
+          shape = shape_trmt,
+          shape_loss = shape_loss,
+          breakpoints = breakpoints_trmt,
+          breakpoints_loss = breakpoints_loss,
+          accrual_time = accrual_time,
+          follow_up_time = follow_up_time
+        )
+    ),
+    lower = 0,
+    upper = tau)$value * n * 0.5
+    print("satt df by events")
+  }
+  if(satter_df_from == "n"){
+    units_ctrl <- units_trmt <- n * 0.5
+    print("satt df by n")
+  }
+  satter_df <- (sigma2_ctrl / units_ctrl + sigma2_trmt / units_trmt)^2 /
+    ((sigma2_ctrl / units_ctrl)^2 / (units_ctrl - 1) + (sigma2_trmt / units_trmt)^2 / (units_trmt - 1))
+  return(satter_df)
 }
 
-get_satterthwaite_df_simulation <- function(fit_object, simulated_data, contrast) {
-  events_ctrl_sim <- sum(simulated_data$status[simulated_data$label == 0])# get no of events ctrl
-  events_trmt_sim <- sum(simulated_data$status[simulated_data$label == 1])# get no of events trmt
+get_satter_df_simulation <- function(fit_object, simul_data, contrast, satter_df_from = "events", n = NULL) {
+  if(satter_df_from == "events"){
+  units_ctrl_sim <- sum(simul_data$status[simul_data$label == 0])# get no of events ctrl
+  units_trmt_sim <- sum(simul_data$status[simul_data$label == 1])# get no of events trmt
+  }
+  if(satter_df_from == "n"){
+    units_ctrl_sim <- units_trmt_sim <- n * 0.5 # get df from n instead of #events
+  }
   if (contrast == "diff") {
-    df_sim <- (
-      fit$RMST.arm0$rmst.var / events_ctrl_sim + fit$RMST.arm1$rmst.var / events_trmt_sim
+    satter_df_sim <- (
+      fit_object$RMST.arm0$rmst.var / units_ctrl_sim + fit_object$RMST.arm1$rmst.var / units_trmt_sim
     )^2 /
-      ((fit$RMST.arm0$rmst.var / events_ctrl_sim)^2 / (events_ctrl_sim - 1) + (fit$RMST.arm1$rmst.var / events_trmt_sim)^2 / (events_trmt_sim - 1)
+      ((fit_object$RMST.arm0$rmst.var / units_ctrl_sim)^2 / (units_ctrl_sim - 1) + (fit_object$RMST.arm1$rmst.var / units_trmt_sim)^2 / (units_trmt_sim - 1)
       )
   }
   if (contrast == "ratio") {
-    v_log_ctrl <- fit$RMST.arm0$rmst.var / fit$RMST.arm0$rmst[["Est."]]^2
-    v_log_trmt <- fit$RMST.arm1$rmst.var / fit$RMST.arm1$rmst[["Est."]]^2
-    df_sim <- (v_log_ctrl / events_ctrl_sim +
-                 v_log_trmt / events_trmt_sim)^2 /
-      ((v_log_ctrl / events_ctrl_sim)^2 / (events_ctrl_sim - 1) +
-         (v_log_trmt / events_trmt_sim)^2 / (events_trmt_sim - 1)
+    v_log_ctrl <- fit_object$RMST.arm0$rmst.var / fit_object$RMST.arm0$rmst[["Est."]]^2
+    v_log_trmt <- fit_object$RMST.arm1$rmst.var / fit_object$RMST.arm1$rmst[["Est."]]^2
+    satter_df_sim <- (v_log_ctrl / units_ctrl_sim +
+                 v_log_trmt / units_trmt_sim)^2 /
+      ((v_log_ctrl / units_ctrl_sim)^2 / (units_ctrl_sim - 1) +
+         (v_log_trmt / units_trmt_sim)^2 / (units_trmt_sim - 1)
       )
   }
-  return(df_sim)
+  return(satter_df_sim)
 }
 
 # check inputs
@@ -781,7 +850,7 @@ check_inputs <- function(scale_ctrl = NULL,
   stopifnot("sides must be set to either 1 or 2" = any(sides == c(1, 2)))
   stopifnot("alpha must be larger than 0 and smaller than 1" = (0 < alpha & alpha < 1))
   stopifnot("power must be larger than 0 and smaller than 1" = (0 < power & power < 1))
-  stopifnot("Noninferiority required one-sided test: Please set sides = 1" =
+  stopifnot("Noninferiority requires one-sided test: Please set sides = 1" =
               sides == 1 |  (margin_RMSTD == 0 & margin_RMSTR == 1 & margin_LRT == 1)
   )
 }

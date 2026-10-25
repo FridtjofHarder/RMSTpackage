@@ -18,14 +18,14 @@ calculate_power(
   follow_up_time = Inf,
   tau = NULL,
   sides = 1,
-  one_sided_alpha = 0.025,
+  alpha = 0.025 * sides,
   margin_RMSTD = 0,
   margin_RMSTR = 1,
   margin_LRT = 1,
   RMSTD_closed_form = TRUE,
   RMSTR_closed_form = FALSE,
   LRT_closed_form = TRUE,
-  satterthwaite_corr = FALSE,
+  satter_corr = FALSE,
   RMSTD_simulation = FALSE,
   RMSTR_simulation = FALSE,
   LRT_simulation = FALSE,
@@ -41,7 +41,7 @@ calculate_power(
 
 \item{scale_trmt}{Required. Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise exponential).}
 
-\item{scale_loss}{Required. Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential loss), or a vector (piecewise exponential).
+\item{scale_loss}{Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential loss), or a vector (piecewise exponential).
 No loss to follow-up is assumed if undefined.}
 
 \item{shape_ctrl}{Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival.
@@ -73,7 +73,7 @@ Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. F
 \item \eqn{H_1\text{: } \text{RMST}_\text{ratio} = \text{RMST}_\text{trmt} / \text{RMST}_\text{ctrl} > 1}, or
 \item \eqn{H_1\text{: } \text{HR} = h(t)_\text{trmt} / h(t)_\text{ctrl} < 1}.}}
 
-\item{one_sided_alpha}{\eqn{\alpha} level for one-sided inference test.}
+\item{alpha}{\eqn{\alpha} level of inference test.}
 
 \item{margin_RMSTD}{Non-inferiority margin for RMST difference. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{difference} > } \code{margin_RMSTD}, with  default \code{margin_RMSTD} \eqn{=0} simplifying to superiority test.}
 
@@ -87,7 +87,7 @@ Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. F
 
 \item{LRT_closed_form}{Logical. Specifies whether to calculate sample size for log-rank test.}
 
-\item{satterthwaite_corr}{Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.}
+\item{satter_corr}{Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by Satterthwaite approximation. Degrees of freedom will be separately calculated from the number of events, and from the sample size}
 
 \item{RMSTD_simulation}{Logical. Specifies whether to determine RMST difference test power via simulation.}
 
@@ -99,7 +99,7 @@ Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. F
 
 \item{M}{Number of iterations when running simulation.}
 
-\item{n}{Integer specifying sample size for calculating power.}
+\item{n}{Integer specifying total sample size for calculating power. Will be increased by one if uneven to retain balanced sample sizes in both groups.}
 
 \item{plot_design_curves}{Logical. Specifies whether to plot survival curves.}
 
@@ -135,7 +135,7 @@ where the scale parameters correspond to piecewise hazard rates.
   follow_up_time = 3,
   tau = 4,
   scale_loss = 0.1,
-  satterthwaite_corr = TRUE,
+  satter_corr = TRUE,
   M = 1000,
   n = 405
   )

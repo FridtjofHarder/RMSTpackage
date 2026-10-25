@@ -19,14 +19,14 @@ calculate_sample_size(
   tau = NULL,
   sides = 1,
   power = 0.8,
-  one_sided_alpha = 0.025,
+  alpha = 0.025 * sides,
   margin_RMSTD = 0,
   margin_RMSTR = 1,
   margin_LRT = 1,
   RMSTD_closed_form = TRUE,
   RMSTR_closed_form = FALSE,
   LRT_closed_form = TRUE,
-  satterthwaite_corr = FALSE,
+  satter_corr = FALSE,
   censor_beyond_tau = FALSE,
   plot_design_curves = FALSE,
   parameterisation = 1
@@ -37,7 +37,7 @@ calculate_sample_size(
 
 \item{scale_trmt}{Required. Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).}
 
-\item{scale_loss}{Required. Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential loss), or a vector (piecewise Weibull).
+\item{scale_loss}{Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential loss), or a vector (piecewise Weibull).
 No loss to follow-up is assumed if undefined.}
 
 \item{shape_ctrl}{Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival.
@@ -64,14 +64,14 @@ Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. F
 
 \item{tau}{Specifies the time horizon \eqn{\tau} at which to evaluate \eqn{\mathrm{RMST} = \int_{0}^{\tau}S(t) \,dt}.}
 
-\item{sides}{Sidedness of inference test, either \code{1} or \code{2}. \code{sides = 1} assumes alternative hypothesis of: \itemize{
+\item{sides}{Sidedness of inference test, either \code{1} or \code{2}. \code{sides = 1} assumes treatment being superior to control, operationalized as alternative hypotheses of: \itemize{
 \item \eqn{H_1\text{: } \text{RMST}_\text{difference} = \text{RMST}_\text{trmt} - \text{RMST}_\text{ctrl} > 0},
 \item \eqn{H_1\text{: } \text{RMST}_\text{ratio} = \text{RMST}_\text{trmt} / \text{RMST}_\text{ctrl} > 1}, or
 \item \eqn{H_1\text{: } \text{HR} = h(t)_\text{trmt} / h(t)_\text{ctrl} < 1}.}}
 
 \item{power}{Test power with \code{power} \eqn{=1-\beta}.}
 
-\item{one_sided_alpha}{\eqn{\alpha} level for one-sided inference test.}
+\item{alpha}{\eqn{\alpha} level of inference test.}
 
 \item{margin_RMSTD}{Non-inferiority margin for RMST difference. Assumes alternative hypothesis of \eqn{H_1\text{: } \text{RMST}_\text{difference} > } \code{margin_RMSTD}, with  default \code{margin_RMSTD} \eqn{=0} simplifying to superiority test.}
 
@@ -85,9 +85,9 @@ Must have length of \code{scale_loss} \eqn{-1} and \code{shape_loss} \eqn{-1}. F
 
 \item{LRT_closed_form}{Logical. Specifies whether to calculate sample size for log-rank test.}
 
-\item{satterthwaite_corr}{Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.}
+\item{satter_corr}{Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.}
 
-\item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored for simulations and log-rank test if \code{TRUE}.}
+\item{censor_beyond_tau}{Logical. All observations past \eqn{\tau} are censored for log-rank test if \code{TRUE}.}
 
 \item{plot_design_curves}{Logical. Specifies whether to plot survival curves.}
 
@@ -123,7 +123,7 @@ where the scale parameters correspond to piecewise hazard rates.
   follow_up_time = 3,
   tau = 4,
   scale_loss = 0.1,
-  satterthwaite_corr = TRUE
+  satter_corr = TRUE
   )
   result_sup <- do.call(calculate_sample_size, args = args_sup)
   print(result_sup)

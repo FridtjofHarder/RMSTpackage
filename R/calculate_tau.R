@@ -10,7 +10,7 @@
 #'
 #' @param scale_ctrl Required. Specifies the \dfn{scale parameter} in the control group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).
 #' @param scale_trmt Required. Specifies the \dfn{scale parameter} in the treatment group. Can be a scalar (Weibull or exponential survival), or a vector (piecewise Weibull).
-#' @param scale_loss Required. Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential loss), or a vector (piecewise Weibull).
+#' @param scale_loss Specifies the \dfn{scale parameter} for loss to follow-up. Can be a scalar (Weibull or exponential loss), or a vector (piecewise Weibull).
 #' No loss to follow-up is assumed if undefined.
 #' @param shape_ctrl Specifies the \dfn{shape parameter} in the control group. Defaults to \code{shape_ctrl = 1}, simplifying to exponential survival.
 #' If \code{length(shape_ctrl) = 1} and \code{length(scale_ctrl) > 1}, the same shape parameter will be assumed for each section of the survival function.
@@ -38,9 +38,8 @@
 #' @param RMSTD_closed_form Logical. Specifies whether to calculate sample size for RMST difference test.
 #' @param RMSTR_closed_form Logical. Specifies whether to calculate sample size for RMST ratio test.
 #' @param LRT_closed_form Logical. Specifies whether to calculate sample size for log-rank test.
-#' @param satterthwaite_corr Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.
+#' @param satter_corr Logical. Adds sample size calculation based on t-distributed test statistic, with degrees of freedom found by the Satterthwaite approximation using the number of events in each group. Number of events is calculated based on the sample size determined based on standard normal distribution of test statistic.
 #' @param n Integer specifying sample size for calculating power.
-#' @param plot_design_curves Logical. Specifies whether to plot survival curves.
 #' @param parameterisation Define only if Weibull function is specified, not for piecewise exponential survival. One of: \itemize{
 #' \item \code{parameterisation = 1}: Default. Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-(\mathrm{scale} * t)^\mathrm{shape})}},
 #' \item \code{parameterisation = 2}: Specifies Weibull distributed survival as \cr \eqn{S(t) = 1- F(t) = \exp{(-\mathrm{scale} * t^\mathrm{shape})}},
@@ -71,7 +70,8 @@
 #'   accrual_time = 6,
 #'   follow_up_time = 3,
 #'   scale_loss = 0.1,
-#'   satterthwaite_corr = TRUE,
+#'   satter_corr = TRUE,
+#'   RMSTR_closed_form = TRUE,
 #'   n= 405)
 #'   result_tau <- do.call(calculate_tau, args = args_sup)
 #'   print(result_tau)
@@ -97,16 +97,15 @@ calculate_tau <- function(
     RMSTD_closed_form = TRUE,
     RMSTR_closed_form = FALSE,
     LRT_closed_form = TRUE,
-    satterthwaite_corr = FALSE,
+    satter_corr = FALSE,
     n = NULL,
-    plot_design_curves = FALSE,
     parameterisation = 1,
     interval = c(1, accrual_time + follow_up_time)
 ) {
   tau_RMSTD_closed_form = NA
-  tau_RMSTD_closed_form_sat = NA
+  tau_RMSTD_closed_form_satter = NA
   tau_RMSTR_closed_form = NA
-  tau_RMSTR_closed_form_sat = NA
+  tau_RMSTR_closed_form_satter = NA
   tau_LRT_closed_form  = NA
   common_args <- list(
     scale_ctrl = scale_ctrl,
@@ -128,16 +127,42 @@ calculate_tau <- function(
     RMSTD_closed_form = RMSTD_closed_form,
     RMSTR_closed_form = RMSTR_closed_form,
     LRT_closed_form = LRT_closed_form,
-    satterthwaite_corr = satterthwaite_corr,
+    satter_corr = satter_corr,
     n = n,
     power = power,
     parameterisation = parameterisation
   )
+  solve_tau <- function(which_test) {
+    stats::uniroot(
+      function(latest_tau) do.call(get_power_diff, c(list(tau = latest_tau, which_test = which_test), common_args)),
+      interval = interval
+    )$root
+  }
+  if (RMSTD_closed_form) {
+    tau_RMSTD_closed_form <- solve_tau("Power.for.RMST.difference.determined.by.closed.form.solution")
+    if (satter_corr) {
+      tau_RMSTD_closed_form_satter <- solve_tau("Satterthwaite.corrected.power.for.RMST.difference")
+    }
+  }
+  if (RMSTR_closed_form) {
+    tau_RMSTR_closed_form <- solve_tau("Power.for.RMST.ratio.determined.by.closed.form.solution")
+    if (satter_corr) {
+      tau_RMSTR_closed_form_satter <- solve_tau("Satterthwaite.corrected.power.for.RMST.ratio")
+    }
+  }
+  if (LRT_closed_form) {
+    tau_LRT_closed_form <- solve_tau("Power.for.LRT.determined.by.closed.form.solution")
+  }
+  result <- list(
+    "tau required for RMSTD test" = tau_RMSTD_closed_form,
+    "tau required for satterthwaite corrected RMSTD test" = tau_RMSTD_closed_form_satter,
+    "tau required for RMSTR test" = tau_RMSTR_closed_form,
+    "tau required for satterthwaite corrected RMSTR test" = tau_RMSTR_closed_form_satter,
+    "tau required for Cox regression" = tau_LRT_closed_form
+  )
+  result <- Filter(Negate(is.na), result)
+  return(result)
 
-  tau_RMSTD <- uniroot(
-    function(latest_tau) do.call(get_power_diff, c(list(tau = latest_tau, which_test = 1), common_args)),
-    interval = interval
-  )$root
 }
 
 get_power_diff <- function(
@@ -162,9 +187,8 @@ get_power_diff <- function(
     RMSTD_closed_form,
     RMSTR_closed_form,
     LRT_closed_form,
-    satterthwaite_corr,
+    satter_corr,
     n,
-    plot_design_curve,
     parameterisation,
     which_test
 ){
@@ -189,11 +213,12 @@ get_power_diff <- function(
     RMSTD_closed_form = RMSTD_closed_form, # RMSTD = RMST_trmt - RMST_ctrl = RMST_arm1 - RMST_arm0
     RMSTR_closed_form = TRUE, # RMSTR = RMST_trmt / RMST_ctrl = RMST_arm1 / RMST_arm0
     LRT_closed_form = LRT_closed_form, # HR = h(trmt) / h(ctrl = h_arm1 / h_arm0)
-    satterthwaite_corr = satterthwaite_corr,
+    satter_corr = satter_corr,
     censor_beyond_tau = TRUE,
     n = n,
     plot_design_curves = FALSE,
     parameterisation = parameterisation)
+
     power_diff <- as.data.frame(power_res) - power
     return(as.numeric(power_diff[which_test]))
 }

@@ -14,13 +14,10 @@ Imports:
     survival,
     survRM2,
     shiny,
-    rmarkdown,
     ggplot2,
     ppweibull,
     msm
 Suggests:
-    knitr,
-    tinytex,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Encoding: UTF-8
