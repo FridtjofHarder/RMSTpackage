@@ -42,7 +42,7 @@
 #' \eqn{\mathrm{scale} = \mathrm{hazard}} for \code{parameterisation = 1} or \code{2}, and
 #' \eqn{\mathrm{scale} = 1 / \mathrm{hazard}} for \code{parameterisation = 3}.
 #'
-#' @param interval Interval over which the function searches for the smallest
+#' @param HR_ interval Interval over which the function searches for the smallest
 #'   \eqn{\tau} to achieve the desired test power. Defaults to
 #'   \eqn{[1,\ \mathtt{accrual\_time} + \mathtt{follow\_up\_time}]}{[1, accrual_time + follow_up_time]}.
 #'
@@ -90,7 +90,7 @@ calculate_HR <- function(
     satter_corr = FALSE,
     n = NULL,
     parameterisation = 1,
-    interval = c(scale_ctrl * 0.99, scale_ctrl * 0.05)
+    HR_interval = c(.01, 1)
 ) {
   HR_RMSTD_closed_form = NA
   HR_RMSTD_closed_form_satter = NA
@@ -119,11 +119,11 @@ calculate_HR <- function(
     power = power,
     parameterisation = parameterisation
   )
-
+  browser()
   solve_HR <- function(which_test) {
     stats::uniroot(
       function(min_scale_trmt) do.call(get_HR, c(list(scale_trmt = min_scale_trmt, which_test = which_test), common_args)),
-      interval = interval
+      interval = HR_interval * scale_ctrl
     )$root
   }
   if (RMSTD_closed_form) {

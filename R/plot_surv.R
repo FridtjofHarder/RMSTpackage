@@ -142,9 +142,9 @@ plot_surv <- function(
 
   # Adds a vertical line and label marking tau, if tau is defined.
   tau_layers <- function(tau) {
-    if (is.null(tau)) return(NULL)
+    if (is.null(tau) || !is.finite(tau)) return(NULL)
     list(
-      ggplot2::geom_vline(xintercept = tau, color = "black", linewidth = 1),
+      ggplot2::geom_vline(xintercept = tau, color = "grey30", linewidth = 1),
       ggplot2::annotate(
         "text",
         x = tau,
@@ -188,7 +188,7 @@ plot_surv <- function(
     ggplot2::scale_color_manual(values = c(stats::setNames("red", ctrl_label), stats::setNames("darkblue", trmt_label))) +
     percent_y_scale +
     ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, 1)) +
-    ggplot2::labs(x = "t", y = "S(t) in %", color = NULL, title = "Survival functions for treatment and control group") +
+    ggplot2::labs(x = "t", y = "S(t) in %", color = NULL, title = "Design survival curves in treatment and control group") +
     ggplot2::theme_bw() +
     ggplot2::theme(legend.position = "bottom")
 
@@ -206,7 +206,11 @@ plot_surv <- function(
     p_hr <- ggplot2::ggplot(hr_data, ggplot2::aes(x = t, y = HR)) +
       ggplot2::geom_line(color = "black", linewidth = 1.2) +
       ggplot2::coord_cartesian(xlim = xlim) +
-      ggplot2::labs(x = "t", y = "Hazard ratio") +
+      ggplot2::labs(
+        x = "t",
+        y = expression(h[treatment](t) / h[control](t)),
+        title = "Hazard ratio over time"
+      ) +
       ggplot2::theme_bw()
 
     print(p_hr)
@@ -238,7 +242,7 @@ plot_surv <- function(
         "Hazard rate in treatment group" = "darkblue"
       )) +
       ggplot2::coord_cartesian(xlim = xlim, ylim = ylim_hazards) +
-      ggplot2::labs(x = "t", y = "Hazard rates", color = NULL) +
+      ggplot2::labs(x = "t", y = "Hazard rates", color = NULL, title = "Hazard rates over time") +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "bottom")
 
@@ -265,7 +269,6 @@ plot_surv <- function(
 
     p_loglog <- ggplot2::ggplot(loglog_data_long, ggplot2::aes(x = t, y = loglog, color = group)) +
       ggplot2::geom_line(linewidth = 1) +
-      tau_layers(tau) +
       ggplot2::scale_color_manual(values = c("Control group" = "red", "Treatment group" = "darkblue")) +
       ggplot2::coord_cartesian(xlim = xlim, ylim = ylim_loglog) +
       ggplot2::labs(x = "t", y = "-log-log(S(t))", color = NULL, title = "-log-log plot") +
@@ -371,9 +374,10 @@ plot_surv <- function(
       band_data$band <- factor(band_data$band, levels = band_levels)
       ggplot2::ggplot(band_data, ggplot2::aes(x = t, ymin = ymin, ymax = ymax, fill = band)) +
         ggplot2::geom_ribbon() +
+        tau_layers(tau) +
         ggplot2::scale_fill_manual(values = band_colors, breaks = band_levels) +
         percent_y_scale +
-        ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, 1)) +
+        ggplot2::coord_cartesian(xlim = xlim, ylim = c(0, 1), expand = FALSE) +
         ggplot2::labs(x = "t", y = "Proportion in %", fill = NULL, title = title, subtitle = subtitle) +
         ggplot2::theme_bw() +
         ggplot2::theme(legend.position = "bottom")
@@ -398,8 +402,8 @@ plot_surv <- function(
     }
     p_ctrl_proportions <- plot_proportion_bands(
       build_proportion_bands(x_area, probs_ctrl),
-      title = "Control group:",
-      subtitle = "Proportion of Subjects by Event and Censoring Type"
+      title = "Proportion of subjects by event and censoring type:",
+      subtitle = "Control group"
     )
     print(p_ctrl_proportions)
 
@@ -420,8 +424,8 @@ plot_surv <- function(
     }
     p_trmt_proportions <- plot_proportion_bands(
       build_proportion_bands(x_area, probs_trmt),
-      title = "Treatment group:",
-      subtitle = "Proportion of Subjects by Event and Censoring Type"
+      title = "Proportion of subjects by event and censoring type:",
+      subtitle = "Treatment group"
     )
     print(p_trmt_proportions)
   }

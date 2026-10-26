@@ -516,9 +516,6 @@ get_ss_pwr_cf_RMST <- function(
         sigma2_ctrl = sigma2_ctrl,
         sigma2_trmt = sigma2_trmt,
         satter_df_from = satter_df_from)
-      print("cf df")
-      print(satter_df_from)
-      print(satter_df)
   }
     if (output == "n") {
       n <- get_n(
@@ -781,8 +778,8 @@ get_satter_df_simulation <- function(tau = NULL, fit_object, simul_data, contras
   if (contrast == "ratio") {
     variance_component_ctrl_log <- fit_object$RMST.arm0$rmst.var / fit_object$RMST.arm0$rmst[["Est."]]^2 * n * 0.5
     variance_component_trmt_log <- fit_object$RMST.arm1$rmst.var / fit_object$RMST.arm1$rmst[["Est."]]^2 * n * 0.5
-    scaled_variance_log_ctrl <- variance_component_log_ctrl / units_ctrl_sim
-    scaled_variance_log_trmt <- variance_component_log_trmt / units_trmt_sim
+    scaled_variance_log_ctrl <- variance_component_ctrl_log / units_ctrl_sim
+    scaled_variance_log_trmt <- variance_component_trmt_log / units_trmt_sim
 
     satter_df_sim <- (scaled_variance_log_ctrl + scaled_variance_log_trmt)^2 /
       (

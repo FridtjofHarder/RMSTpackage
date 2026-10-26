@@ -281,21 +281,30 @@ convert_contrast_ph <- function(
       ggplot2::aes(x = t, y = S, color = group)
     ) +
       ggplot2::geom_line(linewidth = 1) +
-      ggplot2::geom_vline(xintercept = tau, color = "black", linewidth = 1) +
+      ggplot2::geom_vline(xintercept = tau, color = "grey30", linewidth = 1) +
       ggplot2::annotate(
         "text",
         x = tau,
         y = 0.1,
         hjust = 0,
-        label = paste0("'time horizon ' * tau * ' = ' * ", tau),
+        label = paste0("'Time horizon ' * tau * ' = ' * ", tau),
         parse = TRUE,
         size = 3.2
       ) +
       ggplot2::scale_color_manual(
         values = c(stats::setNames("darkblue", trmt_label), stats::setNames("red", ctrl_label))
       ) +
+      ggplot2::scale_y_continuous(
+        breaks = seq(0, 1, by = 0.2),
+        labels = paste0(seq(0, 100, by = 20), "%")
+      ) +
       ggplot2::coord_cartesian(xlim = c(0, 1.5 * tau), ylim = c(0, 1)) +
-      ggplot2::labs(x = "t", y = "S(t)", color = NULL) +
+      ggplot2::labs(
+        x = "t",
+        y = "S(t) in %",
+        color = NULL,
+        title = "Design survival curves in treatment and control group"
+      ) +
       ggplot2::theme_bw() +
       ggplot2::theme(legend.position = "bottom")
   }

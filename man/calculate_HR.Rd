@@ -25,7 +25,7 @@ calculate_HR(
   satter_corr = FALSE,
   n = NULL,
   parameterisation = 1,
-  interval = c(scale_ctrl * 0.99, scale_ctrl * 0.05)
+  HR_interval = c(0.01, 1)
 )
 }
 \arguments{
@@ -82,7 +82,7 @@ For \code{shape = 1}, the Weibull function simplifies to exponential survival wi
 \eqn{\mathrm{scale} = \mathrm{hazard}} for \code{parameterisation = 1} or \code{2}, and
 \eqn{\mathrm{scale} = 1 / \mathrm{hazard}} for \code{parameterisation = 3}.}
 
-\item{interval}{Interval over which the function searches for the smallest
+\item{HR_}{interval Interval over which the function searches for the smallest
 \eqn{\tau} to achieve the desired test power. Defaults to
 \eqn{[1,\ \mathtt{accrual\_time} + \mathtt{follow\_up\_time}]}{[1, accrual_time + follow_up_time]}.}
 }
