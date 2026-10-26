@@ -420,6 +420,7 @@ one_sim <- function(i, args) {
     RMSTD = 0,
     RMSTR = 0,
     RMSTD_satter = 0,
+    RMSTD_satter_n = 0,
     RMSTR_satter = 0,
     LRT = 0,
     tau_changed = FALSE
@@ -447,21 +448,29 @@ one_sim <- function(i, args) {
           se_diff <- sqrt(fit$RMST.arm0$rmst.var + fit$RMST.arm1$rmst.var)
           # df from #events
           satter_df_sim_events <- get_satter_df_simulation(
+            tau = args$tau,
             fit_object = fit,
             simul_data = simul_data,
             contrast = "diff",
-            satter_df_from = "events"
+            satter_df_from = "events",
+            n = args$n
           )
+          print("simul df from events")
+          print(satter_df_sim_events)
           half_CI_events <- se_diff * get_crit_satter(alpha = args$alpha, sides = args$sides, satter_df = satter_df_sim_events)
           lower_CI_satter <- result[1, 1] - half_CI_events # result[1, 1] is estimate of RMSTD
           result_i$RMSTD_satter <- as.numeric(lower_CI_satter > args$margin_RMSTD)
           # df from n
           satter_df_sim_n <- get_satter_df_simulation( # get df from n
+            tau = args$tau,
             fit_object = fit,
             simul_data = simul_data,
             contrast = "diff",
-            satter_df_from = "n"
+            satter_df_from = "n",
+            n = args$n
           )
+          print("simul df from n")
+          print(satter_df_sim_n)
           half_CI_n <- se_diff * get_crit_satter(alpha = args$alpha, sides = args$sides, satter_df = satter_df_sim_n)
           lower_CI_satter <- result[1, 1] - half_CI_n # result[1, 1] is estimate of RMSTD
           result_i$RMSTD_satter_n <- as.numeric(lower_CI_satter > args$margin_RMSTD)
@@ -473,11 +482,12 @@ one_sim <- function(i, args) {
           se_diff <- sqrt(fit$RMST.arm0$rmst.var + fit$RMST.arm1$rmst.var)
           # df from #events
           satter_df_sim_events <- get_satter_df_simulation(
+            tau = args$tau,
             fit_object = fit,
             simul_data = simul_data,
             contrast = "diff",
-            satter_df_from = "events"
-          )
+            satter_df_from = "events",
+            n = args$n)
           half_CI_events <- se_diff * get_crit_satter(alpha = args$alpha, sides = args$sides, satter_df = satter_df_sim_events)
           # get satterthwaite lower bound
           lower_CI_satter <- result[1, 1] - half_CI_events # result[1, 1] is estimate of RMSTD
@@ -486,6 +496,7 @@ one_sim <- function(i, args) {
                                                 upper_CI_satter < 0)
           # df from n
           satter_df_sim_n <- get_satter_df_simulation(
+            tau = args$tau,
             fit_object = fit,
             simul_data = simul_data,
             contrast = "diff",
@@ -509,9 +520,11 @@ one_sim <- function(i, args) {
               fit$RMST.arm1$rmst.var / fit$RMST.arm1$rmst[["Est."]]^2
           )
           satter_df_sim <- get_satter_df_simulation(
+            tau = args$tau,
             fit_object = fit,
             simul_data = simul_data,
-            contrast = "ratio"
+            contrast = "ratio",
+            n = args$n
           )
           half_CI_log <- se_log_ratio * get_crit_satter(alpha = args$alpha, sides = args$sides, satter_df = satter_df_sim)
           log_lower_CI_satter <- log(result[2, 1]) - half_CI_log # result[1, 1] is estimate of RMSTR
@@ -526,9 +539,11 @@ one_sim <- function(i, args) {
               fit$RMST.arm1$rmst.var / fit$RMST.arm1$rmst[["Est."]]^2
           )
           satter_df_sim <- get_satter_df_simulation(
+            tau = args$tau,
             fit_object = fit,
             simul_data = simul_data,
-            contrast = "ratio"
+            contrast = "ratio",
+            n = args$n
           )
           half_CI_log <- se_log_ratio * get_crit_satter(alpha = args$alpha, sides = args$sides, satter_df = satter_df_sim)
           log_lower_CI_satter <- log(result[2, 1]) - half_CI_log # result[1, 1] is estimate of RMSTR

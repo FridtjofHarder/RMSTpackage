@@ -516,6 +516,9 @@ get_ss_pwr_cf_RMST <- function(
         sigma2_ctrl = sigma2_ctrl,
         sigma2_trmt = sigma2_trmt,
         satter_df_from = satter_df_from)
+      print("cf df")
+      print(satter_df_from)
+      print(satter_df)
   }
     if (output == "n") {
       n <- get_n(
@@ -640,7 +643,7 @@ get_power <- function(sigma2, Delta, alpha, sides, n, satter_df = NULL, satter_c
     )
   }
   if (satter_corr) {
-    # by satterthwaite corrected t distribution
+    # by satterthwaite-corrected t distribution
     power <- stats::pt((sqrt(sigma2) * stats::qt(1 - alpha / sides, satter_df) - sqrt(n) * Delta) / # -sqrt(n)Delta since Delta has opposite sign as in npsurvSS
                             sqrt(sigma2), satter_df,
                           lower.tail = F
@@ -655,7 +658,6 @@ get_power <- function(sigma2, Delta, alpha, sides, n, satter_df = NULL, satter_c
   return(power)
 }
 
-# have to change to n, is still (partially) copy from power!!!
 get_n <- function(sigma2, Delta, alpha, sides, power, satter_df = NULL, satter_corr = FALSE) {
   if(sides == 1 & Delta < 0){
     warning("Warning: Control group is superior to treatment group and test is one-sided. n = Inf has been returned for at least one test.
@@ -750,39 +752,42 @@ get_satter_df <- function(scale_ctrl, scale_trmt,
     ),
     lower = 0,
     upper = tau)$value * n * 0.5
-    print("satt df by events")
   }
   if(satter_df_from == "n"){
     units_ctrl <- units_trmt <- n * 0.5
-    print("satt df by n")
   }
   satter_df <- (sigma2_ctrl / units_ctrl + sigma2_trmt / units_trmt)^2 /
     ((sigma2_ctrl / units_ctrl)^2 / (units_ctrl - 1) + (sigma2_trmt / units_trmt)^2 / (units_trmt - 1))
   return(satter_df)
 }
 
-get_satter_df_simulation <- function(fit_object, simul_data, contrast, satter_df_from = "events", n = NULL) {
+get_satter_df_simulation <- function(tau = NULL, fit_object, simul_data, contrast, satter_df_from = "events", n = NULL) {
+  variance_component_ctrl <- fit_object$RMST.arm0$rmst.var * n * 0.5
+  variance_component_trmt <- fit_object$RMST.arm1$rmst.var * n * 0.5
   if(satter_df_from == "events"){
-  units_ctrl_sim <- sum(simul_data$status[simul_data$label == 0])# get no of events ctrl
-  units_trmt_sim <- sum(simul_data$status[simul_data$label == 1])# get no of events trmt
+    units_ctrl_sim <- sum(simul_data$status[simul_data$label == 0 & simul_data$observations < tau])# get no of events ctrl
+    units_trmt_sim <- sum(simul_data$status[simul_data$label == 1 & simul_data$observations < tau])# get no of events trmt
   }
   if(satter_df_from == "n"){
     units_ctrl_sim <- units_trmt_sim <- n * 0.5 # get df from n instead of #events
   }
   if (contrast == "diff") {
     satter_df_sim <- (
-      fit_object$RMST.arm0$rmst.var / units_ctrl_sim + fit_object$RMST.arm1$rmst.var / units_trmt_sim
+      variance_component_ctrl / units_ctrl_sim + variance_component_trmt / units_trmt_sim
     )^2 /
-      ((fit_object$RMST.arm0$rmst.var / units_ctrl_sim)^2 / (units_ctrl_sim - 1) + (fit_object$RMST.arm1$rmst.var / units_trmt_sim)^2 / (units_trmt_sim - 1)
+      ((variance_component_ctrl / units_ctrl_sim)^2 / (units_ctrl_sim - 1) + (variance_component_trmt / units_trmt_sim)^2 / (units_trmt_sim - 1)
       )
   }
   if (contrast == "ratio") {
-    v_log_ctrl <- fit_object$RMST.arm0$rmst.var / fit_object$RMST.arm0$rmst[["Est."]]^2
-    v_log_trmt <- fit_object$RMST.arm1$rmst.var / fit_object$RMST.arm1$rmst[["Est."]]^2
-    satter_df_sim <- (v_log_ctrl / units_ctrl_sim +
-                 v_log_trmt / units_trmt_sim)^2 /
-      ((v_log_ctrl / units_ctrl_sim)^2 / (units_ctrl_sim - 1) +
-         (v_log_trmt / units_trmt_sim)^2 / (units_trmt_sim - 1)
+    variance_component_ctrl_log <- fit_object$RMST.arm0$rmst.var / fit_object$RMST.arm0$rmst[["Est."]]^2 * n * 0.5
+    variance_component_trmt_log <- fit_object$RMST.arm1$rmst.var / fit_object$RMST.arm1$rmst[["Est."]]^2 * n * 0.5
+    scaled_variance_log_ctrl <- variance_component_log_ctrl / units_ctrl_sim
+    scaled_variance_log_trmt <- variance_component_log_trmt / units_trmt_sim
+
+    satter_df_sim <- (scaled_variance_log_ctrl + scaled_variance_log_trmt)^2 /
+      (
+        scaled_variance_log_ctrl^2 / (units_ctrl_sim - 1) +
+          scaled_variance_log_trmt^2 / (units_trmt_sim - 1)
       )
   }
   return(satter_df_sim)
