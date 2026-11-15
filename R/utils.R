@@ -749,6 +749,7 @@ get_satter_df <- function(scale_ctrl, scale_trmt,
     ),
     lower = 0,
     upper = tau)$value * n * 0.5
+    if(units_trmt <= 1) warning("Number of events in treatment arm is less than or equal to 1")
   }
   if(satter_df_from == "n"){
     units_ctrl <- units_trmt <- n * 0.5

@@ -42,9 +42,8 @@
 #' \eqn{\mathrm{scale} = \mathrm{hazard}} for \code{parameterisation = 1} or \code{2}, and
 #' \eqn{\mathrm{scale} = 1 / \mathrm{hazard}} for \code{parameterisation = 3}.
 #'
-#' @param HR_ interval Interval over which the function searches for the smallest
-#'   \eqn{\tau} to achieve the desired test power. Defaults to
-#'   \eqn{[1,\ \mathtt{accrual\_time} + \mathtt{follow\_up\_time}]}{[1, accrual_time + follow_up_time]}.
+#' @param HR_interval Interval Interval over which the function searches for the largest
+#'   hazard ratio to achieve the desired test power.
 #'
 #' @return Returns a list with \eqn{\tau} required for each test to achieve the
 #' desired test power with the specified sample size given the assumed design parameters,
@@ -119,27 +118,36 @@ calculate_HR <- function(
     power = power,
     parameterisation = parameterisation
   )
-  browser()
   solve_HR <- function(which_test) {
-    stats::uniroot(
-      function(min_scale_trmt) do.call(get_HR, c(list(scale_trmt = min_scale_trmt, which_test = which_test), common_args)),
-      interval = HR_interval * scale_ctrl
-    )$root
+    f <- function(min_HR) do.call(get_HR, c(list(HR = min_HR, which_test = which_test), common_args))
+    # Scan from the weakest effect (largest HR) downwards for the first sign change.
+    # Satterthwaite power can collapse at very small HR (almost no events in the
+    # treatment group), which would otherwise leave both interval ends on the same side.
+    grid <- exp(seq(log(max(HR_interval)), log(min(HR_interval)), length.out = 15))
+    f_prev <- f(grid[1])
+    for (i in seq_along(grid)[-1]) {
+      f_curr <- f(grid[i])
+      if (sign(f_prev) != sign(f_curr)) {
+        return(stats::uniroot(f, interval = c(grid[i], grid[i - 1]), f.lower = f_curr, f.upper = f_prev)$root)
+      }
+      f_prev <- f_curr
+    }
+    NA_real_
   }
   if (RMSTD_closed_form) {
-    HR_RMSTD_closed_form <- solve_HR("Power.for.RMST.difference.determined.by.closed.form.solution") / scale_ctrl
+    HR_RMSTD_closed_form <- solve_HR("Power.for.RMST.difference.determined.by.closed.form.solution")
     if (satter_corr) {
-      HR_RMSTD_closed_form_satter <- solve_HR("Satterthwaite.corrected.power.for.RMST.difference") / scale_ctrl
+      HR_RMSTD_closed_form_satter <- solve_HR("Satterthwaite.corrected.power.for.RMST.difference")
     }
   }
   if (RMSTR_closed_form) {
-    HR_RMSTR_closed_form <- solve_HR("Power.for.RMST.ratio.determined.by.closed.form.solution") / scale_ctrl
+    HR_RMSTR_closed_form <- solve_HR("Power.for.RMST.ratio.determined.by.closed.form.solution")
     if (satter_corr) {
-      HR_RMSTR_closed_form_satter <- solve_HR("Satterthwaite.corrected.power.for.RMST.ratio") / scale_ctrl
+      HR_RMSTR_closed_form_satter <- solve_HR("Satterthwaite.corrected.power.for.RMST.ratio")
     }
   }
   if (LRT_closed_form) {
-    HR_LRT_closed_form <- solve_HR("Power.for.LRT.determined.by.closed.form.solution") / scale_ctrl
+    HR_LRT_closed_form <- solve_HR("Power.for.LRT.determined.by.closed.form.solution")
   }
   result <- list(
     "HR required for RMSTD test" = HR_RMSTD_closed_form,
@@ -154,7 +162,7 @@ calculate_HR <- function(
 
 get_HR <- function(
     scale_ctrl,
-    scale_trmt,
+    HR,
     scale_loss,
     shape_ctrl,
     shape_trmt,
@@ -178,7 +186,7 @@ get_HR <- function(
 ){
   HR_res <- calculate_power(
     scale_ctrl = scale_ctrl,
-    scale_trmt = scale_trmt,
+    scale_trmt = scale_ctrl * HR,
     scale_loss = scale_loss,
     shape_ctrl = shape_ctrl,
     shape_trmt = shape_trmt,
