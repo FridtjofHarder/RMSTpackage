@@ -336,19 +336,23 @@ plot_surv <- function(
     max_plot_points <- 2000
 
     # If censor_beyond_tau is requested, anyone still under observation at
-    # tau is administratively censored at tau: no further events or losses
-    # to follow-up can be observed past that point, since nobody remains at
-    # risk, so p_event and p_loss are frozen at their values at tau and the
-    # remaining mass moves into p_admin.
+    # tau is censored at tau and shown as lost to follow-up from then on: no
+    # further events or other losses can be observed past that point, since
+    # nobody remains at risk. p_event and p_admin are frozen at their values at
+    # tau, and the mass under observation at tau moves into p_loss.
+    # Without censor_beyond_tau, tau has no influence on the proportions.
     censor_probs_beyond_tau <- function(x, probs, tau) {
       beyond <- x > tau
       if (!any(beyond)) return(probs)
-      p_event_tau <- stats::approx(x, probs$p_event, xout = tau, rule = 2)$y
-      p_loss_tau  <- stats::approx(x, probs$p_loss,  xout = tau, rule = 2)$y
-      probs$p_event[beyond] <- p_event_tau
-      probs$p_loss[beyond]  <- p_loss_tau
+      # Use the first grid point after tau (not an interpolation across tau), so
+      # that subjects administratively censored exactly at tau, e.g. when
+      # follow_up_time = tau and accrual_time = 0, are not counted as censored
+      # by the tau rule
+      first <- which(beyond)[1]
+      probs$p_event[beyond] <- probs$p_event[first]
+      probs$p_admin[beyond] <- probs$p_admin[first]
+      probs$p_loss[beyond]  <- probs$p_loss[first] + probs$p_obs[first]
       probs$p_obs[beyond]   <- 0
-      probs$p_admin[beyond] <- 1 - p_event_tau - p_loss_tau
       probs
     }
 
@@ -371,6 +375,9 @@ plot_surv <- function(
     }
 
     plot_proportion_bands <- function(band_data, title, subtitle) {
+      # keep only the plotted section (plus a margin) so the ribbon stays light
+      dt_calc <- x_area[2] - x_area[1]
+      band_data <- band_data[band_data$t >= xlim[1] - 2 * dt_calc, ]
       band_data$band <- factor(band_data$band, levels = band_levels)
       ggplot2::ggplot(band_data, ggplot2::aes(x = t, ymin = ymin, ymax = ymax, fill = band)) +
         ggplot2::geom_ribbon() +
@@ -383,7 +390,11 @@ plot_surv <- function(
         ggplot2::theme(legend.position = "bottom")
     }
 
-    x_area <- seq(xlim[1], xlim[2], length.out = max_plot_points)
+    # The probabilities are cumulative, so they must be computed from t = 0 even
+    # if xlim starts later. The grid runs from 0 to xlim[2], with enough points to
+    # keep the resolution within xlim at about diff(xlim) / max_plot_points.
+    n_calc <- min(20000, max(max_plot_points, ceiling(max_plot_points * xlim[2] / diff(xlim))))
+    x_area <- seq(0, xlim[2], length.out = n_calc)
 
     # ctrl group: plot stacked area chart -------------------------------------------------
     probs_ctrl <- get_competing_risk_probs(
@@ -454,59 +465,46 @@ get_competing_risk_probs <- function(
   # Create a fine grid for numerical integration
   t_grid <- x
   dt <- t_grid[2] - t_grid[1]
-  t_grid_admin_loss <- seq(0, accrual_time + follow_up_time, by = dt)
 
   # Hazards on the grid
   hE <- get_h(t_grid, scale = scale_ctrl, shape = shape_ctrl,
               breakpoints = breakpoints_ctrl)
-  if(is.null(scale_loss)){
-    hL <- rep(0, length(t_grid))} else{
-  hL <- get_h(t_grid, scale = scale_loss, shape = shape_loss,
-              breakpoints = breakpoints_loss)
-    }
-  hA_temp <- rep(0, length(t_grid_admin_loss))
-  hA_temp[(follow_up_time / dt) : ((follow_up_time + accrual_time) / dt)] <-
-    1 / (accrual_time - seq(0, accrual_time, by = dt))
-  # t_grid may extend beyond accrual_time + follow_up_time (e.g. when the
-  # plotting xlim exceeds the trial length); pad with 0 there instead of
-  # letting out-of-range indexing silently introduce NAs, since there is no
-  # further administrative censoring hazard once the trial has ended.
-  hA <- rep(0, length(t_grid))
-  n_copy <- min(length(hA_temp), length(t_grid))
-  hA[seq_len(n_copy)] <- hA_temp[seq_len(n_copy)]
+  if (is.null(scale_loss)) {
+    hL <- rep(0, length(t_grid))
+  } else {
+    hL <- get_h(t_grid, scale = scale_loss, shape = shape_loss,
+                breakpoints = breakpoints_loss)
+  }
+  hE[is.infinite(hE)] <- max(hE[is.finite(hE)]) # in case some element is Inf
+  hL[is.infinite(hL)] <- max(hL[is.finite(hL)])
 
-  max_finite <- max(hE[is.finite(hE)]) # in case some element in h_all is Inf
-  hE[is.infinite(hE)] <- max_finite
-  max_finite <- max(hL[is.finite(hL)]) # in case some element in h_all is Inf
-  hE[is.infinite(hL)] <- max_finite
+  # Survival function of administrative censoring: the censoring time is
+  # uniform on [follow_up_time, follow_up_time + accrual_time]. Defined directly
+  # (not via a hazard) so that accrual_time = 0, where censoring happens at a
+  # single time point, is handled correctly.
+  total_time <- accrual_time + follow_up_time
+  if (!is.finite(total_time)) {
+    S_admin <- rep(1, length(t_grid))
+  } else if (accrual_time > 0) {
+    S_admin <- pmin(1, pmax(0, (total_time - t_grid) / accrual_time))
+  } else {
+    S_admin <- as.numeric(t_grid < follow_up_time)
+  }
 
+  # Survival without event or loss to follow-up, and probability of still being
+  # under observation (no event, no loss, not yet administratively censored)
+  S_event_loss <- exp(-cumsum(hE + hL) * dt)
+  S_obs <- S_event_loss * S_admin
 
-  # Cumulative overall hazard H_all(t) = int_0^t [hE(u) + hL(u)] du
-  h_all <- hE + hL + hA
+  # Cumulative incidence of event and loss to follow-up: int h_k(t) S_obs(t) dt
+  F_event_grid <- cumsum(hE * S_obs) * dt
+  F_loss_grid  <- cumsum(hL * S_obs) * dt
 
-
-  H_all <- cumsum(h_all) * dt
-
-  # Overall survival (no event, no loss) S_all(t) = exp(-H_all(t))
-  S_all <- exp(-H_all)
-
-  # Integrand for CIFs: h_k(t) * S_all(t)
-  integrand_E <- hE * S_all
-  integrand_L <- hL * S_all
-  integrand_A <- hA * S_all
-
-  # Cumulative incidence functions (numerical integration)
-  F_event_grid <- cumsum(integrand_E) * dt
-  F_loss_grid  <- cumsum(integrand_L) * dt
-  F_admin_grid  <- cumsum(integrand_A) * dt
-
-  # Interpolate back to the requested x values
-  p_obs    <- stats::approx(t_grid, S_all,        xout = x, rule = 2)$y
-  p_event  <- stats::approx(t_grid, F_event_grid, xout = x, rule = 2)$y
-  p_loss   <- stats::approx(t_grid, F_loss_grid,  xout = x, rule = 2)$y
-  p_admin  <- stats::approx(t_grid, F_admin_grid,  xout = x, rule = 2)$y
-
-  # Small numerical correction: ensure they sum to 1
+  p_obs   <- S_obs
+  p_event <- F_event_grid
+  p_loss  <- F_loss_grid
+  # Administrative censoring takes the remaining mass, so the four sum to 1
+  p_admin <- pmax(0, 1 - p_obs - p_event - p_loss)
   total <- p_obs + p_event + p_loss + p_admin
   p_obs   <- p_obs   / total
   p_event <- p_event / total

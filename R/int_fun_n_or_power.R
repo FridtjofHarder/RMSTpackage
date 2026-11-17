@@ -47,7 +47,7 @@ int_fun_n_or_power <- function(scale_ctrl,
         is.finite(accrual_time + follow_up_time)
     )
     tau <- accrual_time + follow_up_time
-    warning(
+    warning(call. = FALSE,
       "tau was not defined and has been set to trial length as sum of accrual_time plus follow_up_time."
     )
   }
@@ -134,6 +134,8 @@ int_fun_n_or_power <- function(scale_ctrl,
     hazard_ratio <- scale_trmt / scale_ctrl
     if(!length(unique(hazard_ratio)) == 1){
       hazard_ratio <- "Hazard ratio is not constant"
+    } else {
+      hazard_ratio <- hazard_ratio[1]
     }
   } else {
     hazard_ratio <- "Hazard ratio is not constant"
@@ -332,10 +334,13 @@ int_fun_n_or_power <- function(scale_ctrl,
       }
       if (LRT_simulation)
         pwr_LRT_simul   <- mean(sapply(sim_results, `[[`, "LRT"))
-      if (any(sapply(sim_results, `[[`, "tau_changed")))
+      n_tau_changed <- sum(sapply(sim_results, `[[`, "tau_changed"))
+      if (n_tau_changed > 0) {
         warning(
-          "tau has been reduced to the minimum largest observation across groups in at least one iteration."
+          "tau has been reduced to the minimum largest observation across groups in ",
+          n_tau_changed, " of ", M, " iteration(s)."
         )
+      }
     }
     # plot example data if requested ---------------------------------------------
 
@@ -422,15 +427,13 @@ one_sim <- function(i, args) {
     RMSTD_satter_n = 0,
     RMSTR_satter = 0,
     LRT = 0,
-    tau_changed = FALSE
+    tau_changed = 0
   )
   if (args$RMSTD_simulation || args$RMSTR_simulation) {
     tau_temp <- args$tau
-    min_max <- min(max(simul_data$observations[simul_data$label == 0]),
-                   max(simul_data$observations[simul_data$label == 1]))
-    if (min_max < args$tau) {
-      tau_temp <- min_max
-      result_i$tau_changed <- TRUE
+    if(!is_tau_smaller_minmax(tau = tau_temp, data = simul_data)){
+      tau_temp <- NULL
+      result_i$tau_changed <- 1
     }
     fit <- survRM2::rmst2(
       simul_data$observations,
@@ -454,8 +457,6 @@ one_sim <- function(i, args) {
             satter_df_from = "events",
             n = args$n
           )
-          print("simul df from events")
-          print(satter_df_sim_events)
           half_CI_events <- se_diff * get_crit_satter(alpha = args$alpha, sides = args$sides, satter_df = satter_df_sim_events)
           lower_CI_satter <- result[1, 1] - half_CI_events # result[1, 1] is estimate of RMSTD
           result_i$RMSTD_satter <- as.numeric(lower_CI_satter > args$margin_RMSTD)
@@ -468,8 +469,6 @@ one_sim <- function(i, args) {
             satter_df_from = "n",
             n = args$n
           )
-          print("simul df from n")
-          print(satter_df_sim_n)
           half_CI_n <- se_diff * get_crit_satter(alpha = args$alpha, sides = args$sides, satter_df = satter_df_sim_n)
           lower_CI_satter <- result[1, 1] - half_CI_n # result[1, 1] is estimate of RMSTD
           result_i$RMSTD_satter_n <- as.numeric(lower_CI_satter > args$margin_RMSTD)
@@ -571,5 +570,23 @@ one_sim <- function(i, args) {
 
 get_crit_satter <- function(alpha, sides, satter_df){
   return(stats::qt(1 - alpha / sides, df = satter_df))
+}
+
+is_tau_smaller_minmax <- function(tau, data){
+  ctrl_data <- data[data$label == 0, ]
+  trmt_data <- data[data$label == 1, ]
+  ctrl_max_index <- which.max(ctrl_data$observations)
+  trmt_max_index <- which.max(trmt_data$observations)
+  minmax <- min(ctrl_data$observations[ctrl_max_index],
+                trmt_data$observations[trmt_max_index])
+  maxmax <- max(ctrl_data$observations[ctrl_max_index],
+                trmt_data$observations[trmt_max_index])
+  if(tau < minmax){
+    return(TRUE)
+  }
+  if(tau > minmax & tau < maxmax & ctrl_data$status[ctrl_max_index] == 1 & trmt_data$status[trmt_max_index] == 1){
+    return(TRUE)
+  }
+  return(FALSE)
 }
 
