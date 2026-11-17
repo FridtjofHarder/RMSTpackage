@@ -581,10 +581,10 @@ is_tau_smaller_minmax <- function(tau, data){
                 trmt_data$observations[trmt_max_index])
   maxmax <- max(ctrl_data$observations[ctrl_max_index],
                 trmt_data$observations[trmt_max_index])
-  if(tau < minmax){
+  if(tau <= minmax){
     return(TRUE)
   }
-  if(tau > minmax & tau < maxmax & ctrl_data$status[ctrl_max_index] == 1 & trmt_data$status[trmt_max_index] == 1){
+  if(tau > minmax & tau <= maxmax & ctrl_data$status[ctrl_max_index] == 1 & trmt_data$status[trmt_max_index] == 1){
     return(TRUE)
   }
   return(FALSE)

@@ -824,7 +824,7 @@ check_inputs <- function(scale_ctrl = NULL,
       length(shape_trmt) == 1 || all(shape_trmt == 1) && length(shape_trmt) == length(scale_trmt)
   )
   stopifnot(
-    "sShape_loss must be a scalar or a vector of 1s (piecewise Weibull is not supported)
+    "shape_loss must be a scalar or a vector of 1s (piecewise Weibull is not supported)
     If shape_loss is a vector of 1s, it must have the same length as scale_loss" =
       length(shape_loss) == 1 || all(shape_loss == 1) && length(shape_loss) == length(scale_loss)
   )

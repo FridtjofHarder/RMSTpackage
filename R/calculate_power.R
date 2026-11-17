@@ -105,6 +105,7 @@ calculate_power <- function(
     n = NULL,
     plot_design_curves = FALSE,
     parameterisation = 1){
+  stopifnot("sample size n has to be defined for power calculation" = !is.null(n))
   int_fun_n_or_power(
     scale_ctrl = scale_ctrl,
     scale_trmt = scale_trmt,
