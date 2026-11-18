@@ -111,7 +111,7 @@ convert_contrast_ph <- function(
 
   # local helper: RMST of a simple Weibull survival curve ----------------------
   rmst_weibull <- function(scale, shape = 1, breakpoints = 0) {
-    stats::integrate(
+    integrate_robust(
       ppweibull::ppweibull,
       rate = scale^shape,
       alpha = shape,

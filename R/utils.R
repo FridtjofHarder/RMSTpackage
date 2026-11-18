@@ -6,12 +6,35 @@
 
 # get design parameters ---------------------------------------------------
 
+# Wrapper around stats::integrate() with more subdivisions, since piecewise
+# (many breakpoints) integrands can exhaust the default of 100 subdivisions
+# Wrapper around stats::integrate() for piecewise integrands. Integrands built
+# from many breakpoints have kinks that can exhaust the subdivisions or trigger
+# roundoff errors in QUADPACK. The interval is therefore split at the points in
+# cut_at (the kinks), each piece is integrated with up to 1000 subdivisions, and
+# the pieces are summed. Returns a list with element value, like integrate().
+integrate_robust <- function(f, lower, upper, ..., cut_at = NULL,
+                             subdivisions = 1000L,
+                             rel.tol = .Machine$double.eps^0.25,
+                             abs.tol = rel.tol) {
+  cut_at <- sort(unique(cut_at[is.finite(cut_at) & cut_at > lower & cut_at < upper]))
+  edges <- c(lower, cut_at, upper)
+  value <- 0
+  for (i in seq_len(length(edges) - 1)) {
+    value <- value + stats::integrate(f, lower = edges[i], upper = edges[i + 1], ...,
+                                      subdivisions = subdivisions, rel.tol = rel.tol,
+                                      abs.tol = abs.tol)$value
+  }
+  list(value = value)
+}
+
 # calculate true RMST for Weibull function
 get_theoretical_rmst <- function(scale, shape, breakpoints, tau) {
-  stats::integrate(
+  integrate_robust(
     function(y) ppweibull::ppweibull(q = y, rate = scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE),
     lower = 0,
-    upper = tau
+    upper = tau,
+    cut_at = breakpoints
   )$value
 }
 
@@ -124,7 +147,7 @@ get_density <- function(
   accrual_time,
   follow_up_time
 ) {
-  if(length(breakpoints > 1)){
+  if(length(breakpoints) > 1){
   density <- msm::dpexp(x = x, rate = scale, t = breakpoints) *
     get_p_not_censored(
       x = x,
@@ -165,14 +188,15 @@ get_sigma2_rmst <- function(
 ) {
   inner <- function(x) {
     sapply(x, function(x1) {
-      stats::integrate(
+      integrate_robust(
         function(x2) ppweibull::ppweibull(q = x2, rate = scale^shape, alpha = shape, t = breakpoints, lower.tail = FALSE),
         lower = x1,
-        upper = tau
+        upper = tau,
+        cut_at = breakpoints
       )$value
     })
   }
-  stats::integrate(
+  integrate_robust(
     function(x) {
       inner(x)^2 *
         get_h(x, scale = scale, shape = shape, breakpoints = breakpoints) /
@@ -190,7 +214,8 @@ get_sigma2_rmst <- function(
         )
     },
     lower = 0,
-    upper = tau
+    upper = tau,
+    cut_at = c(breakpoints, breakpoints_loss, follow_up_time, accrual_time + follow_up_time)
   )$value
 }
 
@@ -213,7 +238,7 @@ get_sigma2_LRT <- function(scale_ctrl,
   } else {
     total_time <- accrual_time + follow_up_time
   }
-  sigma2 <- stats::integrate(
+  sigma2 <- integrate_robust(
     Vectorize(function(x) {
       get_p_at_risk(
         x,
@@ -283,7 +308,8 @@ get_sigma2_LRT <- function(scale_ctrl,
           )) / 2
     }),
     lower = 0,
-    upper = total_time
+    upper = total_time,
+    cut_at = c(breakpoints_ctrl, breakpoints_trmt, breakpoints_loss, follow_up_time, accrual_time + follow_up_time)
   )$value
   return(sigma2)
 }
@@ -307,7 +333,7 @@ get_delta_LRT <- function(scale_ctrl,
   } else {
     total_time <- accrual_time + follow_up_time
   }
-  delta_LRT <- stats::integrate(Vectorize(function(x) {
+  delta_LRT <- integrate_robust(Vectorize(function(x) {
     (2 /  get_p_at_risk(
       x,
       scale = scale_ctrl,
@@ -332,7 +358,7 @@ get_delta_LRT <- function(scale_ctrl,
       ))^(-1) *
       (get_h(x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt) -
          get_h(x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl))
-    }), lower = 0, upper = total_time)$value
+    }), lower = 0, upper = total_time, cut_at = c(breakpoints_ctrl, breakpoints_trmt, breakpoints_loss, follow_up_time, accrual_time + follow_up_time))$value
   return(delta_LRT)
 }
 
@@ -342,7 +368,7 @@ get_delta_LRT <- function(scale_ctrl,
 #     hsurv(x, arm0)), lower = 0, upper = arm0$total_time)$value
 # }
 
-# choenfeld instead of asymptotic npsurvSS.
+# Schoenfeld instead of asymptotic npsurvSS.
 # use only if margin is defined
 get_delta_LRT_schoenfeld <- function(scale_ctrl,
                           scale_trmt,
@@ -363,7 +389,7 @@ get_delta_LRT_schoenfeld <- function(scale_ctrl,
   } else {
     total_time <- accrual_time + follow_up_time
   }
-  delta_LRT <- stats::integrate(Vectorize(function(x) {
+  delta_LRT <- integrate_robust(Vectorize(function(x) {
     (log(get_h(x, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt)) -
        log(get_h(x, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl)) -
        log(margin_LRT)) *
@@ -433,7 +459,7 @@ get_delta_LRT_schoenfeld <- function(scale_ctrl,
           accrual_time = accrual_time,
           follow_up_time = follow_up_time
         )) / 2
-  }), lower = 0, upper = total_time)$value
+  }), lower = 0, upper = total_time, cut_at = c(breakpoints_ctrl, breakpoints_trmt, breakpoints_loss, follow_up_time, accrual_time + follow_up_time))$value
   return(delta_LRT)
 }
 
@@ -678,9 +704,6 @@ get_n <- function(sigma2, Delta, alpha, sides, power, satter_df = NULL, satter_c
 
 
 
-# reverse design --------------------------------------------------------
-
-
 # misc ------------------------------------------------------------------
 
 # prepend 0 to a breakpoints vector if not already present; return 0 for NULL
@@ -717,7 +740,7 @@ get_satter_df <- function(scale_ctrl, scale_trmt,
                                  accrual_time, follow_up_time, tau,
                                  n, sigma2_ctrl, sigma2_trmt, satter_df_from = "events") {
   if (satter_df_from == "events") {
-    units_ctrl <- stats::integrate(Vectorize(
+    units_ctrl <- integrate_robust(Vectorize(
       function(x)
         get_density(
           x,
@@ -732,8 +755,8 @@ get_satter_df <- function(scale_ctrl, scale_trmt,
         )
     ),
     lower = 0,
-    upper = tau)$value * n * 0.5
-    units_trmt <- stats::integrate(Vectorize(
+    upper = tau, cut_at = c(breakpoints_ctrl, breakpoints_loss, follow_up_time, accrual_time + follow_up_time))$value * n * 0.5
+    units_trmt <- integrate_robust(Vectorize(
       function(x)
         get_density(
           x,
@@ -748,7 +771,7 @@ get_satter_df <- function(scale_ctrl, scale_trmt,
         )
     ),
     lower = 0,
-    upper = tau)$value * n * 0.5
+    upper = tau, cut_at = c(breakpoints_trmt, breakpoints_loss, follow_up_time, accrual_time + follow_up_time))$value * n * 0.5
     if(units_trmt <= 1) warning("Number of events in treatment arm is less than or equal to 1")
   }
   if(satter_df_from == "n"){
