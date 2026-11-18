@@ -19,6 +19,15 @@ integrate_robust <- function(f, lower, upper, ..., cut_at = NULL,
                              abs.tol = rel.tol) {
   cut_at <- sort(unique(cut_at[is.finite(cut_at) & cut_at > lower & cut_at < upper]))
   edges <- c(lower, cut_at, upper)
+  # In the far tail the at-risk probabilities can underflow to 0 (e.g. Weibull
+  # shape > 1), turning ratios such as p0 * p1 / (p0 + p1)^2 into 0/0 = NaN. The
+  # true integrand tends to 0 there, so NaN is set to 0. Inf is left to error.
+  f_orig <- f
+  f <- function(x, ...) {
+    y <- f_orig(x, ...)
+    y[is.nan(y)] <- 0
+    y
+  }
   value <- 0
   for (i in seq_len(length(edges) - 1)) {
     value <- value + stats::integrate(f, lower = edges[i], upper = edges[i + 1], ...,

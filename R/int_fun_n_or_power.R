@@ -131,7 +131,7 @@ int_fun_n_or_power <- function(scale_ctrl,
     True_RMSTR <- RMST_trmt / RMST_ctrl
   }
   if(all(shape_ctrl == shape_trmt) & all(breakpoints_ctrl == breakpoints_trmt)){
-    hazard_ratio <- scale_trmt / scale_ctrl
+    hazard_ratio <- scale_trmt^shape_trmt / scale_ctrl^shape_trmt
     if(!length(unique(hazard_ratio)) == 1){
       hazard_ratio <- "Hazard ratio is not constant"
     } else {

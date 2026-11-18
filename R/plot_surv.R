@@ -202,6 +202,8 @@ plot_surv <- function(
       HR = get_h(x = x_grid, scale = scale_trmt, shape = shape_trmt, breakpoints = breakpoints_trmt) /
         get_h(x = x_grid, scale = scale_ctrl, shape = shape_ctrl, breakpoints = breakpoints_ctrl)
     )
+    # hazards can be 0 at t = 0 (Weibull with shape > 1), giving 0/0 = NaN
+    hr_data <- hr_data[is.finite(hr_data$HR), ]
 
     p_hr <- ggplot2::ggplot(hr_data, ggplot2::aes(x = t, y = HR)) +
       ggplot2::geom_line(color = "black", linewidth = 1.2) +
@@ -266,6 +268,9 @@ plot_surv <- function(
       times = c("Control group", "Treatment group"),
       direction = "long"
     )
+
+    # S(0) = 1 gives an infinite value at t = 0
+    loglog_data_long <- loglog_data_long[is.finite(loglog_data_long$loglog), ]
 
     p_loglog <- ggplot2::ggplot(loglog_data_long, ggplot2::aes(x = t, y = loglog, color = group)) +
       ggplot2::geom_line(linewidth = 1) +
