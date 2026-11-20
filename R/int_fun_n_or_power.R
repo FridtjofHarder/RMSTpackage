@@ -89,7 +89,7 @@ int_fun_n_or_power <- function(scale_ctrl,
     RMST_ctrl <- RMST_trmt <- True_RMSTD <- True_RMSTR <- pwr_RMSTR_simul_satter <-
     ss_RMSTD_closed_form_satter <- ss_RMSTR_closed_form_satter <-
     pwr_RMSTD_closed_form_satter <- pwr_RMSTR_closed_form_satter <- hazard_ratio <- pwr_RMSTD_closed_form_satter_df_from_n <-
-    pwr_RMSTD_simul_satter_n <- NA
+    pwr_RMSTD_simul_satter_n <- tau_mean <- tau_min <- NA
 
   # capture scales to use later for plot function
   original_scales <- list(scale_ctrl = scale_ctrl,
@@ -319,6 +319,18 @@ int_fun_n_or_power <- function(scale_ctrl,
       censor_beyond_tau = censor_beyond_tau
     )
       sim_results <- lapply(seq_len(M), one_sim, args = worker_args)
+      if (RMSTD_simulation | RMSTR_simulation) {
+        n_tau_changed <- sum(sapply(sim_results, `[[`, "tau_changed"))
+        if (n_tau_changed > 0) {
+          warning(
+            "tau has been reduced to the minimum largest observation across groups in ",
+            n_tau_changed, " of ", M, " iteration(s)."
+          )
+          tau_min <- min(sapply(sim_results, `[[`, "tau"))
+          tau_mean <- mean(sapply(sim_results, `[[`, "tau"))
+        }
+
+      }
       if (RMSTD_simulation) {
         pwr_RMSTD_simul <- mean(sapply(sim_results, `[[`, "RMSTD"))
         if (satter_corr) {
@@ -332,14 +344,8 @@ int_fun_n_or_power <- function(scale_ctrl,
           pwr_RMSTR_simul_satter <- mean(sapply(sim_results, `[[`, "RMSTR_satter"))
         }
       }
-      if (LRT_simulation)
+      if (LRT_simulation) {
         pwr_LRT_simul   <- mean(sapply(sim_results, `[[`, "LRT"))
-      n_tau_changed <- sum(sapply(sim_results, `[[`, "tau_changed"))
-      if (n_tau_changed > 0) {
-        warning(
-          "tau has been reduced to the minimum largest observation across groups in ",
-          n_tau_changed, " of ", M, " iteration(s)."
-        )
       }
     }
     # plot example data if requested ---------------------------------------------
@@ -391,7 +397,9 @@ int_fun_n_or_power <- function(scale_ctrl,
       "RMST control group" = RMST_ctrl,
       "RMST difference" = True_RMSTD,
       "RMST ratio" = True_RMSTR,
-      "Hazard ratio" = hazard_ratio
+      "Hazard ratio" = hazard_ratio,
+      "Mean of actual taus" = tau_mean,
+      "Smallest actual tau" = tau_min
     )
     result <- Filter(Negate(is.na), result)
     return(result)
@@ -427,12 +435,13 @@ one_sim <- function(i, args) {
     RMSTD_satter_n = 0,
     RMSTR_satter = 0,
     LRT = 0,
-    tau_changed = 0
+    tau_changed = 0,
+    tau = NA
   )
   if (args$RMSTD_simulation || args$RMSTR_simulation) {
     tau_temp <- args$tau
     if(!is_tau_smaller_minmax(tau = tau_temp, data = simul_data)){
-      tau_temp <- NULL
+      tau_temp <- NULL #survRMS2::rmst() will choose largest legal tau automatically if set to NULL
       result_i$tau_changed <- 1
     }
     fit <- survRM2::rmst2(
@@ -551,6 +560,7 @@ one_sim <- function(i, args) {
         }
       }
     }
+    result_i$tau <- fit$tau # save actual tau, even if reduced
   }
   if (args$LRT_simulation) {
     if (args$censor_beyond_tau) {
