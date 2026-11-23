@@ -324,12 +324,14 @@ int_fun_n_or_power <- function(scale_ctrl,
         if (n_tau_changed > 0) {
           warning(
             "tau has been reduced to the minimum largest observation across groups in ",
-            n_tau_changed, " of ", M, " iteration(s)."
+            n_tau_changed,
+            " of ",
+            M,
+            " iteration(s)."
           )
-          tau_min <- min(sapply(sim_results, `[[`, "tau"))
-          tau_mean <- mean(sapply(sim_results, `[[`, "tau"))
         }
-
+        tau_min <- min(sapply(sim_results, `[[`, "tau"))
+        tau_mean <- mean(sapply(sim_results, `[[`, "tau"))
       }
       if (RMSTD_simulation) {
         pwr_RMSTD_simul <- mean(sapply(sim_results, `[[`, "RMSTD"))

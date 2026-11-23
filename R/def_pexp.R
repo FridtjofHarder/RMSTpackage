@@ -49,7 +49,7 @@ def_pexp <- function(breakpoints = NULL, surv, plot = FALSE){
       lower.tail = FALSE
     )
 
-    segment_data <- data.frame(t = breakpoints_red, S = surv)
+    segment_data <- data.frame(t = breakpoints_red, S = surv[-length(surv)])
 
     plot_title <- paste0(
       "Piecewise exponential survival with hazards = c(",

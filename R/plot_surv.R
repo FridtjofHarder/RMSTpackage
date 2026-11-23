@@ -132,6 +132,17 @@ plot_surv <- function(
     if (!is.null(tau) && is.null(xlim)) { # define xlim in relation to tau if not specified
     xlim <- c(0, 1.5 * tau)
   }
+  if (is.null(xlim)) {
+    # neither tau nor xlim given: plot until 95% of subjects in the slower group had the event
+    total_time <- accrual_time + follow_up_time
+    q_end <- max(
+      ppweibull::qpweibull(0.95, rate = scale_ctrl^shape_ctrl, alpha = shape_ctrl,
+                           t = breakpoints_ctrl),
+      ppweibull::qpweibull(0.95, rate = scale_trmt^shape_trmt, alpha = shape_trmt,
+                           t = breakpoints_trmt)
+    )
+    xlim <- c(0, if (is.finite(total_time)) min(q_end, total_time) else q_end)
+  }
   # shared helpers ------------------------------------------------------------
   x_grid <- seq(xlim[1], xlim[2], length.out = 1000)
 

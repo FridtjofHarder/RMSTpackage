@@ -30,6 +30,16 @@ integrate_robust <- function(f, lower, upper, ..., cut_at = NULL,
   }
   value <- 0
   for (i in seq_len(length(edges) - 1)) {
+    if (i == 1 && edges[1] == 0) {
+      # Substitute t = u^4 on the first piece: integrands with a t^(shape - 1)
+      # singularity at 0 (Weibull hazards, shape < 1) become smooth, which
+      # stats::integrate() otherwise may reject as "probably divergent".
+      g <- function(u, ...) f(u^4, ...) * 4 * u^3
+      value <- value + stats::integrate(g, lower = 0, upper = edges[2]^(1 / 4), ...,
+                                        subdivisions = subdivisions, rel.tol = rel.tol,
+                                        abs.tol = abs.tol)$value
+      next
+    }
     value <- value + stats::integrate(f, lower = edges[i], upper = edges[i + 1], ...,
                                       subdivisions = subdivisions, rel.tol = rel.tol,
                                       abs.tol = abs.tol)$value
@@ -54,7 +64,8 @@ get_h <- function(x, scale, shape, breakpoints) {
   breakpoints <- as.numeric(breakpoints)
   scale <- as.numeric(scale)
 
-  # Case 1: piecewise-constant hazard via breakpoints
+  # Case 1: piecewise power Weibull hazard via breakpoints,
+  # h(x) = shape * scale_j^shape * x^(shape - 1) (same as ppweibull with rate = scale^shape)
   if (length(breakpoints) > 1) {
     # For each x, find the index of the last breakpoint <= x
     # findInterval returns 0 if x < breakpoints[1]
@@ -66,7 +77,8 @@ get_h <- function(x, scale, shape, breakpoints) {
 
     # For x >= first breakpoint, pick the corresponding scale
     valid <- idx >= 1 & idx <= length(scale)
-    h[valid] <- scale[idx[valid]]
+    shape_j <- rep_len(shape, length(scale))[idx[valid]]
+    h[valid] <- shape_j * scale[idx[valid]]^shape_j * x[valid]^(shape_j - 1)
 
     return(h)
   }
